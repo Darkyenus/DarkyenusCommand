@@ -7,43 +7,43 @@ import java.util.function.Function;
  *
  */
 public class Util {
-	public static int levenshteinDistance (CharSequence lhs, CharSequence rhs) {
-		int len0 = lhs.length() + 1;
-		int len1 = rhs.length() + 1;
+	public static int levenshteinDistance (CharSequence s0, CharSequence s1, int replaceCost, int insertCost, int deleteCost) {
+		int len0 = s0.length() + 1;
+		int len1 = s1.length() + 1;
 
 		// the array of distances
 		int[] cost = new int[len0];
-		int[] newcost = new int[len0];
+		int[] newCost = new int[len0];
 
 		// initial cost of skipping prefix in String s0
 		for (int i = 0; i < len0; i++)
-			cost[i] = i;
+			cost[i] = i * insertCost;
 
 		// dynamically computing the array of distances
 
 		// transformation cost for each letter in s1
-		for (int j = 1; j < len1; j++) {
+		for (int i1 = 1; i1 < len1; i1++) {
 			// initial cost of skipping prefix in String s1
-			newcost[0] = j;
+			newCost[0] = i1 * deleteCost;
 
 			// transformation cost for each letter in s0
-			for (int i = 1; i < len0; i++) {
+			for (int i0 = 1; i0 < len0; i0++) {
 				// matching current letters in both strings
-				int match = (lhs.charAt(i - 1) == rhs.charAt(j - 1)) ? 0 : 1;
+				int match = (s0.charAt(i0 - 1) == s1.charAt(i1 - 1)) ? 0 : replaceCost;
 
 				// computing cost for each transformation
-				int cost_replace = cost[i - 1] + match;
-				int cost_insert = cost[i] + 1;
-				int cost_delete = newcost[i - 1] + 1;
+				int cost_replace = cost[i0 - 1] + match;
+				int cost_insert = cost[i0] + insertCost;
+				int cost_delete = newCost[i0 - 1] + deleteCost;
 
 				// keep minimum cost
-				newcost[i] = Math.min(Math.min(cost_insert, cost_delete), cost_replace);
+				newCost[i0] = Math.min(Math.min(cost_insert, cost_delete), cost_replace);
 			}
 
-			// swap cost/newcost arrays
+			// swap cost/newCost arrays
 			int[] swap = cost;
-			cost = newcost;
-			newcost = swap;
+			cost = newCost;
+			newCost = swap;
 		}
 
 		// the distance is the cost for transforming all letters in both strings
@@ -54,7 +54,7 @@ public class Util {
 		int nearest = Integer.MAX_VALUE;
 		T nearestItem = null;
 		for (T s : selection) {
-			final int distance = levenshteinDistance(toString.apply(s), target);
+			final int distance = levenshteinDistance(toString.apply(s), target, 7, 1, 10);
 			if (distance == 0) {
 				return s;
 			} else if (distance < nearest) {

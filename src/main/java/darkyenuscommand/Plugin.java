@@ -1498,7 +1498,7 @@ public class Plugin extends JavaPlugin {
 				return true;
 			} else if (command.getName().equals("setflyspeed")) {
 				// --------------------------------------- SETFLYSPEED
-				float speed = 0.2f;// Probably default speed?
+				float speed = 0.1f;// Probably default speed?
 				Player player;
 				try {
 					speed = ((float)Integer.parseInt(args[0])) / 10.0f;
