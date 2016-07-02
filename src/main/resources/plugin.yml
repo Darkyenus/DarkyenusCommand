@@ -1,0 +1,436 @@
+name: DarkyenusCommand
+version: 8.0-SNAPSHOT
+main: darkyenuscommand.Plugin
+authors: [Darkyen]
+commands:
+  rules:
+    description: Get rules!
+    usage: /rules
+    permission: darkyenuscommand.command.rules
+  kick:
+    description: Kick somebody from server
+    usage: /kick <Player> -[Minutes] [Message]
+    permission: darkyenuscommand.command.kick
+  say:
+    description: Broadcast message as somebody
+    usage: /say -[Name] <Message>
+    permission: darkyenuscommand.command.say
+  panic:
+    description: Temporary lock nearby players
+    usage: /panic [Minutes]
+    permission: darkyenuscommand.command.panic
+    aliases: [p]
+  depanic:
+    description: Unlock panicking players
+    usage: /depanic
+    permission: darkyenuscommand.command.depanic
+    aliases: [unpanic]
+  globalpanic:
+    description: Temporary lock all players
+    usage: /globalpanic [Minutes]
+    permission: darkyenuscommand.command.globalpanic
+    aliases: [gp]
+  strike:
+    description: Strike player as warning
+    usage: /strike <Player> [Damage]
+    permission: darkyenuscommand.command.strike
+  kill:
+    description: Instantly kill player or yourself
+    usage: /kill [Player]
+    permission: darkyenuscommand.command.kill
+  report:
+    description: Report a bug or player breaking rules
+    usage: /report <Player | Message>
+    aliases: [hack, hacker, cheat, cheater]
+    permission: darkyenuscommand.command.report
+  mute:
+    description: Mute player in chat
+    usage: /mute <Player> [Minutes]
+    permission: darkyenuscommand.command.mute
+  unmute:
+    description: Unmute player
+    usage: /unmute <Player>
+    permission: darkyenuscommand.command.unmute
+  warp:
+    description: Teleport to preset warp
+    usage: /warp [Create | Remove | Goto | List] [Warp]
+    permission: darkyenuscommand.command.warp
+  playerinfo:
+    description: Get player info
+    usage: /playerinfo <Player>
+    aliases: [pinfo]
+    permission: darkyenuscommand.command.playerinfo
+  teleporthere:
+    description: Teleportes player to you
+    usage: /tphere <Player>
+    aliases: [tphere,tph]
+    permission: darkyenuscommand.command.teleporthere
+  teleportto:
+    description: Teleports you to another player
+    usage: /tpto <Player>
+    aliases: [tpto,tpt]
+    permission: darkyenuscommand.command.teleportto
+  teleporthereall:
+    description: Teleportes all players on server to you
+    usage: /tphereall
+    aliases: [tphereall,tpha]
+    permission: darkyenuscommand.command.teleporthereall
+  teleport:
+    description: Teleports you (or specified player) to specified place
+    usage: /teleport [+]<X> [+]<Y> [+]<Z> [Player] OR <Top|Up|Down|Bottom> [Player]
+    aliases: [tp]
+    permission: darkyenuscommand.command.teleport
+  recall:
+    description: Teleportes you or specified player back
+    usage: /recall [Player]
+    permission: darkyenuscommand.command.recall
+  compass:
+    description: Sets your compass location to actual location of somebody
+    usage: /compass [Player]
+    permission: darkyenuscommand.command.compass
+  darkyenuscommand:
+    description: Plugin gateway
+    usage: /darkyenuscommand [Gc, Reload, Interpreter]
+    aliases: [dcommand]
+  time:
+    description: Set time
+    usage: /time [Time | Alias] [World]
+    aliases: [t]
+    permission: darkyenuscommand.command.time
+  timemaintain:
+    description: Maintain time
+    usage: /timemaintain [Time | Alias] [World]
+    aliases: [timestay, timekeep, keeptime]
+    permission: darkyenuscommand.command.timemaintain
+  weather:
+    description: Set weather
+    usage: /weather [Weather] [World]
+    aliases: [w, weat]
+    permission: darkyenuscommand.command.weather
+  gamemode:
+    description: Set gamemode
+    usage: /gamemode [Gamemode] [Player]
+    aliases: [gmode, gamem, gm]
+    permission: darkyenuscommand.command.gamemode
+  item:
+    description: Give an item or see item info
+    usage: /item [Item Name] [Amount] [Data] [Player]
+    aliases: [give]
+    permission: darkyenuscommand.command.item
+  repair:
+    description: Repair held item
+    usage: /repair [Player]
+    aliases: [fix]
+    permission: darkyenuscommand.command.repair
+  trash:
+    description: Trash items
+    usage: /trash [Item | Hotbar | Inventory | All] [Player]
+    aliases: [trash, delete, disposal]
+    permission: darkyenuscommand.command.trash
+  difficulty:
+    description: Set difficulty
+    usage: /difficulty [Difficulty] [World]
+    aliases: [diff]
+    permission: darkyenuscommand.command.difficulty
+  clear:
+    description: Clear something from world
+    usage: /clear [What] [World]
+    aliases: [clear, clean, sweep]
+    permission: darkyenuscommand.command.clear
+  jail:
+    description: Warp somebody to jail (jailwarps start with jail_)
+    usage: /jail <Player> [Warp]
+    permission: darkyenuscommand.command.jail
+  unjail:
+    description: Warp somebody from jail
+    usage: /jail <Player>
+    permission: darkyenuscommand.command.unjail
+  viewinventory:
+    description: Show someones inventory
+    usage: /viewinventory <Player>
+    aliases: [showinventory, viewinv, showinv]
+    permission: darkyenuscommand.command.viewinventory
+  setspawn:
+    description: Sets spawn at location
+    usage: /setspawn
+    permission: darkyenuscommand.command.setspawn
+  spawn:
+    description: Teleports you to the spawn point
+    usage: /spawn
+    permission: darkyenuscommand.command.spawn
+  spawnentity:
+    description: Spawns some entities at place where you are looking
+    usage: /spawnentity <Entity Type> [Amount]
+    permission: darkyenuscommand.command.spawnentity
+  setflyspeed:
+    description: Sets flying speed of you or specified player (In creative mode)
+    usage: /setflyspeed [Speed] [Player]
+    permission: darkyenuscommand.command.setflyspeed
+    aliases: [flyspeed, fspeed, speed]
+  world:
+    description: Manage and teleport between worlds.
+    usage: /world [Create, Delete, Goto] [World] [Generator, Player]
+    permission: darkyenuscommand.command.world
+  command:
+    description: Show info about command or list commands.
+    aliases: [commands, cmd, cmds, man]
+    usage: /command [Plugin Name | Command Name] [list]
+    permission: darkyenuscommand.command.command
+  heal:
+    description: Heal player by given amount
+    usage: /heal [Amount] [Player]
+    permission: darkyenuscommand.command.heal
+  find:
+    description: Find something in the world
+    usage: /find <Player|Biome|Entity> [Player|Biome|Entity]
+    permission: darkyenuscommand.command.find
+  setbiome:
+    description: Sets biome in radius around player in square, unless specified otherwise.
+    usage: /setbiome <Radius> <Biome> [Circle] [<World> <X> <Z>]
+    aliases: [biome]
+    permission: darkyenuscommand.command.biome
+permissions:
+  darkyenuscommand.command.rules:
+    description: Access to /rules command.
+    default: true
+  darkyenuscommand.command.kick:
+    description: Access to /kick command.
+    default: op
+  darkyenuscommand.command.ban:
+    description: Access to /ban command.
+    default: op
+  darkyenuscommand.command.ipban:
+    description: Access to /ipban command.
+    default: op
+  darkyenuscommand.command.pardon:
+    description: Access to /pardon command.
+    default: op
+  darkyenuscommand.command.ippardon:
+    description: Access to /ippardon command.
+    default: op
+  darkyenuscommand.command.say:
+    description: Access to /say command.
+    default: op
+  darkyenuscommand.command.panic:
+    description: Access to /panic command.
+    default: op
+  darkyenuscommand.command.depanic:
+    description: Access to /depanic command.
+    default: op
+  darkyenuscommand.command.globalpanic:
+    description: Access to /globalpanic command.
+    default: op
+  darkyenuscommand.command.strike:
+    description: Access to /strike command.
+    default: op
+  darkyenuscommand.command.kill:
+    description: Access to /kill command. You can only kill yourself.
+    default: true
+  darkyenuscommand.command.report:
+    description: Access to /report command.
+    default: true
+  darkyenuscommand.command.mute:
+    description: Access to /mute command.
+    default: op
+  darkyenuscommand.command.unmute:
+    description: Access to /unmute command.
+    default: op
+  darkyenuscommand.command.warp:
+    description: Access to /warp command.
+    default: op
+  darkyenuscommand.command.playerinfo:
+    description: Access to /playerinfo command.
+    default: op
+  darkyenuscommand.command.teleporthere:
+    description: Access to /teleporthere command.
+    default: op
+  darkyenuscommand.command.teleportto:
+    description: Access to /teleportto command.
+    default: op
+  darkyenuscommand.command.teleporthereall:
+    description: Access to /teleporthereall command.
+    default: op
+  darkyenuscommand.command.teleport:
+    description: Access to /teleport command.
+    default: op
+  darkyenuscommand.command.recall:
+    description: Access to /recall command.
+    default: op
+  darkyenuscommand.command.compass:
+    description: Access to /compass command.
+    default: op
+  darkyenuscommand.command.darkyenuscommand:
+    description: Access to /darkyenuscommand's inner commands, such as reload.
+    default: op
+  darkyenuscommand.command.time:
+    description: Access to /time command.
+    default: op
+  darkyenuscommand.command.timemaintain:
+    description: Access to /timemaintain command.
+    default: op
+  darkyenuscommand.command.weather:
+    description: Access to /weather command.
+    default: op
+  darkyenuscommand.command.gamemode:
+    description: Access to /gamemode command.
+    default: op
+  darkyenuscommand.command.item:
+    description: Access to /item command.
+    default: op
+  darkyenuscommand.command.repair:
+      description: Access to /repair command.
+      default: op
+  darkyenuscommand.command.trash:
+    description: Access to /trash command.
+    default: op
+  darkyenuscommand.command.difficulty:
+    description: Access to /difficulty command.
+    default: op
+  darkyenuscommand.command.clear:
+    description: Access to /clear command.
+    default: op
+  darkyenuscommand.command.jail:
+    description: Access to /jail command.
+    default: op
+  darkyenuscommand.command.unjail:
+    description: Access to /unjail command.
+    default: op
+  darkyenuscommand.command.viewinventory:
+    description: Access to /viewinventory command.
+    default: op
+  darkyenuscommand.command.setspawn:
+    description: Access to /setspawn command.
+    default: op
+  darkyenuscommand.command.spawn:
+    description: Access to /spawn command.
+    default: op
+  darkyenuscommand.command.spawnentity:
+    description: Access to /spawnentity command.
+    default: op
+  darkyenuscommand.command.setflyspeed:
+    description: Access to /setflyspeed command.
+    default: op
+  darkyenuscommand.command.world:
+    description: Access to /world command. You can only \"Goto\".
+    default: op
+  darkyenuscommand.command.command:
+    description: Access to /command command.
+    default: true
+  darkyenuscommand.command.heal:
+    description: Access to /heal command.
+    default: op
+  darkyenuscommand.command.find:
+    description: Access to /find command.
+    default: op
+  darkyenuscommand.command.biome:
+    description: Access to /biome command.
+    default: op
+# Here lies the additional command permissions
+  darkyenuscommand.command.kill.anyone:
+    description: You can kill anyone with /kill command, not only yourself.
+    default: op
+  darkyenuscommand.command.world.manage:
+    description: You can create and delete worlds with /world command.
+    default: op
+  darkyenuscommand.command.report.view:
+    description: You can use /report command to see reports.
+    default: op
+  darkyenuscommand.command.trash.anyone:
+    description: You can use /trash command to trash anyones inventory.
+    default: op
+  darkyenuscommand.command.command.all:
+    description: /command will list all commands, not only those that you can execute. Also gives ability to see active plugins.
+    default: op
+# Here lies the non-command permissions
+  darkyenuscommand.sign:
+    description: Be able to use command signs
+    default: op
+  darkyenuscommand.godfist:
+    description: Kill everything in one hit. In creative mode.
+    default: op
+  darkyenuscommand.donotpanic:
+    description: You won't panic when somebody calls /panic or similar command.
+    default: op
+  darkyenuscommand.staff:
+    description: You'll see staff only messages.
+    default: op
+  darkyenuscommand.infostick:
+    description: If you right-click anything with stick, you'll get detailed info about it.
+    default: op
+  darkyenuscommand.debug:
+    description: You can use #enter command to enter debug interpreter mode. In this mode you can directly call game's code. DANGEROUS!!!
+    default: op
+# Here lies the hierarchy universal permissions
+  darkyenuscommand.player:
+    description: You are player and have access to very few commands.
+    default: true
+    children:
+      darkyenuscommand.command.rules: true
+      darkyenuscommand.command.report: true
+      darkyenuscommand.command.kill: true
+  darkyenuscommand.moderator:
+    description: You are moderator and have access to basic commands.
+    default: false
+    children:
+      darkyenuscommand.player: true
+      darkyenuscommand.sign: true
+      darkyenuscommand.command.mute: true
+      darkyenuscommand.command.unmute: true
+      darkyenuscommand.command.kick: true
+      darkyenuscommand.command.jail: true
+      darkyenuscommand.command.unjail: true
+      darkyenuscommand.donotpanic: true
+      darkyenuscommand.command.report.view: true
+      darkyenuscommand.staff: true
+      darkyenuscommand.command.command: true
+      darkyenuscommand.infostick: true
+  darkyenuscommand.gamemaster:
+    description: You are gamemaster and have acces to almost every command.
+    default: false
+    children:
+      darkyneuscommand.moderator: true
+      darkyenuscommand.godfist: true
+      darkyenuscommand.command.kill.anyone: true
+      darkyenuscommand.command.ban: true
+      darkyenuscommand.command.ipban: true
+      darkyenuscommand.command.pardon: true
+      darkyenuscommand.command.ippardon: true
+      darkyenuscommand.command.say: true
+      darkyenuscommand.command.panic: true
+      darkyenuscommand.command.depanic: true
+      darkyenuscommand.command.strike: true
+      darkyenuscommand.command.warp: true
+      darkyenuscommand.command.playerinfo: true
+      darkyenuscommand.command.teleporthere: true
+      darkyenuscommand.command.teleportto: true
+      darkyenuscommand.command.teleport: true
+      darkyenuscommand.command.recall: true
+      darkyenuscommand.command.compass: true
+      darkyenuscommand.command.darkyenuscommand: true
+      darkyenuscommand.command.time: true
+      darkyenuscommand.command.timemaintain: true
+      darkyenuscommand.command.weather: true
+      darkyenuscommand.command.gamemode: true
+      darkyenuscommand.command.item: true
+      darkyenuscommand.command.repair: true
+      darkyenuscommand.command.trash: true
+      darkyenuscommand.command.difficulty: true
+      darkyenuscommand.command.spawn: true
+      darkyenuscommand.command.spawnentity: true
+      darkyenuscommand.command.setflyspeed: true
+      darkyenuscommand.command.world: true
+      darkyenuscommand.command.heal: true
+      darkyenuscommand.command.find: true
+  darkyenuscommand.admin:
+    description: You are admin and have access to every command.
+    default: op
+    children:
+      darkyenuscommand.gamemaster: true
+      darkyenuscommand.command.globalpanic: true
+      darkyenuscommand.command.teleporthereall: true
+      darkyenuscommand.command.clear: true
+      darkyenuscommand.command.viewinventory: true
+      darkyenuscommand.command.setspawn: true
+      darkyenuscommand.command.world.manage: true
+      darkyenuscommand.command.trash.anyone: true
+      darkyenuscommand.debug: true
