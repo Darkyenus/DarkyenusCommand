@@ -60,6 +60,8 @@ public class Util {
 	public static <T> T findNearest (Iterable<T> selection, Function<T, String> toString, String target, int atLeast) {
 		int nearest = Integer.MAX_VALUE;
 		T nearestItem = null;
+		boolean ambiguous = false;
+
 		for (T s : selection) {
 			final int distance = levenshteinDistance(toString.apply(s), target, 7, 1, 10);
 			if (distance == 0) {
@@ -67,9 +69,11 @@ public class Util {
 			} else if (distance < nearest) {
 				nearest = distance;
 				nearestItem = s;
+			} else if (distance == nearest) {
+				ambiguous = true;
 			}
 		}
-		if (nearest <= atLeast)
+		if (nearest <= atLeast && !ambiguous)
 			return nearestItem;
 		else
 			return null;

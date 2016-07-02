@@ -1928,7 +1928,7 @@ public class Plugin extends JavaPlugin {
 
 	private OfflinePlayer matchPlayer (String from) {
 		return Util.findNearest(Arrays.asList(getServer().getOfflinePlayers()), offPlayer -> offPlayer.getName().toLowerCase(),
-			from.toLowerCase(), 3);
+			from.toLowerCase(), 15);
 	}
 
 	private void onPanicCommand (CommandSender sender, Collection<Player> players, int minutes) {
