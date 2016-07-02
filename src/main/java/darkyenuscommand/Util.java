@@ -7,6 +7,7 @@ import java.util.function.Function;
  *
  */
 public class Util {
+
 	public static int levenshteinDistance (CharSequence s0, CharSequence s1, int replaceCost, int insertCost, int deleteCost) {
 		int len0 = s0.length() + 1;
 		int len1 = s1.length() + 1;
@@ -37,7 +38,7 @@ public class Util {
 				int cost_delete = newCost[i0 - 1] + deleteCost;
 
 				// keep minimum cost
-				newCost[i0] = Math.min(Math.min(cost_insert, cost_delete), cost_replace);
+				newCost[i0] = min(cost_insert, cost_delete, cost_replace);
 			}
 
 			// swap cost/newCost arrays
@@ -48,6 +49,12 @@ public class Util {
 
 		// the distance is the cost for transforming all letters in both strings
 		return cost[len0 - 1];
+	}
+
+	private static int min (int a, int b, int c) {
+		if (a <= b && a <= c) return a;
+		if (b <= a && b <= c) return b;
+		return c;
 	}
 
 	public static <T> T findNearest (Iterable<T> selection, Function<T, String> toString, String target, int atLeast) {

@@ -19,6 +19,7 @@ import org.bukkit.potion.PotionEffectType;
 
 import java.util.*;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -1049,9 +1050,9 @@ public class Plugin extends JavaPlugin {
 								+ " " + toGive.getType().toString().toLowerCase());
 						} else {
 							sender.sendMessage(ChatColor.RED + "Material \"" + args[0] + "\" not found.");
-							final Material nearest = Util.findNearest(Arrays.asList(Material.values()), Enum::name, args[0], 10000);
-							if (nearest != null) {
-								sender.sendMessage(ChatColor.RED.toString() + ChatColor.ITALIC + " Did you mean " + nearest + "?");
+							final List<Material> matches = EnumMatcher.match(Material.class, args[0]);
+							if (!matches.isEmpty()) {
+								sender.sendMessage(ChatColor.RED.toString() + ChatColor.ITALIC + " Did you mean " + String.join(", ", matches.stream().map(Enum::toString).collect(Collectors.toList())) + "?");
 							}
 						}
 					} else {
@@ -1471,7 +1472,7 @@ public class Plugin extends JavaPlugin {
 					at = ((Player)sender).getLocation();
 				}
 				try {
-					type = Util.findNearest(Arrays.asList(EntityType.values()), Enum::toString, args[0], 3);
+					type = EnumMatcher.matchOne(EntityType.class, args[0]);
 					try {
 						amount = Integer.parseInt(args[1]);
 						if (amount > 50) {
