@@ -43,7 +43,7 @@ final class PluginListener implements Listener {
 	@SuppressWarnings("LoggerStringConcat")
 	public void kickAndBanCheck (PlayerLoginEvent ev) throws IOException {
 		// Kick check
-		int kickedMinutes = plugin.kickedMinutes(ev.getPlayer().getName());
+		int kickedMinutes = plugin.kickedMinutes(ev.getPlayer().getUniqueId());
 		if (kickedMinutes > 0) {
 			String minuteSuffix = "";// To be grammatically correct
 			if (kickedMinutes != 1) {
@@ -75,8 +75,7 @@ final class PluginListener implements Listener {
 
 	@EventHandler
 	public void stopTheMutedOnes (AsyncPlayerChatEvent event) {// Not called for commands
-		String playerName = event.getPlayer().getName();
-		if (plugin.isMuted(playerName)) {
+		if (plugin.isMuted(event.getPlayer().getUniqueId())) {
 			event.setCancelled(true);
 			event.getPlayer().sendMessage(ChatColor.RED + "You are muted!");
 		}
@@ -123,7 +122,7 @@ final class PluginListener implements Listener {
 			}
 
 			if (ev.getAction() == Action.RIGHT_CLICK_BLOCK && ev.getPlayer().hasPermission("darkyenuscommand.infostick")
-				&& ev.getPlayer().getItemInHand() != null && ev.getPlayer().getItemInHand().getType() == Material.STICK) {
+				&& ev.getPlayer().getInventory().getItemInMainHand().getType() == Material.STICK) {
 				// Infostick time!
 				Block clicked = ev.getClickedBlock();
 				Player player = ev.getPlayer();
@@ -211,7 +210,7 @@ final class PluginListener implements Listener {
 				&& (damager.getItemInHand() == null || damager.getItemInHand().getTypeId() == 0 || damager.getItemInHand()
 					.getAmount() == 0)) {
 				event.setDamage(Integer.MAX_VALUE);
-				damager.playEffect(event.getEntity().getLocation(), Effect.EXTINGUISH, 0);
+				damager.playEffect(event.getEntity().getLocation(), Effect.EXTINGUISH, null);
 				event.getEntity().setVelocity(
 					event
 						.getEntity()

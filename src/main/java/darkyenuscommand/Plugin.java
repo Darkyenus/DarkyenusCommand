@@ -30,10 +30,10 @@ public class Plugin extends JavaPlugin {
 	private static final String TIME_KEEP_GAMERULE = "doDaylightCycle";
 
 	PluginListener listener;
-	private HashMap<String, Long> kickTimer = new HashMap<>();
-	private HashMap<String, Long> muteTimer = new HashMap<>();
-	private HashMap<String, Location> recalls = new HashMap<>();
-	private HashMap<String, Location> preJailLocations = new HashMap<>();
+	private final HashMap<UUID, Long> kickTimer = new HashMap<>();
+	private final HashMap<UUID, Long> muteTimer = new HashMap<>();
+	private final HashMap<UUID, Location> recalls = new HashMap<>();
+	private final HashMap<UUID, Location> preJailLocations = new HashMap<>();
 	private WarpSystem warpSystem;
 
 	@Override
@@ -73,7 +73,7 @@ public class Plugin extends JavaPlugin {
 	 *
 	 * @param name player's name
 	 * @return how many minutes will it take to not kick this player again */
-	public int kickedMinutes (String name) {
+	public int kickedMinutes (UUID name) {
 		if (kickTimer.containsKey(name)) {
 			long value = kickTimer.get(name);
 			if (value < System.currentTimeMillis()) {
@@ -91,7 +91,7 @@ public class Plugin extends JavaPlugin {
 		}
 	}
 
-	public synchronized boolean isMuted (String name) {
+	public synchronized boolean isMuted (UUID name) {
 		if (muteTimer.containsKey(name)) {
 			long value = muteTimer.get(name);
 			if (value < System.currentTimeMillis()) {
@@ -134,7 +134,7 @@ public class Plugin extends JavaPlugin {
 							kickTimeMin = Integer.parseInt(args[1].substring(1));
 						} catch (Exception ignored) {
 						}
-						kickTimer.put(toKick.getName(), System.currentTimeMillis() + kickTimeMin * 60000);
+						kickTimer.put(toKick.getUniqueId(), System.currentTimeMillis() + kickTimeMin * 60000);
 					}
 					StringBuilder messageB = new StringBuilder();
 					for (int i = messageOff; i < args.length; i++) {
@@ -372,7 +372,7 @@ public class Plugin extends JavaPlugin {
 						time = System.currentTimeMillis() + 60000 * Integer.parseInt(args[1]);
 					} catch (Exception ignored) {
 					}
-					muteTimer.put(toMute.getName(), time);
+					muteTimer.put(toMute.getUniqueId(), time);
 					sender.sendMessage(ChatColor.GREEN + "Player " + toMute.getName() + " muted.");
 				}
 				// --------------------------------------- MUTE END
@@ -381,8 +381,8 @@ public class Plugin extends JavaPlugin {
 				// --------------------------------------- UNMUTE
 				final OfflinePlayer toUnMute = findPlayer(args[0], sender);
 				if (toUnMute != null) {
-					if (muteTimer.containsKey(toUnMute.getName())) {
-						muteTimer.remove(toUnMute.getName());
+					if (muteTimer.containsKey(toUnMute.getUniqueId())) {
+						muteTimer.remove(toUnMute.getUniqueId());
 						sender.sendMessage(ChatColor.GREEN + "Player " + toUnMute.getName() + " unmuted.");
 					} else {
 						sender.sendMessage(ChatColor.RED + "Player not muted.");
@@ -464,8 +464,8 @@ public class Plugin extends JavaPlugin {
 					return false;// From command line without args? see docs!
 				}
 
-				if (recalls.containsKey(toRecall.getName())) {
-					toRecall.teleport(recalls.get(toRecall.getName()));
+				if (recalls.containsKey(toRecall.getUniqueId())) {
+					toRecall.teleport(recalls.get(toRecall.getUniqueId()));
 					if (!toRecall.isOnline()) {
 						toRecall.saveData();
 					}
@@ -1261,7 +1261,7 @@ public class Plugin extends JavaPlugin {
 				if(toJail == null)return true;
 
 				if (args.length >= 2 && warpSystem.getWarp(args[1]) != null) {
-					preJailLocations.put(toJail.getName(), toJail.getLocation());
+					preJailLocations.put(toJail.getUniqueId(), toJail.getLocation());
 					warpSystem.warp(toJail, args[1]);
 					toJail.setMetadata("locked", new FixedMetadataValue(this, true));
 					if (toJail.isOnline()) {
@@ -1276,7 +1276,7 @@ public class Plugin extends JavaPlugin {
 						sender.sendMessage(ChatColor.RED.toString() + "Could not jail, no jails found or specified.");
 					} else {
 						int jailID = new Random().nextInt(availaibleWarps.size());
-						preJailLocations.put(toJail.getName(), toJail.getLocation());
+						preJailLocations.put(toJail.getUniqueId(), toJail.getLocation());
 						warpSystem.warp(toJail, availaibleWarps.get(jailID));
 						toJail.setMetadata("locked", new FixedMetadataValue(this, true));
 						if (toJail.isOnline()) {
@@ -1294,9 +1294,9 @@ public class Plugin extends JavaPlugin {
 				final Player player = findOnlinePlayer(args[0], sender);
 				if(player == null) return true;
 
-				if (preJailLocations.containsKey(player.getName())) {
+				if (preJailLocations.containsKey(player.getUniqueId())) {
 					player.removeMetadata("locked", this);
-					teleportPlayer(player, preJailLocations.remove(player.getName()));
+					teleportPlayer(player, preJailLocations.remove(player.getUniqueId()));
 					if (player.isOnline()) {
 						player.sendMessage(ChatColor.BLUE + "You have been set free from jail.");
 					} else {
@@ -1560,7 +1560,7 @@ public class Plugin extends JavaPlugin {
 	}
 
 	private void teleportPlayer (Player who, Location to) {
-		recalls.put(who.getName(), who.getLocation());
+		recalls.put(who.getUniqueId(), who.getLocation());
 		getLogger().info(who.getName() + " teleported from " + formatLocation(who.getLocation()) + " to " + formatLocation(to));
 		who.teleport(to, PlayerTeleportEvent.TeleportCause.PLUGIN);
 	}

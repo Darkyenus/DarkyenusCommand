@@ -200,7 +200,7 @@ public final class FixManager {
 						ItemStack bonemealItemStack = event.getItem();
 						int finalAmount = bonemealItemStack.getAmount() - 1;
 						if (finalAmount == 0) {
-							event.getPlayer().setItemInHand(new ItemStack(Material.AIR));
+							event.getPlayer().getInventory().setItemInMainHand(new ItemStack(Material.AIR));
 						} else
 							bonemealItemStack.setAmount(finalAmount);
 					}
