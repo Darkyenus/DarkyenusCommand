@@ -2,7 +2,6 @@
 package darkyenuscommand;
 
 import org.bukkit.*;
-import org.bukkit.block.Biome;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
@@ -124,40 +123,34 @@ public class Plugin extends JavaPlugin {
 				return true;
 			} else if (command.getName().equals("kick")) {
 				// --------------------------------------- KICK
-				OfflinePlayer playerOff = matchPlayer(args[0]);
-				int kickTimeMin = 0;
-				if (playerOff != null) {
-					Player toKick = playerOff instanceof Player && playerOff.isOnline() ? (Player)playerOff : null;
-					if (toKick != null) {
-						int messageOff = 1;
-						if (args.length > 1 && args[1].startsWith("-")) {
-							messageOff = 2;
-							try {
-								kickTimeMin = Integer.parseInt(args[1].substring(1));
-							} catch (Exception ignored) {
-							}
-							kickTimer.put(toKick.getName(), System.currentTimeMillis() + kickTimeMin * 60000);
-						}
-						StringBuilder messageB = new StringBuilder();
-						for (int i = messageOff; i < args.length; i++) {
-							messageB.append(args[i]);
-							messageB.append(" ");
-						}
-						String message;
-						if (messageB.length() != 0) {
-							message = messageB.substring(0, messageB.length() - 1);
-						} else {
-							message = "You have been kicked.";
-						}
+				final Player toKick = findOnlinePlayer(args[0], sender);
+				if(toKick != null) {
+					int kickTimeMin = 0;
+					int messageOff = 1;
+					if (args.length > 1 && args[1].startsWith("-")) {
+						messageOff = 2;
 
-						toKick.kickPlayer(message);
-						sender.sendMessage(ChatColor.GREEN.toString() + toKick.getName() + " has been kicked for " + kickTimeMin
-							+ " minutes.");
-					} else {
-						sender.sendMessage(ChatColor.RED + "Player is not online.");
+						try {
+							kickTimeMin = Integer.parseInt(args[1].substring(1));
+						} catch (Exception ignored) {
+						}
+						kickTimer.put(toKick.getName(), System.currentTimeMillis() + kickTimeMin * 60000);
 					}
-				} else {
-					sender.sendMessage(ChatColor.RED + "Player not found.");
+					StringBuilder messageB = new StringBuilder();
+					for (int i = messageOff; i < args.length; i++) {
+						messageB.append(args[i]);
+						messageB.append(" ");
+					}
+					String message;
+					if (messageB.length() != 0) {
+						message = messageB.substring(0, messageB.length() - 1);
+					} else {
+						message = "You have been kicked.";
+					}
+
+					toKick.kickPlayer(message);
+					sender.sendMessage(ChatColor.GREEN.toString() + toKick.getName() + " has been kicked for " + kickTimeMin
+							+ " minutes.");
 				}
 				// --------------------------------------- KICK END
 				return true;
@@ -276,56 +269,38 @@ public class Plugin extends JavaPlugin {
 				return true;
 			} else if (command.getName().equals("strike")) {
 				// --------------------------------------- STRIKE
-				OfflinePlayer playerOff = matchPlayer(args[0]);
-				if (playerOff != null) {
-					Player player = playerOff instanceof Player && playerOff.isOnline() ? (Player)playerOff : null;
-					if (player != null) {
-						int damage = 2;
-						if (args.length > 1) {
-							try {
-								damage = Integer.parseInt(args[1]);
-							} catch (NumberFormatException ignored) {
-							}
+				final Player player = findOnlinePlayer(args[0], sender);
+				if (player != null) {
+					int damage = 2;
+					if (args.length > 1) {
+						try {
+							damage = Integer.parseInt(args[1]);
+						} catch (NumberFormatException ignored) {
 						}
-
-						player.getWorld().strikeLightningEffect(player.getLocation());
-						int healthToSet = (int)player.getHealth() - damage;
-						if (healthToSet < 0) {
-							healthToSet = 0;
-						} else if (healthToSet > 20) {
-							healthToSet = 20;
-						}
-						player.setHealth(healthToSet);
-						player.playEffect(EntityEffect.HURT);
-						sender.sendMessage(ChatColor.GREEN.toString() + playerOff.getName() + " has been striked.");
-					} else {
-						sender.sendMessage(ChatColor.RED + "Player is not online.");
 					}
-				} else {
-					sender.sendMessage(ChatColor.RED + "Player not found.");
+
+					player.getWorld().strikeLightningEffect(player.getLocation());
+					int healthToSet = (int)player.getHealth() - damage;
+					if (healthToSet < 0) {
+						healthToSet = 0;
+					} else if (healthToSet > 20) {
+						healthToSet = 20;
+					}
+					player.setHealth(healthToSet);
+					player.playEffect(EntityEffect.HURT);
+					sender.sendMessage(ChatColor.GREEN.toString() + player.getName() + " has been striked.");
 				}
 				// --------------------------------------- STRIKE END
 				return true;
 			} else if (command.getName().equals("kill")) {
 				// --------------------------------------- KILL
-				OfflinePlayer playerToKillOff;
-				Player playerToKill = null;
-				try {
-					playerToKillOff = matchPlayer(args[0]);
-					if (playerToKillOff != null) {
-						playerToKill = playerToKillOff instanceof Player && playerToKillOff.isOnline() ? (Player)playerToKillOff : null;
-					}
-				} catch (Exception ignored) {
-				}
-
 				if (sender instanceof Player) {
 					Player player = (Player)sender;
 					if (!player.hasPermission("darkyenuscommand.command.kill.anyone") || args.length == 0) {
 						player.setHealth(0);
 					} else {
-						if (playerToKill == null) {
-							player.sendMessage(ChatColor.RED + "Player not found.");
-						} else {
+						final Player playerToKill = findOnlinePlayer(args[0], sender);
+						if(playerToKill != null){
 							playerToKill.setHealth(0);
 						}
 					}
@@ -333,9 +308,8 @@ public class Plugin extends JavaPlugin {
 					if (args.length == 0) {
 						return false;
 					} else {
-						if (playerToKill == null) {
-							sender.sendMessage(ChatColor.RED + "Player not found.");
-						} else {
+						final Player playerToKill = findOnlinePlayer(args[0], sender);
+						if(playerToKill != null){
 							playerToKill.setHealth(0);
 						}
 					}
@@ -391,7 +365,7 @@ public class Plugin extends JavaPlugin {
 				return true;
 			} else if (command.getName().equals("mute")) {
 				// --------------------------------------- MUTE
-				OfflinePlayer toMute = matchPlayer(args[0]);
+				final OfflinePlayer toMute = findPlayer(args[0], sender);
 				if (toMute != null) {
 					long time = Long.MAX_VALUE;
 					try {
@@ -400,14 +374,12 @@ public class Plugin extends JavaPlugin {
 					}
 					muteTimer.put(toMute.getName(), time);
 					sender.sendMessage(ChatColor.GREEN + "Player " + toMute.getName() + " muted.");
-				} else {
-					sender.sendMessage(ChatColor.RED + "Player not found.");
 				}
 				// --------------------------------------- MUTE END
 				return true;
 			} else if (command.getName().equals("unmute")) {
 				// --------------------------------------- UNMUTE
-				OfflinePlayer toUnMute = matchPlayer(args[0]);
+				final OfflinePlayer toUnMute = findPlayer(args[0], sender);
 				if (toUnMute != null) {
 					if (muteTimer.containsKey(toUnMute.getName())) {
 						muteTimer.remove(toUnMute.getName());
@@ -415,8 +387,6 @@ public class Plugin extends JavaPlugin {
 					} else {
 						sender.sendMessage(ChatColor.RED + "Player not muted.");
 					}
-				} else {
-					sender.sendMessage(ChatColor.RED + "Player not found.");
 				}
 				// --------------------------------------- UNMUTE END
 				return true;
@@ -430,11 +400,8 @@ public class Plugin extends JavaPlugin {
 				// --------------------------------------- WARP END
 			} else if (command.getName().equals("playerinfo")) {
 				// --------------------------------------- PLAYERINFO
-				OfflinePlayer getInfo = matchPlayer(args[0]);
-				if (getInfo == null) {
-					sender.sendMessage(ChatColor.RED + "Player not found");
-					return true;
-				}
+				final OfflinePlayer getInfo = findPlayer(args[0], sender);
+				if(getInfo == null) return true;
 
 				sender.sendMessage(ChatColor.RED.toString() + ChatColor.BOLD.toString() + getInfo.getName() + ChatColor.BLUE
 					+ "'s info");
@@ -477,31 +444,20 @@ public class Plugin extends JavaPlugin {
 					return true;
 				}
 
-				OfflinePlayer set = matchPlayer(args[0]);
-				if (set == null) {
-					sender.sendMessage(ChatColor.RED + "Player not found");
-				} else if (!(set instanceof Player)) {
-					sender.sendMessage(ChatColor.RED + "Player is offline");
-				} else {
-					((Player)sender).setCompassTarget(((Player)set).getLocation());
+				final Player target = findOnlinePlayer(args[0], sender);
+				if(target != null) {
+					((Player)sender).setCompassTarget(target.getLocation());
+					sender.sendMessage(ChatColor.BLUE + "Compass target set to "+target.getName());
 				}
 				// --------------------------------------- COMPASS END
 				return true;
 			} else if (command.getName().equals("recall")) {
 				// --------------------------------------- RECALL
-				Player toRecall;
+				final Player toRecall;
 
 				if (args.length != 0) {
-					OfflinePlayer toRecallOff = matchPlayer(args[0]);
-					if (toRecallOff == null) {
-						sender.sendMessage(ChatColor.RED + "Player not found");
-						return true;
-					} else if (!(toRecallOff instanceof Player)) {
-						sender.sendMessage(ChatColor.RED + "Player is offline");
-						return true;
-					} else {
-						toRecall = (Player)toRecallOff;
-					}
+					toRecall = findOnlinePlayer(args[0], sender);
+					if(toRecall == null) return true;
 				} else if (sender instanceof Player) {
 					toRecall = (Player)sender;
 				} else {
@@ -537,15 +493,11 @@ public class Plugin extends JavaPlugin {
 					return true;
 				}
 
-				OfflinePlayer toTPOff = matchPlayer(args[0]);
-				if (toTPOff == null) {
-					sender.sendMessage(ChatColor.RED + "Player not found");
-				} else if (!(toTPOff instanceof Player)) {
-					sender.sendMessage(ChatColor.RED + "Player is offline");
-				} else {
-					teleportPlayer((Player)toTPOff, ((Player)sender).getLocation());
+				final Player toTPOff = findOnlinePlayer(args[0], sender);
+				if(toTPOff != null) {
+					teleportPlayer(toTPOff, ((Player)sender).getLocation());
 					if (!toTPOff.isOnline()) {
-						((Player)toTPOff).saveData();
+						toTPOff.saveData();
 					}
 				}
 				// --------------------------------------- TELEPORTHERE END
@@ -557,13 +509,9 @@ public class Plugin extends JavaPlugin {
 					return true;
 				}
 
-				OfflinePlayer toTPOff = matchPlayer(args[0]);
-				if (toTPOff == null) {
-					sender.sendMessage(ChatColor.RED + "Player not found");
-				} else if (!(toTPOff instanceof Player)) {
-					sender.sendMessage(ChatColor.RED + "Player is offline");
-				} else {
-					teleportPlayer((Player)sender, ((Player)toTPOff).getLocation());
+				final Player toTPTo = findOnlinePlayer(args[0], sender);
+				if (toTPTo != null) {
+					teleportPlayer((Player)sender, toTPTo.getLocation());
 				}
 				// --------------------------------------- TELEPORTTO END
 				return true;
@@ -960,16 +908,8 @@ public class Plugin extends JavaPlugin {
 						return true;
 					}
 				} else {
-					OfflinePlayer toSetOff = matchPlayer(args[1]);
-					if (toSetOff == null) {
-						sender.sendMessage(ChatColor.RED + "Player not found.");
-						return true;
-					} else if (!(toSetOff instanceof Player)) {
-						sender.sendMessage(ChatColor.RED + "Player not online.");
-						return true;
-					} else {
-						toSet = (Player)toSetOff;
-					}
+					toSet = findOnlinePlayer(args[1], sender);
+					if (toSet == null) return true;
 				}
 				GameMode gameMode;
 				if (!"toggle".equalsIgnoreCase(args[0]) && !"t".equalsIgnoreCase(args[0])) {
@@ -1013,16 +953,8 @@ public class Plugin extends JavaPlugin {
 							return true;
 						}
 					} else {
-						OfflinePlayer toSetOff = matchPlayer(args[3]);
-						if (toSetOff == null) {
-							sender.sendMessage(ChatColor.RED + "Player not found.");
-							return true;
-						} else if (!(toSetOff instanceof Player)) {
-							sender.sendMessage(ChatColor.RED + "Player not online.");
-							return true;
-						} else {
-							toSet = (Player)toSetOff;
-						}
+						toSet = findOnlinePlayer(args[3], sender);
+						if(toSet == null)return true;
 					}
 
 					Material material = EnumMatcher.matchOne(Material.class, args[0]);
@@ -1059,7 +991,7 @@ public class Plugin extends JavaPlugin {
 						return false;
 					}
 				} else if (sender instanceof Player) {
-					ItemStack item = ((Player)sender).getItemInHand();
+					ItemStack item = ((Player)sender).getInventory().getItemInMainHand();
 					if (item == null) {
 						return false;
 					} else {
@@ -1080,7 +1012,7 @@ public class Plugin extends JavaPlugin {
 			} else if (command.getName().equals("repair")) {
 				// --------------------------------------- REPAIR
 				Player player;
-				if (args.length < 1) {
+				if (args.length == 0) {
 					if (sender instanceof Player) {
 						player = ((Player)sender);
 					} else {
@@ -1088,26 +1020,18 @@ public class Plugin extends JavaPlugin {
 						return true;
 					}
 				} else {
-					OfflinePlayer toSetOff = matchPlayer(args[0]);
-					if (toSetOff == null) {
-						sender.sendMessage(ChatColor.RED + "Player not found.");
-						return true;
-					} else if (!(toSetOff instanceof Player)) {
-						sender.sendMessage(ChatColor.RED + "Player not online.");
-						return true;
-					} else {
-						player = (Player)toSetOff;
-					}
+					player = findOnlinePlayer(args[0], sender);
+					if (player == null) return true;
 				}
 
-				if (player.getItemInHand().getType().getMaxDurability() != 0) {
-					ItemStack itemStackToFix = player.getItemInHand();
+				if (player.getInventory().getItemInMainHand().getType().getMaxDurability() != 0) {
+					ItemStack itemStackToFix = player.getInventory().getItemInMainHand();
 					itemStackToFix.setDurability((short)0);
-					player.setItemInHand(itemStackToFix);
+					player.getInventory().setItemInMainHand(itemStackToFix);
 					sender.sendMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + player.getName() + "'s "
 						+ itemStackToFix.getType().toString().toLowerCase() + " has been repaired.");
 				} else {
-					sender.sendMessage(ChatColor.RED.toString() + player.getItemInHand().getType().toString().toLowerCase()
+					sender.sendMessage(ChatColor.RED.toString() + player.getInventory().getItemInMainHand().getType().toString().toLowerCase()
 						+ " is not repairable.");
 				}
 				// --------------------------------------- REPAIR END
@@ -1123,16 +1047,8 @@ public class Plugin extends JavaPlugin {
 						return true;
 					}
 				} else {
-					OfflinePlayer toSetOff = matchPlayer(args[3]);
-					if (toSetOff == null) {
-						sender.sendMessage(ChatColor.RED + "Player not found.");
-						return true;
-					} else if (!(toSetOff instanceof Player)) {
-						sender.sendMessage(ChatColor.RED + "Player not online.");
-						return true;
-					} else {
-						player = (Player)toSetOff;
-					}
+					player = findOnlinePlayer(args[3], sender);
+					if(player == null)return true;
 				}
 				if (!player.equals(sender) && !sender.hasPermission("darkyenuscommand.command.trash.anyone")) {
 					if (sender instanceof Player) {
@@ -1341,17 +1257,8 @@ public class Plugin extends JavaPlugin {
 				return true;
 			} else if (command.getName().equals("jail")) {
 				// --------------------------------------- JAIL
-				Player toJail;
-				OfflinePlayer toSetOff = matchPlayer(args[0]);
-				if (toSetOff == null) {
-					sender.sendMessage(ChatColor.RED + "Player not found.");
-					return true;
-				} else if (!(toSetOff instanceof Player)) {
-					sender.sendMessage(ChatColor.RED + "Player not online.");
-					return true;
-				} else {
-					toJail = (Player)toSetOff;
-				}
+				final Player toJail = findOnlinePlayer(args[0], sender);
+				if(toJail == null)return true;
 
 				if (args.length >= 2 && warpSystem.getWarp(args[1]) != null) {
 					preJailLocations.put(toJail.getName(), toJail.getLocation());
@@ -1384,17 +1291,8 @@ public class Plugin extends JavaPlugin {
 				return true;
 			} else if (command.getName().equals("unjail")) {
 				// --------------------------------------- UNJAIL
-				Player player;
-				OfflinePlayer toSetOff = matchPlayer(args[0]);
-				if (toSetOff == null) {
-					sender.sendMessage(ChatColor.RED + "Player not found.");
-					return true;
-				} else if (!(toSetOff instanceof Player)) {
-					sender.sendMessage(ChatColor.RED + "Player not online.");
-					return true;
-				} else {
-					player = toSetOff.getPlayer();
-				}
+				final Player player = findOnlinePlayer(args[0], sender);
+				if(player == null) return true;
 
 				if (preJailLocations.containsKey(player.getName())) {
 					player.removeMetadata("locked", this);
@@ -1416,17 +1314,8 @@ public class Plugin extends JavaPlugin {
 					return true;
 				}
 
-				Player viewInventory;
-				OfflinePlayer toSetOff = matchPlayer(args[0]);
-				if (toSetOff == null) {
-					sender.sendMessage(ChatColor.RED + "Player not found.");
-					return true;
-				} else if (!(toSetOff instanceof Player)) {
-					sender.sendMessage(ChatColor.RED + "Player not online.");
-					return true;
-				} else {
-					viewInventory = (Player)toSetOff;
-				}
+				final Player viewInventory = findOnlinePlayer(args[0], sender);
+				if(viewInventory == null)return true;
 
 				Player toShowTo = (Player)sender;
 				toShowTo.openInventory(viewInventory.getInventory());
@@ -1500,7 +1389,6 @@ public class Plugin extends JavaPlugin {
 			} else if (command.getName().equals("setflyspeed")) {
 				// --------------------------------------- SETFLYSPEED
 				float speed = 0.1f;// Probably default speed?
-				Player player;
 				try {
 					speed = ((float)Integer.parseInt(args[0])) / 10.0f;
 					if (speed < -1) {
@@ -1510,21 +1398,14 @@ public class Plugin extends JavaPlugin {
 					}
 				} catch (Exception ignored) {
 				}
-				try {
-					String playerString = args[1];
-					OfflinePlayer playerOff = this.matchPlayer(playerString);
-					if (playerOff.isOnline() && playerOff instanceof Player) {
-						player = (Player)playerOff;
-					} else {
-						sender.sendMessage(ChatColor.RED + "That player is offline.");
-						return true;
-					}
-				} catch (Exception e) {
-					if (sender instanceof Player) {
-						player = (Player)sender;
-					} else {
-						return false;
-					}
+				final Player player;
+				if(args.length >= 2) {
+					player = findOnlinePlayer(args[1], sender);
+					if(player == null)return true;
+				} else if(sender instanceof Player){
+					player = (Player) sender;
+				} else {
+					return false;
 				}
 				player.setFlySpeed(speed);
 				sender.sendMessage(ChatColor.GREEN + "Flying speed adjusted.");
@@ -1549,7 +1430,7 @@ public class Plugin extends JavaPlugin {
 									}
 								} else {
 									try {
-										player = (Player)matchPlayer(args[2]);
+										player = (Player) findPlayer(args[2]);//TODO
 									} catch (Exception e) {
 										sender.sendMessage(ChatColor.RED + "Player could not be found.");
 										return true;
@@ -1623,31 +1504,23 @@ public class Plugin extends JavaPlugin {
 				// --------------------------------------- WORLD END
 				return true;
 			} else if (command.getName().equals("heal")) {
+				// --------------------------------------- HEAL
 				int amount = 999;
-				boolean mistakeInSyntax = false;
 				Player player = sender instanceof Player ? (Player)sender : null;
 
 				if (args.length >= 1) {
+					int playerIndex = 1;
 					try {
-						OfflinePlayer offlinePlayer = matchPlayer(args[0]);
-						if (offlinePlayer != null && offlinePlayer.isOnline()) {
-							player = offlinePlayer.getPlayer();
-						} else {
-							player = null;
+						amount = Integer.parseInt(args[0]);
+						if (amount < 1) {
+							amount = 999;
 						}
-					} catch (Exception ignored) {
-						mistakeInSyntax = true;
+					} catch (NumberFormatException ignored) {
+						playerIndex = 0;
 					}
-
-					if (args.length >= 2) {
-						try {
-							amount = Integer.parseInt(args[1]);
-							if (amount < 1) {
-								amount = 999;
-							}
-						} catch (Exception ignored) {
-							mistakeInSyntax = true;
-						}
+					if(args.length > playerIndex){
+						player = findOnlinePlayer(args[playerIndex], sender);
+						if(player == null) return true;
 					}
 				}
 
@@ -1669,199 +1542,8 @@ public class Plugin extends JavaPlugin {
 				} else {
 					sender.sendMessage(ChatColor.RED + "Please specify an online player first.");
 				}
-				return !mistakeInSyntax;
-			} else if (command.getName().equals("find")) {
-				if (args.length != 0) {
-					OfflinePlayer player = matchPlayer(args[0]);
-					Biome biome = null;
-					try {
-						biome = Biome.valueOf(args[0].toUpperCase());
-					} catch (Exception ignored) {
-					}
-					EntityType entity = null;
-					try {
-						entity = EntityType.fromName(args[0]);
-						if (entity == null) {
-							entity = EntityType.valueOf(args[0].toUpperCase());
-						}
-					} catch (Exception ignored) {
-					}
-
-					if (player == null && biome == null && entity == null) {
-						sender.sendMessage(ChatColor.RED + "\"" + args[0] + "\" does not match nor player, biome or entity.");
-					} else {
-						int matches = 0;
-						if (player != null) matches++;
-						if (biome != null) matches++;
-						if (entity != null) matches++;
-						if (matches != 1) {
-							if (args.length >= 2) {
-								String args1 = args[1].toLowerCase();
-								if (args1.startsWith("p")) {
-									biome = null;
-									entity = null;
-								} else if (args1.startsWith("b")) {
-									player = null;
-									entity = null;
-								} else if (args1.startsWith("e")) {
-									biome = null;
-									player = null;
-								}
-							}
-							matches = 0;
-							if (player != null) matches++;
-							if (biome != null) matches++;
-							if (entity != null) matches++;
-							if (matches != 1) {
-								sender.sendMessage(ChatColor.RED + "\"" + args[0]
-									+ "\" does match too many things, please specify what are you looking for.");
-								return true;
-							}
-						}
-						Location foundAt = null;
-						String message;
-
-						if (player != null) {
-							if (player instanceof Player) {
-								Player locatedPlayer = (Player)player;
-								foundAt = locatedPlayer.getLocation();
-								message = locatedPlayer.getName();
-							} else {
-								message = player.getName() + " is not online.";
-							}
-						} else if (biome != null) {
-							if (sender instanceof Player) {
-								Location startLocation = ((Player)sender).getLocation();
-								int startX = startLocation.getBlockX();
-								int startZ = startLocation.getBlockZ();
-								World world = startLocation.getWorld();
-
-								int precision = 16;
-								int probes = 2000 * precision;
-								float angle = 0;
-								float distance = 0;
-								float angleStep = (1f / precision) * (2f * (float)Math.PI);
-								float distanceStep = 100f / precision;
-
-								message = biome.toString().toLowerCase().replace("_", " ") + " not found.";
-
-								for (int i = 0; i < probes; i++) {
-									int deltaX = (int)(Math.sin(angle) * distance);
-									int deltaZ = (int)(Math.cos(angle) * distance);
-									int x = startX + deltaX;
-									int z = startZ + deltaZ;
-
-									Biome biomeThere = world.getBiome(x, z);
-									if (biomeThere.equals(biome)) {
-										foundAt = startLocation.clone().add(x, 0, z);
-										message = biome.toString().toLowerCase().replace("_", " ");
-										break;
-									}
-
-									angle += angleStep;
-									distance += distanceStep;
-								}
-							} else {
-								message = "You must be in-game to search for biomes.";
-							}
-						} else {
-							if (sender instanceof Player) {
-								Location startLocation = ((Player)sender).getLocation();
-								World world = startLocation.getWorld();
-
-								Collection<? extends Entity> foundEntities = world.getEntitiesByClass(entity.getEntityClass());
-								if (foundEntities.size() == 0) {
-									message = entity.toString().toLowerCase().replace("_", " ") + " not found.";
-								} else {
-									message = foundEntities.size() + " " + entity.toString().toLowerCase().replace("_", " ") + " found.";
-									float closestYet = Float.MAX_VALUE;
-
-									Iterator<? extends Entity> foundEntitiesIterator = foundEntities.iterator();
-									for (Entity foundEntity = foundEntitiesIterator.next(); foundEntitiesIterator.hasNext(); foundEntity = foundEntitiesIterator
-										.next()) {
-										float distance = (float)foundEntity.getLocation().distanceSquared(startLocation);
-										if (distance < closestYet) {
-											closestYet = distance;
-											foundAt = foundEntity.getLocation();
-										}
-									}
-								}
-							} else {
-								message = "You must be in-game to search for entities.";
-							}
-						}
-						sender.sendMessage(ChatColor.BLUE + message);
-						if (foundAt != null) {
-							sender.sendMessage(ChatColor.BLUE.toString() + ChatColor.ITALIC + "X: " + foundAt.getBlockX() + " Y: "
-								+ foundAt.getBlockY() + " Z: " + foundAt.getBlockZ());
-							if (sender instanceof Player) {
-								Location senderLocation = ((Player)sender).getLocation();
-								sender.sendMessage(ChatColor.BLUE.toString() + ChatColor.ITALIC
-									+ String.format("Distance: %.2f", foundAt.distance(senderLocation)));
-								// TODO Look in direction
-
-								if (((Player)sender).getItemInHand().getType() == Material.COMPASS) {
-									((Player)sender).setCompassTarget(foundAt);
-								}
-							}
-						}
-					}
-					return true;
-				}
-				return false;
-			} else if (command.getName().equals("setbiome")) {
-				if (args.length > 0) {
-					try {
-						int radius = Integer.parseInt(args[0]);
-						Biome biome = Biome.valueOf(args[1].toUpperCase());
-						boolean circle = false;
-						if (args.length > 2 && args[2].equalsIgnoreCase("circle")) {
-							circle = true;
-						}
-						World world;
-						int x, z;
-						if (circle && args.length >= 7) {
-							world = getServer().getWorld(args[3]);
-							x = Integer.parseInt(args[4]);
-							z = Integer.parseInt(args[5]);
-						} else if (args.length >= 6) {
-							world = getServer().getWorld(args[2]);
-							x = Integer.parseInt(args[3]);
-							z = Integer.parseInt(args[4]);
-						} else if (sender instanceof Player) {
-							world = ((Player)sender).getWorld();
-							x = ((Player)sender).getLocation().getBlockX();
-							z = ((Player)sender).getLocation().getBlockZ();
-						} else {
-							sender.sendMessage(ChatColor.RED + "Please specify location when using from command line.");
-							return true;
-						}
-						if (world == null) {
-							sender.sendMessage(ChatColor.RED + "Please specify valid world!");
-							return true;
-						}
-						int changedBlocks = 0;
-						for (int blockX = x - radius; blockX < x + radius; blockX++) {
-							for (int blockZ = z - radius; blockZ < z + radius; blockZ++) {
-								if (!circle || ((blockX - x) * (blockX - x) + (blockZ - z) * (blockZ - z)) < radius * radius) {
-									if (world.getBiome(blockX, blockZ) != biome) {
-										changedBlocks++;
-									}
-									world.setBiome(blockX, blockZ, biome);
-								}
-							}
-						}
-						sender.sendMessage(ChatColor.GREEN.toString() + changedBlocks + " columns had their biome changed. "
-							+ ChatColor.ITALIC + "Note: You may have to relog to see changes.");
-						return true;
-					} catch (NumberFormatException ignored) {
-						return false;
-					} catch (IllegalArgumentException ignored) {
-						sender.sendMessage(ChatColor.RED + "Biome \"" + args[1] + "\" does not exist. Select one from following list:");
-						sender.sendMessage(ChatColor.YELLOW + Arrays.toString(Biome.values()));
-						return true;
-					}
-				}
+				return true;
+				// --------------------------------------- HEAL END
 			} else if (command.getName().equals("donothing")) {
 				return true;
 			}
@@ -1901,7 +1583,7 @@ public class Plugin extends JavaPlugin {
 				return null;
 			}
 		} else {
-			OfflinePlayer player = matchPlayer(args[argIndex]);
+			OfflinePlayer player = findPlayer(args[argIndex]);
 			if (player == null || !(player instanceof Player)) {
 				if (sender instanceof Player) {
 					return (Player)sender;
@@ -1926,9 +1608,61 @@ public class Plugin extends JavaPlugin {
 		}
 	}
 
-	private OfflinePlayer matchPlayer (String from) {
-		return Util.findNearest(Arrays.asList(getServer().getOfflinePlayers()), offPlayer -> offPlayer.getName().toLowerCase(),
-			from.toLowerCase(), 15);
+	@Deprecated
+	private OfflinePlayer findPlayer(String from) {
+		final MatchResult<OfflinePlayer> match = MatchUtils.match(getServer().getOfflinePlayers(), offPlayer -> offPlayer.getName().toLowerCase(), from.toLowerCase());
+		if(match.isDefinite) return match.results[0];
+		else return null;
+	}
+
+	private MatchResult<OfflinePlayer> matchPlayer(String from) {
+		return MatchUtils.match(getServer().getOfflinePlayers(), offPlayer -> offPlayer.getName().toLowerCase(), from.toLowerCase());
+	}
+
+	private void matchPlayerFail(MatchResult<OfflinePlayer> result, CommandSender sender){
+		if(result.results.length == 0){
+			sender.sendMessage(ChatColor.RED+"Player not found.");
+		} else if(result.results.length == 1){
+			sender.sendMessage(ChatColor.RED+"Player not found. "+ChatColor.DARK_RED+"Did you mean: " + ChatColor.RESET + result.results[0].getName() + ChatColor.DARK_RED + " ?");
+		} else {
+			final StringBuilder sb = new StringBuilder(ChatColor.RED+"Player not found. "+ChatColor.DARK_RED+"Did you mean: " + ChatColor.RESET);
+			sb.append(result.results[0]);
+			for (int i = 1; i < result.results.length; i++) {
+				//noinspection StringConcatenationInsideStringBufferAppend
+				sb.append(ChatColor.DARK_RED + ", " + ChatColor.RESET);//Like in constructor, will be concatenated at compile time
+				sb.append(result.results[i].getName());
+			}
+			//noinspection StringConcatenationInsideStringBufferAppend
+			sb.append(ChatColor.DARK_RED + " ?");
+			sender.sendMessage(sb.toString());
+		}
+	}
+
+	private OfflinePlayer findPlayer(String name, CommandSender sender) {
+		final MatchResult<OfflinePlayer> result = matchPlayer(name);
+		if(result.isDefinite) {
+			return result.result();
+		} else {
+			matchPlayerFail(result, sender);
+			return null;
+		}
+	}
+
+	private Player findOnlinePlayer(String name, CommandSender sender) {
+		final MatchResult<OfflinePlayer> result = matchPlayer(name);
+		if(result.isDefinite) {
+			final OfflinePlayer offlinePlayer = result.result();
+			final Player player = offlinePlayer.getPlayer();
+			if(player == null) {
+				sender.sendMessage(ChatColor.RED.toString()+offlinePlayer.getName()+" is offline");
+				return null;
+			} else {
+				return player;
+			}
+		} else {
+			matchPlayerFail(result, sender);
+			return null;
+		}
 	}
 
 	private void onPanicCommand (CommandSender sender, Collection<Player> players, int minutes) {

@@ -180,15 +180,6 @@ commands:
     description: Heal player by given amount
     usage: /heal [Amount] [Player]
     permission: darkyenuscommand.command.heal
-  find:
-    description: Find something in the world
-    usage: /find <Player|Biome|Entity> [Player|Biome|Entity]
-    permission: darkyenuscommand.command.find
-  setbiome:
-    description: Sets biome in radius around player in square, unless specified otherwise.
-    usage: /setbiome <Radius> <Biome> [Circle] [<World> <X> <Z>]
-    aliases: [biome]
-    permission: darkyenuscommand.command.biome
 permissions:
   darkyenuscommand.command.rules:
     description: Access to /rules command.
@@ -318,12 +309,6 @@ permissions:
     default: true
   darkyenuscommand.command.heal:
     description: Access to /heal command.
-    default: op
-  darkyenuscommand.command.find:
-    description: Access to /find command.
-    default: op
-  darkyenuscommand.command.biome:
-    description: Access to /biome command.
     default: op
 # Here lies the additional command permissions
   darkyenuscommand.command.kill.anyone:

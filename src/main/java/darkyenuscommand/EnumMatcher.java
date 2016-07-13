@@ -90,7 +90,7 @@ public final class EnumMatcher<E extends Enum<E>> {
 			}
 
 			// Favor adding chars from removing or changing them
-			final int relevance = Util.levenshteinDistance(searched, nam, 7, 1, 10);
+			final int relevance = MatchUtils.levenshteinDistance(searched, nam, 7, 1, 10);
 
 			if (relevance < minimalDistance) {
 				results.add(new FindResult(i, relevance));
