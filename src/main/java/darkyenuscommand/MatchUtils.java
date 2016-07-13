@@ -11,7 +11,8 @@ import java.util.function.Function;
  *
  */
 public class MatchUtils {
-    public static int levenshteinDistance (CharSequence s0, CharSequence s1, int replaceCost, int insertCost, int deleteCost) {
+
+    public static int levenshteinDistance(CharSequence s0, CharSequence s1, int insertCost, int replaceCost, int deleteCost) {
         int len0 = s0.length() + 1;
         int len1 = s1.length() + 1;
 
@@ -21,14 +22,14 @@ public class MatchUtils {
 
         // initial cost of skipping prefix in String s0
         for (int i = 0; i < len0; i++)
-            cost[i] = i * insertCost;
+            cost[i] = i * deleteCost;
 
         // dynamically computing the array of distances
 
         // transformation cost for each letter in s1
         for (int i1 = 1; i1 < len1; i1++) {
             // initial cost of skipping prefix in String s1
-            newCost[0] = i1 * deleteCost;
+            newCost[0] = i1 * insertCost;
 
             // transformation cost for each letter in s0
             for (int i0 = 1; i0 < len0; i0++) {
@@ -68,7 +69,7 @@ public class MatchUtils {
         int goodScores = 0;
         for (int i = 0; i < from.length; i++) {
             final T item = from[i];
-            final int score = levenshteinDistance(toString.apply(item), target, BAD_SCORE, 1, BAD_SCORE);
+            final int score = levenshteinDistance(toString.apply(item), target, 1, BAD_SCORE, BAD_SCORE);
             if(score == 0){
                 //Perfect match
                 return new MatchResult<>(item);
@@ -96,7 +97,7 @@ public class MatchUtils {
             //No good scores, search again with weights allowing other edits than adding
             findCanBeUnambiguous = false;
             for (int i = 0; i < from.length; i++) {
-                scores[i] =  levenshteinDistance(toString.apply(from[i]), target, 3, 1, 3);
+                scores[i] =  levenshteinDistance(toString.apply(from[i]), target, 1, 3, 3);
             }
         }
 
@@ -302,6 +303,7 @@ public class MatchUtils {
         return null;
     }
 
+    @SuppressWarnings("unused")//Used by reflection
     private enum StoneType {
         STONE(0),
         GRANITE(1),
