@@ -99,7 +99,7 @@ public class MatchUtils {
             //No good scores, search again with weights allowing other edits than adding
             findCanBeUnambiguous = false;
             for (int i = 0; i < from.length; i++) {
-                scores[i] =  levenshteinDistance(target, toString.apply(from[i]), 1, 3, 3);
+                scores[i] =  levenshteinDistance(target, toString.apply(from[i]), 1, 6, 3);
             }
         }
 
@@ -132,7 +132,7 @@ public class MatchUtils {
             }
             Collections.sort(results);
 
-            final int resultItems = Math.min(5, results.size());
+            final int resultItems = Math.min(8, results.size());
             //noinspection unchecked
             final T[] resultArray = (T[]) new Object[resultItems];
             for (int i = 0; i < resultItems; i++) {
