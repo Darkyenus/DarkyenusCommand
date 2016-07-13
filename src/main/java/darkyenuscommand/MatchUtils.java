@@ -12,6 +12,8 @@ import java.util.function.Function;
  */
 public class MatchUtils {
 
+    /** @param s0 text user entered
+     *  @param s1 text of result */
     public static int levenshteinDistance(CharSequence s0, CharSequence s1, int insertCost, int replaceCost, int deleteCost) {
         int len0 = s0.length() + 1;
         int len1 = s1.length() + 1;
@@ -37,9 +39,9 @@ public class MatchUtils {
                 int match = (s0.charAt(i0 - 1) == s1.charAt(i1 - 1)) ? 0 : replaceCost;
 
                 // computing cost for each transformation
-                int cost_replace = cost[i0 - 1] + match;
-                int cost_insert = cost[i0] + insertCost;
-                int cost_delete = newCost[i0 - 1] + deleteCost;
+                int cost_insert = cost[i0] + insertCost; //          \/
+                int cost_replace = cost[i0 - 1] + match; //          _|
+                int cost_delete = newCost[i0 - 1] + deleteCost; //   >
 
                 // keep minimum cost
                 newCost[i0] = min(cost_insert, cost_delete, cost_replace);
@@ -69,7 +71,7 @@ public class MatchUtils {
         int goodScores = 0;
         for (int i = 0; i < from.length; i++) {
             final T item = from[i];
-            final int score = levenshteinDistance(toString.apply(item), target, 1, BAD_SCORE, BAD_SCORE);
+            final int score = levenshteinDistance(target, toString.apply(item), 1, BAD_SCORE, BAD_SCORE);
             if(score == 0){
                 //Perfect match
                 return new MatchResult<>(item);
@@ -97,7 +99,7 @@ public class MatchUtils {
             //No good scores, search again with weights allowing other edits than adding
             findCanBeUnambiguous = false;
             for (int i = 0; i < from.length; i++) {
-                scores[i] =  levenshteinDistance(toString.apply(from[i]), target, 1, 3, 3);
+                scores[i] =  levenshteinDistance(target, toString.apply(from[i]), 1, 3, 3);
             }
         }
 
@@ -377,7 +379,7 @@ public class MatchUtils {
         }
 
         public MatchResult<E> match(String searched) {
-            return MatchUtils.match(VALUES, this, searched);
+            return MatchUtils.match(VALUES, this, simplify(searched));
         }
     }
 }

@@ -1,3 +1,5 @@
+import darkyenuscommand.MatchUtils;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -76,6 +78,8 @@ public class LevenshteinTest {
     }
 
     public static void main(String[] args) throws IOException {
-        System.out.println(levenshteinDistance("bbb","aaa", 2, 100, 1));
+        //System.out.println(levenshteinDistance("inksack","ink", 1, 1000, 1000));
+
+        System.out.println(MatchUtils.matchMaterialData("ink", null));
     }
 }

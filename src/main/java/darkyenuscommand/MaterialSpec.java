@@ -30,4 +30,13 @@ public class MaterialSpec {
             return new ItemStack(material, amount);
         }
     }
+
+    @Override
+    public String toString() {
+        if(hasData) {
+            return material.toString()+":"+data;
+        } else {
+            return material.toString();
+        }
+    }
 }
