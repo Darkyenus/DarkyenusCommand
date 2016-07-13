@@ -6,19 +6,20 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffectType;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
+
+import static darkyenuscommand.MatchUtils.*;
 
 /**
  *
@@ -521,7 +522,6 @@ public class Plugin extends JavaPlugin {
 				if (args.length >= 3) {
 					Player player = getPlayer(args, 3, sender);
 					if (player == null) {
-						sender.sendMessage(ChatColor.RED + "Please specify player.");
 						return false;
 					} else {
 						int[] source = new int[] {player.getLocation().getBlockX(), player.getLocation().getBlockY(),
@@ -552,7 +552,6 @@ public class Plugin extends JavaPlugin {
 				} else if (args.length >= 1) {
 					Player player = getPlayer(args, 1, sender);
 					if (player == null) {
-						sender.sendMessage(ChatColor.RED + "Please specify player.");
 						return false;
 					} else {
 						// OR <Top|Up|Down|Bottom> [Player]
@@ -912,26 +911,19 @@ public class Plugin extends JavaPlugin {
 					if (toSet == null) return true;
 				}
 				GameMode gameMode;
-				if (!"toggle".equalsIgnoreCase(args[0]) && !"t".equalsIgnoreCase(args[0])) {
-					try {
-						gameMode = GameMode.getByValue(Integer.parseInt(args[0]));
-						if (gameMode == null) {
-							throw new Exception();
-						}
-					} catch (Exception e) {
-						try {
-							gameMode = GameMode.valueOf(args[0].toUpperCase());
-						} catch (Exception ex) {
-							sender.sendMessage(ChatColor.RED + "Gamemode not found.");
-							return true;
-						}
-					}
-				} else {
+				if ("toggle".equalsIgnoreCase(args[0]) || "t".equalsIgnoreCase(args[0])) {
 					if (toSet.getGameMode() == GameMode.CREATIVE) {
 						gameMode = GameMode.SURVIVAL;
 					} else {
 						gameMode = GameMode.CREATIVE;
 					}
+				} else {
+					final MatchResult<GameMode> modeMatch = match(GameMode.class, args[0]);
+					if (!modeMatch.isDefinite) {
+						sender.sendMessage(ChatColor.RED + "Game mode not found. " + ChatColor.BLUE+ Arrays.toString(GameMode.values()));
+						return true;
+					}
+					gameMode = modeMatch.result();
 				}
 				toSet.setGameMode(gameMode);
 				if (!toSet.isOnline()) {
@@ -944,52 +936,34 @@ public class Plugin extends JavaPlugin {
 			} else if (command.getName().equals("item")) {
 				// --------------------------------------- ITEM
 				if (args.length != 0) {
-					Player toSet;
-					if (args.length < 4) {
-						if (sender instanceof Player) {
-							toSet = ((Player)sender);
-						} else {
-							sender.sendMessage(ChatColor.RED + "Specify player.");
-							return true;
-						}
-					} else {
-						toSet = findOnlinePlayer(args[3], sender);
-						if(toSet == null)return true;
-					}
-
-					Material material = EnumMatcher.matchOne(Material.class, args[0]);
+					final MaterialSpec materialSpec = matchMaterialData(args[0], sender);
+					if(materialSpec == null)return true;
+					int playerIndex = 1;
 					int amount = 1;
-					short data = 0;
 					try {
 						amount = Integer.parseInt(args[1]);
+						playerIndex = 2;
 					} catch (Exception ignored) {
 					}
-					try {
-						data = (short)Integer.parseInt(args[2]);
-					} catch (Exception ignored) {
-					}
+					final Player player = getPlayer(args, playerIndex, sender);
+					if (player == null) return true;
 
-					if (amount >= 1 && data >= 0) {
-						ItemStack toGive = material != null ? new ItemStack(material, amount, data) : null;
-						if (toGive != null) {
-							toSet.getInventory().addItem(toGive);
-							if (toSet.isOnline()) {
-								toSet.updateInventory();
-							} else {
-								toSet.saveData();
-							}
-							sender.sendMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + toSet.getName() + " was given " + amount
-								+ " " + toGive.getType().toString().toLowerCase());
-						} else {
-							sender.sendMessage(ChatColor.RED + "Material \"" + args[0] + "\" not found.");
-							final List<Material> matches = EnumMatcher.match(Material.class, args[0]);
-							if (!matches.isEmpty()) {
-								sender.sendMessage(ChatColor.RED.toString() + ChatColor.ITALIC + " Did you mean " + String.join(", ", matches.stream().map(Enum::toString).collect(Collectors.toList())) + "?");
-							}
-						}
+					final ItemStack toGive = materialSpec.toItemStack(amount);
+					final PlayerInventory inventory = player.getInventory();
+					if(inventory.getItemInMainHand() == null || inventory.getItemInMainHand().getType() == Material.AIR) {
+						inventory.setItemInMainHand(toGive);
 					} else {
-						return false;
+						inventory.addItem(toGive);
 					}
+					if (player.isOnline()) {
+						player.updateInventory();
+					} else {
+						player.saveData();
+					}
+					sender.sendMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + player.getName() + " was given " + amount
+							+ " " + toGive.getType().toString().toLowerCase());
+
+					return true;
 				} else if (sender instanceof Player) {
 					ItemStack item = ((Player)sender).getInventory().getItemInMainHand();
 					if (item == null) {
@@ -1113,21 +1087,12 @@ public class Plugin extends JavaPlugin {
 					return false;// They may want manual
 				}
 
-				Difficulty difficulty;
-				try {
-					difficulty = Difficulty.getByValue(Integer.parseInt(args[0]));
-					if (difficulty == null) {
-						throw new Exception();
-					}
-				} catch (Exception e) {
-					try {
-						difficulty = Difficulty.valueOf(args[0].toUpperCase());
-					} catch (Exception ex) {
-						sender.sendMessage(ChatColor.RED + "Difficulty not found. " + ChatColor.BLUE
-							+ Arrays.toString(Difficulty.values()));
-						return true;
-					}
+				final MatchResult<Difficulty> difficultyMatch = match(Difficulty.class, args[0]);
+				if (!difficultyMatch.isDefinite) {
+					sender.sendMessage(ChatColor.RED + "Difficulty not found. " + ChatColor.BLUE+ Arrays.toString(Difficulty.values()));
+					return true;
 				}
+				final Difficulty difficulty = difficultyMatch.result();
 				world.setDifficulty(difficulty);
 				getServer().broadcast(
 					ChatColor.GRAY.toString() + ChatColor.ITALIC + "[" + sender.getName() + " set difficulty in " + world.getName()
@@ -1165,87 +1130,42 @@ public class Plugin extends JavaPlugin {
 						return true;
 					}
 				}
-				ArrayList<EntityType> toTrash = new ArrayList<>();
+
+				final Predicate<Entity> filter;
+
 				if (args[0].toLowerCase().startsWith("item")) {
-					toTrash.add(EntityType.DROPPED_ITEM);
+					filter = e -> e instanceof Item;
 				} else if (args[0].toLowerCase().startsWith("mob") || args[0].toLowerCase().startsWith("creature")) {
-					toTrash.add(EntityType.BLAZE);
-					toTrash.add(EntityType.CAVE_SPIDER);
-					toTrash.add(EntityType.CHICKEN);
-					toTrash.add(EntityType.COW);
-					toTrash.add(EntityType.CREEPER);
-					toTrash.add(EntityType.ENDERMAN);
-					toTrash.add(EntityType.GHAST);
-					toTrash.add(EntityType.GIANT);
-					toTrash.add(EntityType.IRON_GOLEM);
-					toTrash.add(EntityType.MAGMA_CUBE);
-					toTrash.add(EntityType.MUSHROOM_COW);
-					toTrash.add(EntityType.OCELOT);
-					toTrash.add(EntityType.PIG);
-					toTrash.add(EntityType.PIG_ZOMBIE);
-					toTrash.add(EntityType.SHEEP);
-					toTrash.add(EntityType.SILVERFISH);
-					toTrash.add(EntityType.SKELETON);
-					toTrash.add(EntityType.SLIME);
-					toTrash.add(EntityType.SNOWMAN);
-					toTrash.add(EntityType.SPIDER);
-					toTrash.add(EntityType.SQUID);
-					toTrash.add(EntityType.VILLAGER);
-					toTrash.add(EntityType.WOLF);
-					toTrash.add(EntityType.ZOMBIE);
+					filter = e -> e instanceof Creature;
 				} else if (args[0].toLowerCase().startsWith("monster")) {
-					toTrash.add(EntityType.BLAZE);
-					toTrash.add(EntityType.CAVE_SPIDER);
-					toTrash.add(EntityType.CREEPER);
-					toTrash.add(EntityType.ENDERMAN);
-					toTrash.add(EntityType.GHAST);
-					toTrash.add(EntityType.GIANT);
-					toTrash.add(EntityType.MAGMA_CUBE);
-					toTrash.add(EntityType.OCELOT);
-					toTrash.add(EntityType.PIG_ZOMBIE);
-					toTrash.add(EntityType.SILVERFISH);
-					toTrash.add(EntityType.SKELETON);
-					toTrash.add(EntityType.SLIME);
-					toTrash.add(EntityType.SPIDER);
-					toTrash.add(EntityType.ZOMBIE);
+					filter = e -> e instanceof Monster;
 				} else if (args[0].toLowerCase().startsWith("animal")) {
-					toTrash.add(EntityType.CHICKEN);
-					toTrash.add(EntityType.COW);
-					toTrash.add(EntityType.MUSHROOM_COW);
-					toTrash.add(EntityType.PIG);
-					toTrash.add(EntityType.SHEEP);
-					toTrash.add(EntityType.WOLF);
+					filter = e -> e instanceof Animals;
 				} else if (args[0].toLowerCase().startsWith("water")) {
-					toTrash.add(EntityType.SQUID);
+					filter = e -> e instanceof WaterMob;
 				} else if (args[0].toLowerCase().startsWith("projectile")) {
-					toTrash.add(EntityType.ARROW);
-					toTrash.add(EntityType.EGG);
-					toTrash.add(EntityType.FIREBALL);
-					toTrash.add(EntityType.SNOWBALL);
-					toTrash.add(EntityType.SMALL_FIREBALL);
-					toTrash.add(EntityType.SPLASH_POTION);
-					toTrash.add(EntityType.THROWN_EXP_BOTTLE);
+					filter = e -> e instanceof Projectile;
 				} else if (args[0].toLowerCase().startsWith("vehicle")) {
-					toTrash.add(EntityType.MINECART);
-					toTrash.add(EntityType.BOAT);
+					filter = e -> e instanceof Vehicle;
 				} else if (args[0].toLowerCase().startsWith("all")) {
-					toTrash.addAll(Arrays.asList(EntityType.values()));
+					filter = e -> !(e instanceof Player);
 				} else {
-					EntityType match = EntityType.fromName(args[0].toUpperCase());
-					if (match != null) {
-						toTrash.add(match);
+					final MatchResult<EntityType> result = match(EntityType.class, args[0]);
+					if (result.isDefinite) {
+						final EntityType entityType = result.result();
+						if(entityType == EntityType.PLAYER) {
+							sender.sendMessage(ChatColor.RED + "You can't remove players!");
+							return true;
+						}
+						filter = e -> e.getType() == entityType;
 					} else {
-						sender.sendMessage(ChatColor.RED + "No suitable entity (class) found.");
+						matchFail("Entity type", result, sender);
 						return true;
 					}
 				}
-				toTrash.remove(EntityType.PLAYER);
-				if (toTrash.isEmpty()) {
-					sender.sendMessage(ChatColor.RED + "You can't remove players!");
-				}
 				int trashed = 0;
 				for (Entity entity : world.getEntities()) {
-					if (toTrash.contains(entity.getType())) {
+					if(filter.test(entity)) {
 						entity.remove();
 						trashed++;
 					}
@@ -1360,8 +1280,15 @@ public class Plugin extends JavaPlugin {
 				if (at == null) {
 					at = ((Player)sender).getLocation();
 				}
-				try {
-					type = EnumMatcher.matchOne(EntityType.class, args[0]);
+
+				if(args.length == 0) {
+					return false;
+				}
+
+				final MatchResult<EntityType> typeMatch = MatchUtils.match(EntityType.class, args[0]);
+
+				if(typeMatch.isDefinite){
+					type = typeMatch.result();
 					try {
 						amount = Integer.parseInt(args[1]);
 						if (amount > 50) {
@@ -1381,8 +1308,8 @@ public class Plugin extends JavaPlugin {
 					} else {
 						sender.sendMessage(ChatColor.RED + "Please specify entity.");
 					}
-				} catch (Exception e) {
-					sender.sendMessage(ChatColor.RED + "Please specify entity.");
+				} else {
+					matchFail("Entity type", typeMatch, sender);
 				}
 				// --------------------------------------- SPAWNENTITY END
 				return true;
@@ -1390,7 +1317,7 @@ public class Plugin extends JavaPlugin {
 				// --------------------------------------- SETFLYSPEED
 				float speed = 0.1f;// Probably default speed?
 				try {
-					speed = ((float)Integer.parseInt(args[0])) / 10.0f;
+					speed = Float.parseFloat(args[0]);
 					if (speed < -1) {
 						speed = -1;
 					} else if (speed > 1) {
@@ -1408,7 +1335,11 @@ public class Plugin extends JavaPlugin {
 					return false;
 				}
 				player.setFlySpeed(speed);
-				sender.sendMessage(ChatColor.GREEN + "Flying speed adjusted.");
+				if(sender == player) {
+					sender.sendMessage(ChatColor.GREEN + "Flying speed adjusted to "+speed);
+				} else {
+					sender.sendMessage(ChatColor.GREEN + "Flying speed of "+player.getName()+" adjusted to "+speed);
+				}
 				// --------------------------------------- SETFLYSPEED END
 				return true;
 			} else if (command.getName().equals("world")) {
@@ -1421,36 +1352,35 @@ public class Plugin extends JavaPlugin {
 							if (world == null) {
 								sender.sendMessage(ChatColor.RED + "World " + worldName + " does not exist.");
 							} else {
-								Player player;
-								if (sender instanceof Player) {
-									player = (Player)sender;
-									if (player.getWorld().equals(world)) {
+								Player player = getPlayer(args, 2, sender);
+								if(player == null) return true;
+
+								if (player.getWorld().equals(world)) {
+									if (player == sender) {
 										sender.sendMessage(ChatColor.BLUE + "You already are in world \"" + worldName + "\".");
-										return true;
+									} else {
+										sender.sendMessage(ChatColor.BLUE + "Player \"" + player.getName() + "\" already is in world \"" + worldName + "\".");
 									}
-								} else {
-									try {
-										player = (Player) findPlayer(args[2]);//TODO
-									} catch (Exception e) {
-										sender.sendMessage(ChatColor.RED + "Player could not be found.");
-										return true;
-									}
-									if (player.getWorld().equals(world)) {
-										sender.sendMessage(ChatColor.BLUE + "Player \"" + player.getName() + "\" already is in world \""
-											+ worldName + "\".");
-										return true;
-									}
+									return true;
 								}
 
-								teleportPlayer(player, world.getSpawnLocation());
+								final Location targetLocation;
+
+								if(args[0].toLowerCase().startsWith("gotoe")){
+									targetLocation = player.getLocation();
+									targetLocation.setWorld(world);
+								} else {
+									targetLocation = world.getSpawnLocation();
+								}
+
+								teleportPlayer(player, targetLocation);
 								sender.sendMessage(ChatColor.GREEN + "Teleported!");
 								if (!player.isOnline()) {
 									player.saveData();
 								}
 								return true;
 							}
-						} else if (args[0].toLowerCase().startsWith("c") || args[0].toLowerCase().startsWith("d")) {// If create or
-// remove
+						} else if (args[0].toLowerCase().startsWith("c") || args[0].toLowerCase().startsWith("d")) {// If create or remove
 							if (sender.hasPermission("darkyenuscommand.command.world.manage")) {
 								if (args[0].toLowerCase().startsWith("c")) {// Create world
 									getServer().broadcastMessage(ChatColor.GREEN + "Creating a new world, this may lag a bit.");
@@ -1580,18 +1510,27 @@ public class Plugin extends JavaPlugin {
 			if (sender instanceof Player) {
 				return (Player)sender;
 			} else {
+				if(sender != null) sender.sendMessage(ChatColor.RED+"You must specify a player");
 				return null;
 			}
 		} else {
-			OfflinePlayer player = findPlayer(args[argIndex]);
-			if (player == null || !(player instanceof Player)) {
-				if (sender instanceof Player) {
-					return (Player)sender;
+			final MatchResult<OfflinePlayer> playerMatch = matchPlayer(args[argIndex]);
+			if (playerMatch.isDefinite) {
+				final OfflinePlayer offlinePlayer = playerMatch.result();
+				final Player player = offlinePlayer.getPlayer();
+				if (player != null) {
+					return player;
 				} else {
+					if(sender != null)sender.sendMessage(ChatColor.RED+offlinePlayer.getName()+" is offline");
 					return null;
 				}
 			} else {
-				return (Player)player;
+				if (sender instanceof Player) {
+					return (Player)sender;
+				} else {
+					matchPlayerFail(playerMatch, sender);
+					return null;
+				}
 			}
 		}
 	}
@@ -1605,63 +1544,6 @@ public class Plugin extends JavaPlugin {
 			}
 		} else {
 			return getServer().getWorld(args[argIndex]);
-		}
-	}
-
-	@Deprecated
-	private OfflinePlayer findPlayer(String from) {
-		final MatchResult<OfflinePlayer> match = MatchUtils.match(getServer().getOfflinePlayers(), offPlayer -> offPlayer.getName().toLowerCase(), from.toLowerCase());
-		if(match.isDefinite) return match.results[0];
-		else return null;
-	}
-
-	private MatchResult<OfflinePlayer> matchPlayer(String from) {
-		return MatchUtils.match(getServer().getOfflinePlayers(), offPlayer -> offPlayer.getName().toLowerCase(), from.toLowerCase());
-	}
-
-	private void matchPlayerFail(MatchResult<OfflinePlayer> result, CommandSender sender){
-		if(result.results.length == 0){
-			sender.sendMessage(ChatColor.RED+"Player not found.");
-		} else if(result.results.length == 1){
-			sender.sendMessage(ChatColor.RED+"Player not found. "+ChatColor.DARK_RED+"Did you mean: " + ChatColor.RESET + result.results[0].getName() + ChatColor.DARK_RED + " ?");
-		} else {
-			final StringBuilder sb = new StringBuilder(ChatColor.RED+"Player not found. "+ChatColor.DARK_RED+"Did you mean: " + ChatColor.RESET);
-			sb.append(result.results[0]);
-			for (int i = 1; i < result.results.length; i++) {
-				//noinspection StringConcatenationInsideStringBufferAppend
-				sb.append(ChatColor.DARK_RED + ", " + ChatColor.RESET);//Like in constructor, will be concatenated at compile time
-				sb.append(result.results[i].getName());
-			}
-			//noinspection StringConcatenationInsideStringBufferAppend
-			sb.append(ChatColor.DARK_RED + " ?");
-			sender.sendMessage(sb.toString());
-		}
-	}
-
-	private OfflinePlayer findPlayer(String name, CommandSender sender) {
-		final MatchResult<OfflinePlayer> result = matchPlayer(name);
-		if(result.isDefinite) {
-			return result.result();
-		} else {
-			matchPlayerFail(result, sender);
-			return null;
-		}
-	}
-
-	private Player findOnlinePlayer(String name, CommandSender sender) {
-		final MatchResult<OfflinePlayer> result = matchPlayer(name);
-		if(result.isDefinite) {
-			final OfflinePlayer offlinePlayer = result.result();
-			final Player player = offlinePlayer.getPlayer();
-			if(player == null) {
-				sender.sendMessage(ChatColor.RED.toString()+offlinePlayer.getName()+" is offline");
-				return null;
-			} else {
-				return player;
-			}
-		} else {
-			matchPlayerFail(result, sender);
-			return null;
 		}
 	}
 

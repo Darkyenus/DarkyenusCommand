@@ -1,5 +1,5 @@
 name: DarkyenusCommand
-version: 8.0-SNAPSHOT
+version: 8.1-SNAPSHOT
 main: darkyenuscommand.Plugin
 authors: [Darkyen]
 commands:
@@ -114,7 +114,7 @@ commands:
     permission: darkyenuscommand.command.gamemode
   item:
     description: Give an item or see item info
-    usage: /item [Item Name] [Amount] [Data] [Player]
+    usage: /item [Item Name][:Data] [Amount] [Player]
     aliases: [give]
     permission: darkyenuscommand.command.item
   repair:
@@ -169,7 +169,7 @@ commands:
     aliases: [flyspeed, fspeed, speed]
   world:
     description: Manage and teleport between worlds.
-    usage: /world [Create, Delete, Goto] [World] [Generator, Player]
+    usage: /world [Create, Delete, Goto, GotoExact] [World] [Generator, Player]
     permission: darkyenuscommand.command.world
   command:
     description: Show info about command or list commands.

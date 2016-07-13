@@ -1,8 +1,10 @@
 package darkyenuscommand;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import org.bukkit.*;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
+import java.util.*;
 import java.util.function.Function;
 
 /**
@@ -137,6 +139,185 @@ public class MatchUtils {
         }
     }
 
+    public static <E extends Enum<E>> MatchResult<E> match(Class<E> type, String searched) {
+        final EnumMatcher<E> matcher = matcher(type);
+        try {
+            return new MatchResult<>(matcher.VALUES[Integer.parseInt(searched)]);
+        } catch (NumberFormatException | ArrayIndexOutOfBoundsException ignored) {
+        }
+        return matcher.match(searched);
+    }
+
+    public static MatchResult<OfflinePlayer> matchPlayer(String from) {
+        return MatchUtils.match(Bukkit.getOfflinePlayers(), offPlayer -> offPlayer.getName().toLowerCase(), from.toLowerCase());
+    }
+
+    public static void matchPlayerFail(MatchResult<OfflinePlayer> result, CommandSender sender){
+        if(sender == null)return;
+        if(result.results.length == 0){
+            sender.sendMessage(ChatColor.RED+"Player not found");
+        } else if(result.results.length == 1){
+            sender.sendMessage(ChatColor.RED+"Player not found. "+ChatColor.DARK_RED+"Did you mean: " + ChatColor.RESET + result.results[0].getName() + ChatColor.DARK_RED + " ?");
+        } else {
+            final StringBuilder sb = new StringBuilder(ChatColor.RED+"Player not found. "+ChatColor.DARK_RED+"Did you mean: " + ChatColor.RESET);
+            sb.append(result.results[0]);
+            for (int i = 1; i < result.results.length; i++) {
+                //noinspection StringConcatenationInsideStringBufferAppend
+                sb.append(ChatColor.DARK_RED + ", " + ChatColor.RESET);//Like in constructor, will be concatenated at compile time
+                sb.append(result.results[i].getName());
+            }
+            //noinspection StringConcatenationInsideStringBufferAppend
+            sb.append(ChatColor.DARK_RED + " ?");
+            sender.sendMessage(sb.toString());
+        }
+    }
+
+    public static <T> void matchFail(String noun, MatchResult<T> result, CommandSender sender){
+        if(sender == null)return;
+        if(result.results.length == 0){
+            sender.sendMessage(ChatColor.RED+noun+" not found");
+        } else if(result.results.length == 1){
+            sender.sendMessage(ChatColor.RED+noun+" not found "+ChatColor.DARK_RED+"Did you mean: " + ChatColor.RESET + result.results[0] + ChatColor.DARK_RED + " ?");
+        } else {
+            final StringBuilder sb = new StringBuilder(ChatColor.RED+noun+" not found "+ChatColor.DARK_RED+"Did you mean: " + ChatColor.RESET);
+            sb.append(result.results[0]);
+            for (int i = 1; i < result.results.length; i++) {
+                //noinspection StringConcatenationInsideStringBufferAppend
+                sb.append(ChatColor.DARK_RED + ", " + ChatColor.RESET);//Like in constructor, will be concatenated at compile time
+                sb.append(result.results[i]);
+            }
+            //noinspection StringConcatenationInsideStringBufferAppend
+            sb.append(ChatColor.DARK_RED + " ?");
+            sender.sendMessage(sb.toString());
+        }
+    }
+
+    public static OfflinePlayer findPlayer(String name, CommandSender sender) {
+        final MatchResult<OfflinePlayer> result = matchPlayer(name);
+        if(result.isDefinite) {
+            return result.result();
+        } else {
+            matchPlayerFail(result, sender);
+            return null;
+        }
+    }
+
+    public static Player findOnlinePlayer(String name, CommandSender sender) {
+        final MatchResult<OfflinePlayer> result = matchPlayer(name);
+        if(result.isDefinite) {
+            final OfflinePlayer offlinePlayer = result.result();
+            final Player player = offlinePlayer.getPlayer();
+            if(player == null) {
+                if(sender != null) {
+                    sender.sendMessage(ChatColor.RED.toString() + offlinePlayer.getName() + " is offline");
+                }
+                return null;
+            } else {
+                return player;
+            }
+        } else {
+            matchPlayerFail(result, sender);
+            return null;
+        }
+    }
+
+    public static MaterialSpec matchMaterialData(String name, CommandSender sender) {
+        final int dataSplit = name.indexOf(':');
+        final String material;
+        final String data;
+        if (dataSplit == -1){
+            material = name;
+            data = null;
+        }else {
+            material = name.substring(0, dataSplit);
+            final String dataRaw = name.substring(dataSplit + 1);
+            if(dataRaw.isEmpty() || "*".equals(dataRaw) || "any".equalsIgnoreCase(dataRaw)) {
+                data = null;
+            } else {
+                data = dataRaw;
+            }
+        }
+
+        final MatchResult<Material> materialMatch = match(Material.class, material);
+        if(!materialMatch.isDefinite) {
+            matchFail("Material", materialMatch, sender);
+            return null;
+        }
+
+        //We have material, now data
+
+        final Material mat = materialMatch.result();
+
+        if(data == null) {
+            //No data, just material!
+            return new MaterialSpec(mat);
+        }
+
+        try {
+            final int dataNumber = Integer.parseInt(data);
+            if((dataNumber < 0 || dataNumber >= 16) && sender != null) {
+                sender.sendMessage(ChatColor.GRAY+"Hint: Data value is never negative and never 16 or more");
+            }
+            return new MaterialSpec(mat, (byte)dataNumber);
+        } catch (NumberFormatException ignored) {
+        }
+
+        //Data is not number, try aliases
+
+        //Maybe color?
+        {
+            final MatchResult<DyeColor> colorMatch = match(DyeColor.class, data);
+            if (colorMatch.isDefinite) {
+                if(mat == Material.INK_SACK) {
+                    return new MaterialSpec(mat, colorMatch.result().getDyeData());
+                } else {
+                    return new MaterialSpec(mat, colorMatch.result().getWoolData());
+                }
+            }
+        }
+
+        //Maybe wood type?
+        {
+            final MatchResult<TreeSpecies> treeMatch = match(TreeSpecies.class, data);
+            if (treeMatch.isDefinite) {
+                if(mat == Material.LOG_2 || mat == Material.LEAVES_2) {
+                    return new MaterialSpec(mat, (byte) (treeMatch.result().getData() - 4));
+                } else {
+                    return new MaterialSpec(mat, treeMatch.result().getData());
+                }
+            }
+        }
+
+        //Maybe stone type?
+        {
+            final MatchResult<StoneType> stoneMatch = match(StoneType.class, data);
+            if (stoneMatch.isDefinite) {
+                return new MaterialSpec(mat, stoneMatch.result().data);
+            }
+        }
+
+        if(sender != null) {
+            sender.sendMessage(ChatColor.RED+"Failed to match data, try some number, color, wood or stone type");
+        }
+        return null;
+    }
+
+    private enum StoneType {
+        STONE(0),
+        GRANITE(1),
+        POLISHED_GRANITE(2),
+        DIORITE(3),
+        POLISHED_DIORITE(4),
+        ANDESITE(5),
+        POLISHED_ANDESITE(6)
+        ;
+        public final byte data;
+
+        StoneType(int data) {
+            this.data = (byte)data;
+        }
+    }
+
     private static final class MatchResultItem implements Comparable<MatchResultItem> {
         public final int index;
         public final int score;
@@ -152,26 +333,49 @@ public class MatchUtils {
         }
     }
 
-    @Deprecated
-    public static <T> T findNearest (Iterable<T> selection, Function<T, String> toString, String target, int atLeast) {
-        int nearest = Integer.MAX_VALUE;
-        T nearestItem = null;
-        boolean ambiguous = false;
+    private static final Map<Class<?>, EnumMatcher<?>> MATCHER_CACHE = new HashMap<>();
 
-        for (T s : selection) {
-            final int distance = levenshteinDistance(toString.apply(s), target, 7, 1, 10);
-            if (distance == 0) {
-                return s;
-            } else if (distance < nearest) {
-                nearest = distance;
-                nearestItem = s;
-            } else if (distance == nearest) {
-                ambiguous = true;
+    @SuppressWarnings("unchecked")
+    private static <E extends Enum<E>> EnumMatcher<E> matcher (Class<E> type) {
+        final EnumMatcher<?> existing = MATCHER_CACHE.get(type);
+        if (existing != null) return (EnumMatcher<E>)existing;
+
+        assert type.isEnum();
+        final EnumMatcher<E> newMatcher = new EnumMatcher<>(type.getEnumConstants());
+        MATCHER_CACHE.put(type, newMatcher);
+        return newMatcher;
+    }
+
+    private static final class EnumMatcher<E extends Enum<E>> implements Function<E, CharSequence> {
+
+        private final E[] VALUES;
+        private final String[] NAMES;
+
+        private EnumMatcher (E[] values) {
+            VALUES = values;
+            NAMES = new String[values.length];
+            for (int i = 0; i < values.length; i++) {
+                NAMES[i] = simplify(values[i].toString());
             }
         }
-        if (nearest <= atLeast && !ambiguous)
-            return nearestItem;
-        else
-            return null;
+
+        private String simplify (String string) {
+            StringBuilder fromBuilder = new StringBuilder();
+            for (char character : string.toCharArray()) {
+                if (Character.isLetterOrDigit(character)) {
+                    fromBuilder.append(Character.toLowerCase(character));
+                }
+            }
+            return fromBuilder.toString();
+        }
+
+        @Override
+        public String apply(E e) {
+            return NAMES[e.ordinal()];
+        }
+
+        public MatchResult<E> match(String searched) {
+            return MatchUtils.match(VALUES, this, searched);
+        }
     }
 }
