@@ -4,6 +4,10 @@ import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.permissions.Permission;
+import org.bukkit.permissions.PermissionAttachment;
+import org.bukkit.permissions.PermissionAttachmentInfo;
+import org.bukkit.plugin.Plugin;
 
 import java.util.*;
 import java.util.function.Function;
@@ -11,6 +15,7 @@ import java.util.function.Function;
 /**
  *
  */
+@SuppressWarnings("deprecation")
 public class MatchUtils {
 
     /** @param s0 text user entered
@@ -436,6 +441,99 @@ public class MatchUtils {
             } else {
                 return material.toString();
             }
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public static final class StringBuilderCommandSender implements CommandSender {
+
+        public final StringBuilder sb = new StringBuilder();
+
+        @Override
+        public void sendMessage(String message) {
+            sb.append(message).append('\n');
+        }
+
+        @Override
+        public void sendMessage(String[] messages) {
+            for (String message : messages) {
+                sb.append(message).append('\n');
+            }
+        }
+
+        @Override
+        public Server getServer() {
+            throw new UnsupportedOperationException("StringBuilderCommandSender");
+        }
+
+        @Override
+        public String getName() {
+            throw new UnsupportedOperationException("StringBuilderCommandSender");
+        }
+
+        @Override
+        public boolean isPermissionSet(String name) {
+            throw new UnsupportedOperationException("StringBuilderCommandSender");
+        }
+
+        @Override
+        public boolean isPermissionSet(Permission perm) {
+            throw new UnsupportedOperationException("StringBuilderCommandSender");
+        }
+
+        @Override
+        public boolean hasPermission(String name) {
+            throw new UnsupportedOperationException("StringBuilderCommandSender");
+        }
+
+        @Override
+        public boolean hasPermission(Permission perm) {
+            throw new UnsupportedOperationException("StringBuilderCommandSender");
+        }
+
+        @Override
+        public PermissionAttachment addAttachment(Plugin plugin, String name, boolean value) {
+            throw new UnsupportedOperationException("StringBuilderCommandSender");
+        }
+
+        @Override
+        public PermissionAttachment addAttachment(Plugin plugin) {
+            throw new UnsupportedOperationException("StringBuilderCommandSender");
+        }
+
+        @Override
+        public PermissionAttachment addAttachment(Plugin plugin, String name, boolean value, int ticks) {
+            throw new UnsupportedOperationException("StringBuilderCommandSender");
+        }
+
+        @Override
+        public PermissionAttachment addAttachment(Plugin plugin, int ticks) {
+            throw new UnsupportedOperationException("StringBuilderCommandSender");
+        }
+
+        @Override
+        public void removeAttachment(PermissionAttachment attachment) {
+            throw new UnsupportedOperationException("StringBuilderCommandSender");
+        }
+
+        @Override
+        public void recalculatePermissions() {
+            throw new UnsupportedOperationException("StringBuilderCommandSender");
+        }
+
+        @Override
+        public Set<PermissionAttachmentInfo> getEffectivePermissions() {
+            throw new UnsupportedOperationException("StringBuilderCommandSender");
+        }
+
+        @Override
+        public boolean isOp() {
+            throw new UnsupportedOperationException("StringBuilderCommandSender");
+        }
+
+        @Override
+        public void setOp(boolean value) {
+            throw new UnsupportedOperationException("StringBuilderCommandSender");
         }
     }
 }
