@@ -3,6 +3,7 @@ package darkyenuscommand;
 import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
 import java.util.function.Function;
@@ -380,6 +381,61 @@ public class MatchUtils {
 
         public MatchResult<E> match(String searched) {
             return MatchUtils.match(VALUES, this, simplify(searched));
+        }
+    }
+
+    public static final class MatchResult<T> {
+        public final boolean isDefinite;
+        public final T[] results;
+
+        public MatchResult(T[] results) {
+            this.isDefinite = false;
+            this.results = results;
+        }
+
+        public MatchResult(T result) {
+            this.isDefinite = true;
+            //noinspection unchecked
+            this.results = (T[])new Object[]{result};
+        }
+
+        public T result() {
+            return results[0];
+        }
+    }
+
+    public static class MaterialSpec {
+        public final Material material;
+        public final int data;
+        public final boolean hasData;
+
+        public MaterialSpec(Material material, int data) {
+            this.material = material;
+            this.data = data;
+            this.hasData = true;
+        }
+
+        public MaterialSpec(Material material) {
+            this.material = material;
+            this.data = 0;
+            this.hasData = false;
+        }
+
+        public ItemStack toItemStack(int amount) {
+            if(hasData) {
+                return new ItemStack(material, amount, (short)data);
+            } else {
+                return new ItemStack(material, amount);
+            }
+        }
+
+        @Override
+        public String toString() {
+            if(hasData) {
+                return material.toString()+":"+data;
+            } else {
+                return material.toString();
+            }
         }
     }
 }

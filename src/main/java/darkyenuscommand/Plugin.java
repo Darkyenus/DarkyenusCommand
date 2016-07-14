@@ -918,7 +918,7 @@ public class Plugin extends JavaPlugin {
 						gameMode = GameMode.CREATIVE;
 					}
 				} else {
-					final MatchResult<GameMode> modeMatch = match(GameMode.class, args[0]);
+					final MatchUtils.MatchResult<GameMode> modeMatch = match(GameMode.class, args[0]);
 					if (!modeMatch.isDefinite) {
 						sender.sendMessage(ChatColor.RED + "Game mode not found. " + ChatColor.BLUE+ Arrays.toString(GameMode.values()));
 						return true;
@@ -936,7 +936,7 @@ public class Plugin extends JavaPlugin {
 			} else if (command.getName().equals("item")) {
 				// --------------------------------------- ITEM
 				if (args.length != 0) {
-					final MaterialSpec materialSpec = matchMaterialData(args[0], sender);
+					final MatchUtils.MaterialSpec materialSpec = matchMaterialData(args[0], sender);
 					if(materialSpec == null)return true;
 					int playerIndex = 1;
 					int amount = 1;
@@ -1087,7 +1087,7 @@ public class Plugin extends JavaPlugin {
 					return false;// They may want manual
 				}
 
-				final MatchResult<Difficulty> difficultyMatch = match(Difficulty.class, args[0]);
+				final MatchUtils.MatchResult<Difficulty> difficultyMatch = match(Difficulty.class, args[0]);
 				if (!difficultyMatch.isDefinite) {
 					sender.sendMessage(ChatColor.RED + "Difficulty not found. " + ChatColor.BLUE+ Arrays.toString(Difficulty.values()));
 					return true;
@@ -1150,7 +1150,7 @@ public class Plugin extends JavaPlugin {
 				} else if (args[0].toLowerCase().startsWith("all")) {
 					filter = e -> !(e instanceof Player);
 				} else {
-					final MatchResult<EntityType> result = match(EntityType.class, args[0]);
+					final MatchUtils.MatchResult<EntityType> result = match(EntityType.class, args[0]);
 					if (result.isDefinite) {
 						final EntityType entityType = result.result();
 						if(entityType == EntityType.PLAYER) {
@@ -1285,7 +1285,7 @@ public class Plugin extends JavaPlugin {
 					return false;
 				}
 
-				final MatchResult<EntityType> typeMatch = MatchUtils.match(EntityType.class, args[0]);
+				final MatchUtils.MatchResult<EntityType> typeMatch = MatchUtils.match(EntityType.class, args[0]);
 
 				if(typeMatch.isDefinite){
 					type = typeMatch.result();
@@ -1514,7 +1514,7 @@ public class Plugin extends JavaPlugin {
 				return null;
 			}
 		} else {
-			final MatchResult<OfflinePlayer> playerMatch = matchPlayer(args[argIndex]);
+			final MatchUtils.MatchResult<OfflinePlayer> playerMatch = matchPlayer(args[argIndex]);
 			if (playerMatch.isDefinite) {
 				final OfflinePlayer offlinePlayer = playerMatch.result();
 				final Player player = offlinePlayer.getPlayer();
