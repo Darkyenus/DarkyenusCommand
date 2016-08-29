@@ -211,13 +211,6 @@ final class PluginListener implements Listener {
 					.getAmount() == 0)) {
 				event.setDamage(Integer.MAX_VALUE);
 				damager.playEffect(event.getEntity().getLocation(), Effect.EXTINGUISH, null);
-				event.getEntity().setVelocity(
-					event
-						.getEntity()
-						.getVelocity()
-						.add(
-							event.getEntity().getLocation().toVector().subtract(damager.getLocation().toVector()).normalize()
-								.multiply(3)));// Knockback
 			}
 		}
 	}
