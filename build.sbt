@@ -1,9 +1,11 @@
-name := "DarkyenusCommand8"
+name := "DarkyenusCommand"
 
 version := "8.0-SNAPSHOT"
 
 resolvers += "spigot-repo" at "https://hub.spigotmc.org/nexus/content/repositories/snapshots/"
 
-libraryDependencies += ("org.spigotmc" % "spigot-api" % "1.9.4-R0.1-SNAPSHOT" % "provided").exclude("net.md-5","bungeecord-chat")
+resolvers += Resolver.sonatypeRepo("snapshots")
+
+libraryDependencies += ("org.spigotmc" % "spigot-api" % "1.10.2-R0.1-SNAPSHOT" % "provided")
 
 autoScalaLibrary := false
