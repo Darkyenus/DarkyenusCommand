@@ -62,6 +62,7 @@ public final class PluginData {
 		public float pitch;
 		public float yaw;
 
+		@SuppressWarnings("unused")
 		public SerializedLocation () {
 		}
 

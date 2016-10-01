@@ -28,7 +28,7 @@ public class Plugin extends JavaPlugin {
 
 	PluginData data;
 
-	private static final String TIME_KEEP_GAMERULE = "doDaylightCycle";
+	private static final String TIME_KEEP_GAME_RULE = "doDaylightCycle";
 
 	PluginListener listener;
 	private final HashMap<UUID, Long> kickTimer = new HashMap<>();
@@ -53,7 +53,6 @@ public class Plugin extends JavaPlugin {
 	}
 
 	@Override
-	@SuppressWarnings("LoggerStringConcat")
 	public void onEnable () {
 		listener = new PluginListener(this);
 
@@ -197,19 +196,6 @@ public class Plugin extends JavaPlugin {
 						}
 					}
 					onPanicCommand(sender, playersToPanic, timeToPanic);
-					/*
-					 * Player player = (Player) sender; int added = 0;
-					 * 
-					 * 
-					 * for (Entity entity : player.getNearbyEntities(50, 100, 50)) { if (entity instanceof Player &&
-					 * !entity.equals(player)) { Player panicking = (Player) entity; if
-					 * (!panicking.hasPermission("darkyenuscommand.donotpanic")) { panicking.setMetadata("locked", new
-					 * FixedMetadataValue(this, true)); panicPlayers.put(panicking.getName(), System.currentTimeMillis() + timeToPanic
-					 * * 60000); added++; } } }
-					 * 
-					 * if (added != 0) { sender.sendMessage(ChatColor.GREEN + "You have locked " + added + "players for " + timeToPanic
-					 * + " minutes."); unPanicker.notify(); } else { sender.sendMessage(ChatColor.RED + "Nobody to panic in range."); }
-					 */
 				} else {
 					final Collection<? extends Player> players = getServer().getOnlinePlayers();
 					List<Player> playersToPanic = new ArrayList<>();
@@ -219,12 +205,11 @@ public class Plugin extends JavaPlugin {
 						}
 					}
 					onPanicCommand(sender, playersToPanic, timeToPanic);
-					// sender.sendMessage(ChatColor.RED + "In-Game only. Try /globalpanic instead.");
 				}
 				// --------------------------------------- PANIC END
 				return true;
 			} else if (command.getName().equals("globalpanic")) {
-				// --------------------------------------- GLOBALPANIC
+				// --------------------------------------- GLOBAL PANIC
 				int timeToPanic = 5;
 				try {
 					timeToPanic = Integer.parseInt(args[0]);
@@ -239,34 +224,22 @@ public class Plugin extends JavaPlugin {
 					}
 				}
 				onPanicCommand(sender, playersToPanic, timeToPanic);
-				/*
-				 * synchronized (unPanicker) { int added = 0; int timeToPanic = 5; try { timeToPanic = Integer.parseInt(args[0]); }
-				 * catch (Exception ignored) {}
-				 * 
-				 * for (Entity entity : getServer().getOnlinePlayers()) { if (entity instanceof Player && !entity.equals(sender)) {
-				 * Player panicking = (Player) entity; if (!panicking.hasPermission("darkyenuscommand.donotpanic")) {
-				 * panicking.setMetadata("locked", new FixedMetadataValue(this, true)); panicPlayers.put(panicking.getName(),
-				 * System.currentTimeMillis() + timeToPanic * 60000); added++; } } }
-				 * 
-				 * if (added != 0) { sender.sendMessage(ChatColor.GREEN + "You have locked " + added + "players for " + timeToPanic +
-				 * " minutes."); unPanicker.notify(); } else { sender.sendMessage(ChatColor.RED + "Nobody to panic."); } }
-				 */
-				// --------------------------------------- GLOBALPANIC END
+				// --------------------------------------- GLOBAL PANIC END
 				return true;
 			} else if (command.getName().equals("depanic")) {
-				// --------------------------------------- DEPANIC
-				int depanicked = 0;
-				for (Player toDepanicPlayer : getServer().getOnlinePlayers()) {
-					if (toDepanicPlayer != null) {
-						if (!toDepanicPlayer.getMetadata("locked").isEmpty()) {
-							toDepanicPlayer.removeMetadata("locked", this);
-							depanicked++;
-							toDepanicPlayer.sendMessage(ChatColor.BLUE + "You have been unlocked.");
+				// --------------------------------------- DE-PANIC
+				int dePanicked = 0;
+				for (Player toDePanicPlayer : getServer().getOnlinePlayers()) {
+					if (toDePanicPlayer != null) {
+						if (!toDePanicPlayer.getMetadata("locked").isEmpty()) {
+							toDePanicPlayer.removeMetadata("locked", this);
+							dePanicked++;
+							toDePanicPlayer.sendMessage(ChatColor.BLUE + "You have been unlocked.");
 						}
 					}
 				}
-				sender.sendMessage(ChatColor.GREEN.toString() + depanicked + " players unlocked.");
-				// --------------------------------------- DEPANIC END
+				sender.sendMessage(ChatColor.GREEN.toString() + dePanicked + " players unlocked.");
+				// --------------------------------------- DE-PANIC END
 				return true;
 			} else if (command.getName().equals("strike")) {
 				// --------------------------------------- STRIKE
@@ -646,24 +619,24 @@ public class Plugin extends JavaPlugin {
 							sender.sendMessage(ChatColor.YELLOW + "  " + plugin.getDescription().getName() + " " + ChatColor.ITALIC
 								+ plugin.getDescription().getVersion());
 						}
-						ArrayList<String> availaibleCommands = new ArrayList<>();
+						ArrayList<String> availableCommands = new ArrayList<>();
 						for (org.bukkit.plugin.Plugin plugin : getServer().getPluginManager().getPlugins()) {
-							for (String maybeAvailaibleCommand : plugin.getDescription().getCommands().keySet()) {
-								availaibleCommands.add(maybeAvailaibleCommand);
+							for (String maybeAvailableCommand : plugin.getDescription().getCommands().keySet()) {
+								availableCommands.add(maybeAvailableCommand);
 							}
 						}
 						sender.sendMessage(ChatColor.BLUE.toString() + ChatColor.BOLD + "Availaible Commands:");
-						sender.sendMessage(ChatColor.YELLOW.toString() + ChatColor.ITALIC + String.join(", ", availaibleCommands));
+						sender.sendMessage(ChatColor.YELLOW.toString() + ChatColor.ITALIC + String.join(", ", availableCommands));
 					} else {
 						ArrayList<String> availableCommands = new ArrayList<>();
 						for (org.bukkit.plugin.Plugin plugin : getServer().getPluginManager().getPlugins()) {
-							for (String maybeAvailaibleCommand : plugin.getDescription().getCommands().keySet()) {
-								if (getCommand(maybeAvailaibleCommand).testPermissionSilent(sender)) {
-									availableCommands.add(maybeAvailaibleCommand);
+							for (String maybeAvailableCommand : plugin.getDescription().getCommands().keySet()) {
+								if (getCommand(maybeAvailableCommand).testPermissionSilent(sender)) {
+									availableCommands.add(maybeAvailableCommand);
 								}
 							}
 						}
-						sender.sendMessage(ChatColor.BLUE + "Availaible Commands: " + ChatColor.YELLOW + ChatColor.ITALIC
+						sender.sendMessage(ChatColor.BLUE + "Available Commands: " + ChatColor.YELLOW + ChatColor.ITALIC
 							+ String.join(", ", availableCommands));
 					}
 				} else {
@@ -758,7 +731,7 @@ public class Plugin extends JavaPlugin {
 					}
 				}
 
-				world.setGameRuleValue(TIME_KEEP_GAMERULE, "true");
+				world.setGameRuleValue(TIME_KEEP_GAME_RULE, "true");
 
 				world.setTime(timeToSet);
 				getServer().broadcast(
@@ -807,7 +780,7 @@ public class Plugin extends JavaPlugin {
 					}
 				}
 
-				boolean timeStopped = "false".equalsIgnoreCase(world.getGameRuleValue(TIME_KEEP_GAMERULE));
+				boolean timeStopped = "false".equalsIgnoreCase(world.getGameRuleValue(TIME_KEEP_GAME_RULE));
 
 				if (timeStopped) {
 					if (world.getTime() != timeToSet) {// Should it be updated?
@@ -816,13 +789,13 @@ public class Plugin extends JavaPlugin {
 							ChatColor.GRAY.toString() + ChatColor.ITALIC + "[" + sender.getName() + " updated time to maintain in "
 								+ world.getName() + " to " + timeToSet + "]", "darkyenuscommand.staff");
 					} else {// No, it should be removed.
-						world.setGameRuleValue(TIME_KEEP_GAMERULE, "true");
+						world.setGameRuleValue(TIME_KEEP_GAME_RULE, "true");
 						getServer().broadcast(
 							ChatColor.GRAY.toString() + ChatColor.ITALIC + "[" + sender.getName() + " cancelled time maintain in "
 								+ world.getName() + "]", "darkyenuscommand.staff");
 					}
 				} else {
-					world.setGameRuleValue(TIME_KEEP_GAMERULE, "false");
+					world.setGameRuleValue(TIME_KEEP_GAME_RULE, "false");
 					getServer().broadcast(
 						ChatColor.GRAY.toString() + ChatColor.ITALIC + "[" + sender.getName() + " set time to maintain in "
 							+ world.getName() + " to " + timeToSet + "]", "darkyenuscommand.staff");
@@ -1106,7 +1079,7 @@ public class Plugin extends JavaPlugin {
 					sender.sendMessage(ChatColor.BLUE.toString() + "[EntityType] - exact entity type");
 					sender.sendMessage(ChatColor.BLUE.toString() + "item - same as DROPPED_ITEM");
 					sender.sendMessage(ChatColor.BLUE.toString() + "mob - all mobs");
-					sender.sendMessage(ChatColor.BLUE.toString() + "monster - all usually hotile mobs");
+					sender.sendMessage(ChatColor.BLUE.toString() + "monster - all usually hostile mobs");
 					sender.sendMessage(ChatColor.BLUE.toString() + "animal - domestic animals");
 					sender.sendMessage(ChatColor.BLUE.toString() + "water - water mobs");
 					sender.sendMessage(ChatColor.BLUE.toString() + "projectiles - all shootable items");
@@ -1191,20 +1164,20 @@ public class Plugin extends JavaPlugin {
 					}
 					sender.sendMessage(ChatColor.GREEN.toString() + toJail.getName() + " jailed in " + args[1]);
 				} else {
-					List<String> availaibleWarps = warpSystem.getWarps("jail_");
-					if (availaibleWarps.isEmpty()) {
+					List<String> availableWarps = warpSystem.getWarps("jail_");
+					if (availableWarps.isEmpty()) {
 						sender.sendMessage(ChatColor.RED.toString() + "Could not jail, no jails found or specified.");
 					} else {
-						int jailID = new Random().nextInt(availaibleWarps.size());
+						int jailID = new Random().nextInt(availableWarps.size());
 						preJailLocations.put(toJail.getUniqueId(), toJail.getLocation());
-						warpSystem.warp(toJail, availaibleWarps.get(jailID));
+						warpSystem.warp(toJail, availableWarps.get(jailID));
 						toJail.setMetadata("locked", new FixedMetadataValue(this, true));
 						if (toJail.isOnline()) {
 							toJail.sendMessage(ChatColor.BLUE + "You have been jailed.");
 						} else {
 							toJail.saveData();
 						}
-						sender.sendMessage(ChatColor.GREEN.toString() + toJail.getName() + " jailed in " + availaibleWarps.get(jailID));
+						sender.sendMessage(ChatColor.GREEN.toString() + toJail.getName() + " jailed in " + availableWarps.get(jailID));
 					}
 				}
 				// --------------------------------------- JAIL END
@@ -1244,7 +1217,7 @@ public class Plugin extends JavaPlugin {
 			} else if (command.getName().equals("setspawn")) {
 				// --------------------------------------- SETSPAWN
 				if (!(sender instanceof Player)) {
-					sender.sendMessage(ChatColor.RED + "Ingame use only.");
+					sender.sendMessage(ChatColor.RED + "In-game use only.");
 					return true;
 				}
 				if (((Player)sender).getWorld().setSpawnLocation(((Player)sender).getLocation().getBlockX(),
@@ -1258,7 +1231,7 @@ public class Plugin extends JavaPlugin {
 			} else if (command.getName().equals("spawn")) {
 				// --------------------------------------- SETSPAWN
 				if (!(sender instanceof Player)) {
-					sender.sendMessage(ChatColor.RED + "Ingame use only.");
+					sender.sendMessage(ChatColor.RED + "In-game use only.");
 					return true;
 				}
 				teleportPlayer((Player)sender, ((Player)sender).getWorld().getSpawnLocation());
@@ -1270,7 +1243,7 @@ public class Plugin extends JavaPlugin {
 			} else if (command.getName().equals("spawnentity")) {
 				// --------------------------------------- SPAWNENTITY
 				if (!(sender instanceof Player)) {
-					sender.sendMessage(ChatColor.RED + "Ingame use only.");
+					sender.sendMessage(ChatColor.RED + "In-game use only.");
 					return true;
 				}
 
@@ -1414,10 +1387,10 @@ public class Plugin extends JavaPlugin {
 					} else {
 						List<World> worlds = getServer().getWorlds();
 						if (worlds.isEmpty()) {
-							sender.sendMessage(ChatColor.BLUE + "Availaible worlds: <none>");// WTF why that would ever happen? But
+							sender.sendMessage(ChatColor.BLUE + "Available worlds: <none>");// WTF why that would ever happen? But
 // still, its prettier that way.
 						} else {
-							sender.sendMessage(ChatColor.BLUE + "Availaible worlds:");
+							sender.sendMessage(ChatColor.BLUE + "Available worlds:");
 							for (World world : worlds) {
 								sender.sendMessage(ChatColor.BLUE + world.getName() + ": " + ChatColor.WHITE + " "
 									+ world.getEnvironment().toString() + " | " + world.getWorldType().getName() + " | Players: "
@@ -1552,7 +1525,7 @@ public class Plugin extends JavaPlugin {
 			sender.sendMessage(ChatColor.RED + "Nobody to panic.");
 		} else {
 			if (minutes <= 0) {
-				sender.sendMessage(ChatColor.RED + "Inavlid amount of time, setting to 3.");
+				sender.sendMessage(ChatColor.RED + "Invalid amount of time, setting to 3.");
 				minutes = 3;
 			}
 			long toExpireAt = System.currentTimeMillis() + minutes * 60000;
