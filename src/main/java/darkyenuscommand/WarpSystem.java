@@ -23,10 +23,10 @@ final class WarpSystem {
 	}
 
 	public boolean onCommand (Player player, String[] args) {
-		final Map<String, PluginData.SerializedLocation> warps = data.warps;
+		final Map<String, Location> warps = data.warps;
 
 		if ("create".equalsIgnoreCase(args[0]) && args.length > 1 && !args[1].contains(":")) {
-			createWarp(player.getLocation(), args[1]);
+			createWarp(args[1], player.getLocation());
 			player.sendMessage(ChatColor.GREEN + "Warp " + args[1] + " created!");
 		} else if ("remove".equalsIgnoreCase(args[0]) && args.length > 1 && !args[1].contains(":")) {
 			if (warps.containsKey(args[1])) {
@@ -58,11 +58,11 @@ final class WarpSystem {
 	}
 
 	void warp (Player player, String warpName) {
-		player.teleport(data.warps.get(warpName).deserialize(player.getServer()));
+		player.teleport(data.warps.get(warpName));
 	}
 
-	public void createWarp (Location where, String warpName) {
-		data.warps.put(warpName, PluginData.SerializedLocation.serialize(where));
+	public void createWarp(String warpName, Location where) {
+		data.warps.put(warpName, where);
 	}
 
 	public void removeWarp (String warpName) {
@@ -77,7 +77,7 @@ final class WarpSystem {
 		return result;
 	}
 
-	public PluginData.SerializedLocation getWarp (String warp) {
+	public Location getWarp (String warp) {
 		return data.warps.get(warp);
 	}
 }
