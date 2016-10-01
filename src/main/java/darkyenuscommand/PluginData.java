@@ -77,6 +77,8 @@ public final class PluginData {
 
 			}
 		});
+		//noinspection unchecked
+		JSON.setSerializer(ComplexKeyMap.class, (JsonSerializer<ComplexKeyMap>)(JsonSerializer) ComplexKeyMap.SERIALIZER);
 		JSON.setUsePrototypes(false);
 		JSON.setIgnoreUnknownFields(true);
 	}
