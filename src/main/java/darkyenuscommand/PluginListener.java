@@ -1,10 +1,9 @@
 
 package darkyenuscommand;
 
-import org.bukkit.ChatColor;
-import org.bukkit.Effect;
-import org.bukkit.GameMode;
-import org.bukkit.Material;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
@@ -15,6 +14,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -23,9 +23,13 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.metadata.MetadataValue;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -37,6 +41,7 @@ final class PluginListener implements Listener {
 	PluginListener (Plugin plugin) {
 		plugin.getServer().getPluginManager().registerEvents(this, plugin);
 		this.plugin = plugin;
+		Bukkit.getServer().getMessenger().registerOutgoingPluginChannel(plugin, "MC|BOpen");
 	}
 
 	@EventHandler
@@ -273,5 +278,88 @@ final class PluginListener implements Listener {
 		if (ev.getEntity() instanceof Player && isLocked((Player)ev.getEntity())) {
 			ev.setCancelled(true);
 		}
+	}
+
+	//Book Notice Board
+	@EventHandler
+	public void interactWithNoticeBoard(PlayerInteractEvent ev) {
+		if(!plugin.data.bookNoticeBoardsEnabled) return;
+		final Player player = ev.getPlayer();
+		final Block block = ev.getClickedBlock();
+		if (block == null || (block.getType() != Material.WALL_SIGN && block.getType() != Material.SIGN_POST) || player.isSneaking()) {
+			return;
+		}
+		final Location location = block.getLocation();
+
+		final PluginData.NoticeBoard noticeBoard = plugin.data.bookNoticeBoards.get(location);
+		if(noticeBoard == null) {
+			//Maybe player wants to make this sign into notice board?
+			final Sign state = (Sign) block.getState();
+			final String[] lines = state.getLines();
+			if (lines.length == 0) return;
+			if (!"[notice]".equalsIgnoreCase(lines[0])) return;
+			final ItemStack item = ev.getItem();
+			if(item == null || (item.getType() != Material.WRITTEN_BOOK && item.getType() != Material.BOOK_AND_QUILL)) return;
+			final BookMeta itemMeta = (BookMeta) item.getItemMeta();
+
+			final PluginData.NoticeBoard board = new PluginData.NoticeBoard();
+			board.init(player, itemMeta.getPages().toArray(new String[itemMeta.getPageCount()]));
+
+			if(lines.length >= 2) {
+				if("readonly".equalsIgnoreCase(lines[1])) {
+					board.neverFreeForAll();
+				} else {
+					try {
+						board.freeForAllAfterDays(Integer.parseInt(lines[1]));
+					} catch (NumberFormatException ignored) {
+					}
+				}
+			}
+
+			plugin.data.bookNoticeBoards.put(location, board);
+			if(board.pages.length != 0) {
+				state.setLine(0, board.pages[0]);//TODO Better, this will probably not work very well
+				state.update();
+			}
+
+			final TextComponent component = new TextComponent("Notice Board Created");
+			component.setColor(net.md_5.bungee.api.ChatColor.BLUE);
+			player.spigot().sendMessage(ChatMessageType.SYSTEM, component);
+		} else {
+			//Show the sign!
+			if(!addChannel(player, "MC|BOpen")){
+				return;
+			}
+
+			final ItemStack displayItem = noticeBoard.getDisplayItem();
+			final ItemStack itemInMainHand = player.getInventory().getItemInMainHand();
+			try {
+				player.getInventory().setItemInMainHand(displayItem);
+				player.sendPluginMessage(plugin, "MC|BOpen", new byte[]{0});
+			} finally {
+				player.getInventory().setItemInMainHand(itemInMainHand);
+			}
+		}
+
+		ev.setUseInteractedBlock(Event.Result.DENY);
+		ev.setUseItemInHand(Event.Result.DENY);
+		ev.setCancelled(true);
+	}
+
+	private boolean addChannel(Player player, String channel) {
+		try {
+			final Method addChannel = player.getClass().getMethod("addChannel", String.class);
+			addChannel.invoke(player, channel);
+			return true;
+		} catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+			Bukkit.getLogger().log(Level.WARNING, "Failed to add channel, disabling notice boards", e);
+			plugin.data.bookNoticeBoardsEnabled = false;
+			return false;
+		}
+	}
+
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+	public void noticeBoardDestroyed(BlockBreakEvent event) {
+		plugin.data.bookNoticeBoards.remove(event.getBlock().getLocation());
 	}
 }

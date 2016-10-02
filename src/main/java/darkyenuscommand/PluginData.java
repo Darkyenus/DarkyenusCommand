@@ -4,6 +4,10 @@ package darkyenuscommand;
 import com.esotericsoftware.jsonbeans.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BookMeta;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -20,6 +24,7 @@ public final class PluginData {
 	public ArrayList<String> rules = new ArrayList<>();
 	public ArrayList<String> reports = new ArrayList<>();
 	public LinkedHashMap<String, Location> warps = new LinkedHashMap<>();
+	public ComplexKeyMap<Location, NoticeBoard> bookNoticeBoards = new ComplexKeyMap<>(Location.class, NoticeBoard.class);
 
 	public boolean saddleRecipe = false;
 	public boolean recordRecipe = false;
@@ -30,6 +35,7 @@ public final class PluginData {
 	public boolean chatFormatColorShuffle = false;
 	public boolean bonemealGrassFix = false;
 	public boolean fireFix = false;
+	public boolean bookNoticeBoardsEnabled = false;
 
 	private static final Json JSON = new Json(OutputType.javascript);
 	private static final File PATH_HOME = new File("plugins/");
@@ -41,9 +47,9 @@ public final class PluginData {
 			public void write(Json json, Location object, Class knownType) {
 				json.writeObjectStart();
 				json.writeValue("world", object.getWorld().getName());
-				json.writeValue("x", object.getX());
-				json.writeValue("y", object.getY());
-				json.writeValue("z", object.getZ());
+				json.writeValue("x", object.getBlockX());
+				json.writeValue("y", object.getBlockY());
+				json.writeValue("z", object.getBlockZ());
 				json.writeValue("yaw", Math.round(object.getYaw()));
 				json.writeValue("pitch", Math.round(object.getPitch()));
 				json.writeObjectEnd();
@@ -57,7 +63,7 @@ public final class PluginData {
 				final int z = jsonData.getInt("z");
 				final int yaw = jsonData.getInt("yaw");
 				final int pitch = jsonData.getInt("pitch");
-				return new Location(Bukkit.getWorld(world), x + 0.5f, y, z + 0.5f, yaw, pitch);
+				return new Location(Bukkit.getWorld(world), x, y, z, yaw, pitch);
 			}
 		});
 		JSON.setSerializer(UUID.class, new JsonSerializer<UUID>() {
@@ -115,5 +121,46 @@ public final class PluginData {
 			System.out.println("\n\n\n");
 			return false;
 		}
+	}
+
+	public static final class NoticeBoard {
+		public UUID owner;
+		public String[] pages;
+		public long freeForAllAfter;
+
+		private transient ItemStack displayItemCache = null;
+
+		public void init(Player owner, String...pages){
+			this.owner = owner.getUniqueId();
+			this.pages = pages;
+			this.freeForAllAfter = 0;
+		}
+
+		public boolean isFreeForAll(){
+			return freeForAllAfter < System.currentTimeMillis();
+		}
+
+		public void neverFreeForAll() {
+			freeForAllAfter = Long.MAX_VALUE;
+		}
+
+		public void alwaysFreeForAll() {
+			freeForAllAfter = 0;
+		}
+
+		public void freeForAllAfterDays(int days) {
+			freeForAllAfter = System.currentTimeMillis() + 1000L * 60 * 60 * 24 * days;
+		}
+
+		public ItemStack getDisplayItem() {
+			if(displayItemCache != null) return displayItemCache;
+			final ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
+			final BookMeta itemMeta = (BookMeta) book.getItemMeta();
+			itemMeta.setDisplayName("Note Sign");
+			itemMeta.addPage(pages);
+			book.setItemMeta(itemMeta);
+			return displayItemCache = book;
+		}
+
 	}
 }

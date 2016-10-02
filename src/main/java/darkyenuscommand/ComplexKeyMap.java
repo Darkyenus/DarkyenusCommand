@@ -10,9 +10,10 @@ import java.util.logging.Level;
  */
 public class ComplexKeyMap<K,V> extends ObjectMap<K, V> {
 
-    private final Class<K> keyClass, valueClass;
+    private final Class<K> keyClass;
+    private final Class<V> valueClass;
 
-    public ComplexKeyMap(Class<K> keyClass, Class<K> valueClass) {
+    public ComplexKeyMap(Class<K> keyClass, Class<V> valueClass) {
         this.keyClass = keyClass;
         this.valueClass = valueClass;
     }
