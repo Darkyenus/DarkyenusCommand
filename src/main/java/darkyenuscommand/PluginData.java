@@ -3,6 +3,7 @@ package darkyenuscommand;
 
 import com.esotericsoftware.jsonbeans.*;
 import darkyenuscommand.util.ComplexKeyMap;
+import darkyenuscommand.util.StringMap;
 import darkyenuscommand.util.TextProcessingInput;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -26,7 +27,7 @@ public final class PluginData {
 
 	public ArrayList<String> rules = new ArrayList<>();
 	public ArrayList<String> reports = new ArrayList<>();
-	public LinkedHashMap<String, Location> warps = new LinkedHashMap<>();
+	public StringMap<Location> warps = new StringMap<>();
 	public ComplexKeyMap<Location, NoticeBoard> bookNoticeBoards = new ComplexKeyMap<>(Location.class, NoticeBoard.class);
 
 	public boolean saddleRecipe = false;

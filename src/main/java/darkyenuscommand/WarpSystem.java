@@ -5,6 +5,7 @@
 
 package darkyenuscommand;
 
+import darkyenuscommand.util.StringMap;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -12,7 +13,6 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 /** @author Darkyen */
 final class WarpSystem {
@@ -23,7 +23,7 @@ final class WarpSystem {
 	}
 
 	public boolean onCommand (Player player, String[] args) {
-		final Map<String, Location> warps = data.warps;
+		final StringMap<Location> warps = data.warps;
 
 		if ("create".equalsIgnoreCase(args[0]) && args.length > 1 && !args[1].contains(":")) {
 			createWarp(args[1], player.getLocation());
@@ -42,8 +42,8 @@ final class WarpSystem {
 				player.sendMessage(ChatColor.RED + "Warp " + args[1] + " does not exist!");
 		} else if ("list".equalsIgnoreCase(args[0])) {
 			player.sendMessage(ChatColor.BLUE.toString() + ChatColor.BOLD + "Available Warps:");
-			if (warps.size() != 0)
-				player.sendMessage(ChatColor.BLUE.toString() + Arrays.toString(warps.keySet().toArray(new String[warps.size()])));
+			if (warps.size != 0)
+				player.sendMessage(ChatColor.BLUE.toString() + Arrays.toString(warps.keys().toArray().toArray(new String[warps.size])));
 			else
 				player.sendMessage(ChatColor.BLUE.toString() + "None");
 		} else {
@@ -71,7 +71,7 @@ final class WarpSystem {
 
 	public List<String> getWarps (String prefix) {
 		ArrayList<String> result = new ArrayList<>();
-		for (String warp : data.warps.keySet()) {
+		for (String warp : data.warps.keys()) {
 			if (warp.startsWith(prefix)) result.add(warp);
 		}
 		return result;
