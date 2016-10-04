@@ -1,4 +1,4 @@
-package darkyenuscommand;
+package darkyenuscommand.util;
 
 import com.esotericsoftware.jsonbeans.*;
 import org.bukkit.Bukkit;

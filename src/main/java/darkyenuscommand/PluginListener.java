@@ -30,6 +30,7 @@ import org.bukkit.metadata.MetadataValue;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -303,7 +304,7 @@ final class PluginListener implements Listener {
 			final BookMeta itemMeta = (BookMeta) item.getItemMeta();
 
 			final PluginData.NoticeBoard board = new PluginData.NoticeBoard();
-			board.init(player, itemMeta.getPages().toArray(new String[itemMeta.getPageCount()]));
+			board.init(player, itemMeta.getPages());
 
 			if(lines.length >= 2) {
 				if("readonly".equalsIgnoreCase(lines[1])) {
@@ -318,7 +319,10 @@ final class PluginListener implements Listener {
 
 			plugin.data.bookNoticeBoards.put(location, board);
 			if(board.pages.length != 0) {
-				state.setLine(0, board.pages[0]);//TODO Better, this will probably not work very well
+				final List<String> strings = formatForSign(board.pages[0]);
+				for (int i = 0; i < strings.size() && i < 4; i++) {
+					state.setLine(i, strings.get(i));
+				}
 				state.update();
 			}
 
@@ -344,6 +348,65 @@ final class PluginListener implements Listener {
 		ev.setUseInteractedBlock(Event.Result.DENY);
 		ev.setUseItemInHand(Event.Result.DENY);
 		ev.setCancelled(true);
+	}
+
+	private List<String> formatForSign(String page) {
+		//Let's assume, that line will fit only 16 characters.
+		final int LINE_LIMIT = 16;
+		final List<String> result = new ArrayList<>(4);
+		final StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < page.length(); i++) {
+			final char c = page.charAt(i);
+			if(sb.length() == 0 && Character.isWhitespace(c)) {
+				//Don't append if just more whitespace
+				continue;
+			} else if(c == '\n') {
+				if(sb.length() != 0) {
+					result.add(sb.toString());
+					sb.setLength(0);
+				}
+				continue;
+			} else {
+				sb.append(c);
+			}
+			if (sb.length() == LINE_LIMIT) {
+				//We are at line limit
+
+				int lineBreakAt = -1;
+				for (int sbi = sb.length() - 1; sbi >= 0; sbi--) {
+					if(Character.isWhitespace(sb.charAt(sbi))) {
+						lineBreakAt = sbi;
+						break;
+					}
+				}
+				if(lineBreakAt == sb.length() - 1) {
+					//Perfect end
+					sb.setLength(sb.length()-1);//Trim end whitespace
+					result.add(sb.toString());
+					sb.setLength(0);
+				} else if(lineBreakAt == -1) {
+					//One long word, add hyphen
+					final StringBuilder line = new StringBuilder();
+					line.append(sb);
+					line.setCharAt(LINE_LIMIT-1, '-');
+					result.add(line.toString());
+					sb.setCharAt(0, sb.charAt(LINE_LIMIT-1));
+					sb.setLength(1);
+				} else {
+					result.add(sb.substring(0, lineBreakAt));
+					final String sbRemaining = sb.substring(lineBreakAt + 1);
+					sb.setLength(0);
+					sb.append(sbRemaining);
+				}
+			}
+
+			if(result.size() >= 4) break;
+		}
+		if(result.size() < 4) {
+			result.add(sb.toString());
+			sb.setLength(0);
+		}
+		return result;
 	}
 
 	private boolean addChannel(Player player, String channel) {
