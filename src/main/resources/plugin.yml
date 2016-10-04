@@ -180,6 +180,11 @@ commands:
     description: Heal player by given amount
     usage: /heal [Amount] [Player]
     permission: darkyenuscommand.command.heal
+  bookformat:
+    description: Format held book using DarkyenusCommand formatting rules
+    aliases: [formatbook, fbook, bookf]
+    usage: /bookformat [help]
+    permission: darkyenuscommand.command.bookformat
 permissions:
   darkyenuscommand.command.rules:
     description: Access to /rules command.
@@ -310,6 +315,9 @@ permissions:
   darkyenuscommand.command.heal:
     description: Access to /heal command.
     default: op
+  darkyenuscommand.command.bookformat:
+    description: Access to /bookformat command.
+    default: op
 # Here lies the additional command permissions
   darkyenuscommand.command.kill.anyone:
     description: You can kill anyone with /kill command, not only yourself.
@@ -404,8 +412,9 @@ permissions:
       darkyenuscommand.command.spawnentity: true
       darkyenuscommand.command.setflyspeed: true
       darkyenuscommand.command.world: true
-      darkyenuscommand.command.heal: true
       darkyenuscommand.command.find: true
+      darkyenuscommand.command.heal: true
+      darkyenuscommand.command.bookformat: true
   darkyenuscommand.admin:
     description: You are admin and have access to every command.
     default: op

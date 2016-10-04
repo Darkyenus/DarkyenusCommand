@@ -10,6 +10,8 @@ import org.bukkit.entity.*;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.BookMeta;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -1447,6 +1449,50 @@ public class Plugin extends JavaPlugin {
 				}
 				return true;
 				// --------------------------------------- HEAL END
+			} else if (command.getName().equals("bookformat")) {
+				// --------------------------------------- BOOK FORMAT
+				if(args.length > 0) {
+					sender.sendMessage(ChatColor.BLUE+"Book Formatting Rules");
+					sender.sendMessage(ChatColor.AQUA+"Existing color tags are stripped and then control codes are interpreted.");
+					sender.sendMessage(ChatColor.AQUA+"Control code is in form #(?), where ? is one of codes below. ## is interpreted as single # without interpreting anything.");
+					final StringBuilder colorsSB = new StringBuilder();
+					for (ChatColor chatColor : ChatColor.values()) {
+						if(chatColor == ChatColor.RESET) continue;
+						colorsSB.append(chatColor.asBungee().getName()).append('/').append(chatColor.getChar()).append(", ");
+					}
+					colorsSB.setLength(colorsSB.length() - 2);//Strip extra ", "
+					sender.sendMessage(ChatColor.ITALIC+colorsSB.toString()+ChatColor.RESET+": Are color codes, in long form/alias form");
+					sender.sendMessage(ChatColor.ITALIC+"reset/r"+ChatColor.RESET+": Clear color code and mode");
+					sender.sendMessage(ChatColor.ITALIC+"full_width/fw"+ChatColor.RESET+": Switch to mode in which all (ASCII) characters are converted to full width variants");
+					sender.sendMessage(ChatColor.ITALIC+"runic/rc"+ChatColor.RESET+": Switch to mode in which all basic characters are converted to runes");
+					return true;
+				} else {
+					final Player player;
+					if(sender instanceof Player) {
+						player = (Player) sender;
+					} else {
+						sender.sendMessage(ChatColor.RED+"In-game use only");
+						return true;
+					}
+					final PlayerInventory inventory = player.getInventory();
+					final ItemStack item = inventory.getItemInMainHand();
+					final ItemMeta itemMeta = item.getItemMeta();
+					if(itemMeta instanceof BookMeta) {
+						final BookMeta bookMeta = (BookMeta) itemMeta;
+						for (int i = 1; i <= bookMeta.getPageCount(); i++) {
+							bookMeta.setPage(i, PluginData.formatPage(bookMeta.getPage(i)));
+						}
+						item.setItemMeta(bookMeta);
+						inventory.setItemInMainHand(item);//Just to refresh in client UI
+
+						sender.sendMessage(ChatColor.BLUE + "" + bookMeta.getPageCount()+" pages formatted");
+						return true;
+					} else {
+						sender.sendMessage(ChatColor.RED+"Held item is not a book");
+						return true;
+					}
+				}
+				// --------------------------------------- BOOK FORMAT END
 			} else if (command.getName().equals("donothing")) {
 				return true;
 			}

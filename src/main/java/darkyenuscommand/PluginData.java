@@ -126,6 +126,84 @@ public final class PluginData {
 		}
 	}
 
+	public static String formatPage(String page) {
+        final TextProcessingInput in = new TextProcessingInput(page);
+        final StringBuilder sb = new StringBuilder();
+
+        final byte MODE_NORMAL = 1;
+        final byte MODE_FULL_WIDTH = 2;
+        final byte MODE_RUNIC = 3;
+
+        byte mode = MODE_NORMAL;
+
+        charWhile:
+        while(true) {
+            final int c = in.pop();
+
+            if(c == -1) {
+                break;
+            } else if(c == ChatColor.COLOR_CHAR) {
+                in.pop();
+            } else if(c == '\n' || c == '\r') {
+                while(sb.length() != 0 && Character.isWhitespace(sb.charAt(sb.length()-1)) && sb.charAt(sb.length()-1) != '\n'){
+                    sb.setLength(sb.length() - 1);
+                }
+                sb.append('\n');
+            } else if(c == '#') {
+                if(in.peekEqualsIgnoreCaseAndPop("#")) {
+                    sb.append('#');
+                } else {
+                    for (ChatColor color : ChatColor.values()) {
+                        if(in.peekEqualsIgnoreCaseAndPop("("+color.asBungee().getName()+")") || in.peekEqualsIgnoreCaseAndPop("("+color.getChar()+")")) {
+                            sb.append(color.toString());
+                            if(color == ChatColor.RESET) {
+                                mode = MODE_NORMAL;
+                            }
+                            continue charWhile;
+                        }
+                    }
+                    if(in.peekEqualsIgnoreCaseAndPop("(full_width)") || in.peekEqualsIgnoreCaseAndPop("(fw)")) {
+                        mode = MODE_FULL_WIDTH;
+                    } else if(in.peekEqualsIgnoreCaseAndPop("(runic)") || in.peekEqualsIgnoreCaseAndPop("(rc)")) {
+                        mode = MODE_RUNIC;
+                    } else {
+                        sb.append('#');
+                    }
+                }
+            } else {
+                final int printC;
+                switch (mode) {
+                    case MODE_NORMAL:
+                        printC = c;
+                        break;
+                    case MODE_FULL_WIDTH:
+                        if(c >= 0x21 && c <= 0x7E) {
+                            printC = (c - 0x21) + 0xFF01;
+                        } else {
+                            printC = c;
+                        }
+                        break;
+                    case MODE_RUNIC:
+                        //TODO Faux-mapping
+                        if(c >= 'a' && c <= 'z') {
+                            printC = (c - 'a') + 0x16A0;
+                        } else if(c >= 'A' && c <= 'Z') {
+                            printC = (c - 'A') + 0x16A0 + ('z' - 'a');
+                        } else if(c >= '0' && c <= '9') {
+                            printC = (c - '0') + 0x16A0 + ('z' - 'a') + ('Z' - 'A');
+                        } else {
+                            printC = c;
+                        }
+                        break;
+                    default:
+                        throw new IllegalStateException("Unknown mode "+mode);
+                }
+                sb.appendCodePoint(printC);
+            }
+        }
+        return sb.toString();
+    }
+
 	public static final class NoticeBoard {
 		public UUID owner;
 		public String[] pages;
@@ -140,84 +218,6 @@ public final class PluginData {
 				this.pages[i] = formatPage(pages.get(i));
 			}
 			this.freeForAllAfter = 0;
-		}
-
-		private String formatPage(String page) {
-			final TextProcessingInput in = new TextProcessingInput(page);
-			final StringBuilder sb = new StringBuilder();
-
-			final byte MODE_NORMAL = 1;
-			final byte MODE_FULL_WIDTH = 2;
-			final byte MODE_RUNIC = 3;
-
-			byte mode = MODE_NORMAL;
-
-			charWhile:
-			while(true) {
-				final int c = in.pop();
-
-				if(c == -1) {
-					break;
-				} else if(c == ChatColor.COLOR_CHAR) {
-					in.pop();
-				} else if(c == '\n' || c == '\r') {
-					while(sb.length() != 0 && Character.isWhitespace(sb.charAt(sb.length()-1)) && sb.charAt(sb.length()-1) != '\n'){
-						sb.setLength(sb.length() - 1);
-					}
-					sb.append('\n');
-				} else if(c == '#') {
-					if(in.peekEqualsIgnoreCaseAndPop("#")) {
-						sb.append('#');
-					} else {
-						for (ChatColor color : ChatColor.values()) {
-							if(in.peekEqualsIgnoreCaseAndPop("("+color.asBungee().getName()+")") || in.peekEqualsIgnoreCaseAndPop("("+color.getChar()+")")) {
-								sb.append(color.toString());
-								if(color == ChatColor.RESET) {
-									mode = MODE_NORMAL;
-								}
-								continue charWhile;
-							}
-						}
-						if(in.peekEqualsIgnoreCaseAndPop("(full_width)") || in.peekEqualsIgnoreCaseAndPop("(fw)")) {
-							mode = MODE_FULL_WIDTH;
-						} else if(in.peekEqualsIgnoreCaseAndPop("(runic)") || in.peekEqualsIgnoreCaseAndPop("(rc)")) {
-							mode = MODE_RUNIC;
-						} else {
-							sb.append('#');
-						}
-					}
-				} else {
-					final int printC;
-					switch (mode) {
-						case MODE_NORMAL:
-							printC = c;
-							break;
-						case MODE_FULL_WIDTH:
-							if(c >= 0x21 && c <= 0x7E) {
-								printC = (c - 0x21) + 0xFF01;
-							} else {
-								printC = c;
-							}
-							break;
-						case MODE_RUNIC:
-							//TODO Faux-mapping
-							if(c >= 'a' && c <= 'z') {
-								printC = (c - 'a') + 0x16A0;
-							} else if(c >= 'A' && c <= 'Z') {
-								printC = (c - 'A') + 0x16A0 + ('z' - 'a');
-							} else if(c >= '0' && c <= '9') {
-								printC = (c - '0') + 0x16A0 + ('z' - 'a') + ('Z' - 'A');
-							} else {
-								printC = c;
-							}
-							break;
-						default:
-							throw new IllegalStateException("Unknown mode "+mode);
-					}
-					sb.appendCodePoint(printC);
-				}
-			}
-			return sb.toString();
 		}
 
 		public boolean isFreeForAll(){
