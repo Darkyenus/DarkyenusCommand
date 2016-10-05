@@ -1454,7 +1454,7 @@ public class Plugin extends JavaPlugin {
 				if(args.length > 0) {
 					sender.sendMessage(ChatColor.BLUE+"Book Formatting Rules");
 					sender.sendMessage(ChatColor.AQUA+"Existing color tags are stripped and then control codes are interpreted.");
-					sender.sendMessage(ChatColor.AQUA+"Control code is in form #(?), where ? is one of codes below. ## is interpreted as single # without interpreting anything.");
+					sender.sendMessage(ChatColor.AQUA+"Control code is in form #?#, where ? is one of codes below. \\# is interpreted as single # without interpreting anything.");
 					final StringBuilder colorsSB = new StringBuilder();
 					for (ChatColor chatColor : ChatColor.values()) {
 						if(chatColor == ChatColor.RESET) continue;
@@ -1462,7 +1462,7 @@ public class Plugin extends JavaPlugin {
 					}
 					colorsSB.setLength(colorsSB.length() - 2);//Strip extra ", "
 					sender.sendMessage(ChatColor.ITALIC+colorsSB.toString()+ChatColor.RESET+": Are color codes, in long form/alias form");
-					sender.sendMessage(ChatColor.ITALIC+"reset/r"+ChatColor.RESET+": Clear color code and mode");
+					sender.sendMessage(ChatColor.ITALIC+"reset/r/"+ChatColor.RESET+": Clear color code and mode. Also triggered by ##.");
 					sender.sendMessage(ChatColor.ITALIC+"full_width/fw"+ChatColor.RESET+": Switch to mode in which all (ASCII) characters are converted to full width variants");
 					sender.sendMessage(ChatColor.ITALIC+"runic/rc"+ChatColor.RESET+": Switch to mode in which all basic characters are converted to runes");
 					return true;

@@ -151,11 +151,12 @@ public final class PluginData {
                 }
                 sb.append('\n');
             } else if(c == '#') {
-                if(in.peekEqualsIgnoreCaseAndPop("#")) {
-                    sb.append('#');
+				if(in.peekEqualsIgnoreCaseAndPop("#")) {
+                    sb.append(ChatColor.RESET.toString());
+					mode = MODE_NORMAL;
                 } else {
                     for (ChatColor color : ChatColor.values()) {
-                        if(in.peekEqualsIgnoreCaseAndPop("("+color.asBungee().getName()+")") || in.peekEqualsIgnoreCaseAndPop("("+color.getChar()+")")) {
+                        if(in.peekEqualsIgnoreCaseAndPop(color.asBungee().getName()+"#") || in.peekEqualsIgnoreCaseAndPop(color.getChar()+"#")) {
                             sb.append(color.toString());
                             if(color == ChatColor.RESET) {
                                 mode = MODE_NORMAL;
@@ -163,37 +164,43 @@ public final class PluginData {
                             continue charWhile;
                         }
                     }
-                    if(in.peekEqualsIgnoreCaseAndPop("(full_width)") || in.peekEqualsIgnoreCaseAndPop("(fw)")) {
+                    if(in.peekEqualsIgnoreCaseAndPop("full_width#") || in.peekEqualsIgnoreCaseAndPop("fw#")) {
                         mode = MODE_FULL_WIDTH;
-                    } else if(in.peekEqualsIgnoreCaseAndPop("(runic)") || in.peekEqualsIgnoreCaseAndPop("(rc)")) {
+                    } else if(in.peekEqualsIgnoreCaseAndPop("runic#") || in.peekEqualsIgnoreCaseAndPop("rc#")) {
                         mode = MODE_RUNIC;
                     } else {
                         sb.append('#');
                     }
                 }
             } else {
-                final int printC;
-                switch (mode) {
+				int cc = c;
+				if(cc == '\\') {
+					if(in.peekEqualsIgnoreCaseAndPop("#")){
+						cc = '#';
+					}
+				}
+				final int printC;
+				switch (mode) {
                     case MODE_NORMAL:
-                        printC = c;
+                        printC = cc;
                         break;
                     case MODE_FULL_WIDTH:
-                        if(c >= 0x21 && c <= 0x7E) {
-                            printC = (c - 0x21) + 0xFF01;
+                        if(cc >= 0x21 && cc <= 0x7E) {
+                            printC = (cc - 0x21) + 0xFF01;
                         } else {
-                            printC = c;
+                            printC = cc;
                         }
                         break;
                     case MODE_RUNIC:
                         //TODO Faux-mapping
-                        if(c >= 'a' && c <= 'z') {
-                            printC = (c - 'a') + 0x16A0;
-                        } else if(c >= 'A' && c <= 'Z') {
-                            printC = (c - 'A') + 0x16A0 + ('z' - 'a');
-                        } else if(c >= '0' && c <= '9') {
-                            printC = (c - '0') + 0x16A0 + ('z' - 'a') + ('Z' - 'A');
+                        if(cc >= 'a' && cc <= 'z') {
+                            printC = (cc - 'a') + 0x16A0;
+                        } else if(cc >= 'A' && cc <= 'Z') {
+                            printC = (cc - 'A') + 0x16A0 + ('z' - 'a');
+                        } else if(cc >= '0' && cc <= '9') {
+                            printC = (cc - '0') + 0x16A0 + ('z' - 'a') + ('Z' - 'A');
                         } else {
-                            printC = c;
+                            printC = cc;
                         }
                         break;
                     default:
@@ -242,7 +249,11 @@ public final class PluginData {
 			final ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
 			final BookMeta itemMeta = (BookMeta) book.getItemMeta();
 			itemMeta.setDisplayName("Note Sign");
-			itemMeta.addPage(pages);
+			//Minecraft is buggy and resets don't work for colors. So we need to make it work explicitly.
+			for (String page : pages) {
+				itemMeta.addPage(page.replace(ChatColor.RESET.toString(), ChatColor.RESET.toString() + ChatColor.BLACK.toString()));
+			}
+			//itemMeta.addPage(pages);
 			book.setItemMeta(itemMeta);
 			return displayItemCache = book;
 		}
