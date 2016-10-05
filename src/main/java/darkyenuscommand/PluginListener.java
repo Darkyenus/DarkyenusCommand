@@ -350,6 +350,73 @@ final class PluginListener implements Listener {
 		ev.setCancelled(true);
 	}
 
+	private int formatForSign_lengthWithoutChatColor(CharSequence cs){
+		int result = 0;
+		for (int i = 0; i < cs.length(); i++) {
+			if(cs.charAt(i) == ChatColor.COLOR_CHAR) {
+				i++;
+			} else {
+				result++;
+			}
+		}
+		return result;
+	}
+
+	private ChatColor formatForSign_getEndChatColor(CharSequence cs) {
+		ChatColor result = null;
+		for (int i = 0; i < cs.length()-1; i++) {
+			if(cs.charAt(i) == ChatColor.COLOR_CHAR) {
+				final ChatColor code = ChatColor.getByChar(cs.charAt(i + 1));
+				if(code != null) {
+					if(code.isColor()) {
+						result = code;
+					} else if(code == ChatColor.RESET){
+						result = null;
+					}
+				}
+				i++;
+			}
+		}
+
+		return result;
+	}
+
+	private CharSequence formatForSign_makeItalic(CharSequence cs, ChatColor leadingColor) {
+		final StringBuilder sb = new StringBuilder();
+		if(leadingColor != null){
+			sb.append(leadingColor.toString());
+		}
+		sb.append(ChatColor.ITALIC.toString());
+
+		for (int i = 0; i < cs.length(); i++) {
+			final char c = cs.charAt(i);
+			if(c == ChatColor.COLOR_CHAR) {
+				if(i == cs.length()) continue;//Invalid format code
+				final ChatColor code = ChatColor.getByChar(cs.charAt(i + 1));
+				if(code != null) {
+					if(code.isColor()) {
+						sb.append(code).append(ChatColor.ITALIC);
+					} else if(code == ChatColor.RESET){
+						sb.append(ChatColor.RESET).append(ChatColor.ITALIC);
+					}
+				}
+				i++;//Eat code
+			} else {
+				sb.append(c);
+			}
+		}
+		return sb;
+	}
+
+	private void formatForSign_addResult(List<String> result, CharSequence append) {
+		if(result.size() >= 4) return;
+		ChatColor leading = null;
+		if(!result.isEmpty()) {
+			leading = formatForSign_getEndChatColor(result.get(result.size() - 1));
+		}
+		result.add(formatForSign_makeItalic(append, leading).toString());
+	}
+
 	private List<String> formatForSign(String page) {
 		//Let's assume, that line will fit only 16 characters.
 		final int LINE_LIMIT = 16;
@@ -362,14 +429,14 @@ final class PluginListener implements Listener {
 				continue;
 			} else if(c == '\n') {
 				if(sb.length() != 0) {
-					result.add(sb.toString());
+					formatForSign_addResult(result, sb);
 					sb.setLength(0);
 				}
 				continue;
 			} else {
 				sb.append(c);
 			}
-			if (sb.length() == LINE_LIMIT) {
+			if (formatForSign_lengthWithoutChatColor(sb) >= LINE_LIMIT) {
 				//We are at line limit
 
 				int lineBreakAt = -1;
@@ -382,18 +449,18 @@ final class PluginListener implements Listener {
 				if(lineBreakAt == sb.length() - 1) {
 					//Perfect end
 					sb.setLength(sb.length()-1);//Trim end whitespace
-					result.add(sb.toString());
+					formatForSign_addResult(result, sb);
 					sb.setLength(0);
 				} else if(lineBreakAt == -1) {
 					//One long word, add hyphen
 					final StringBuilder line = new StringBuilder();
 					line.append(sb);
-					line.setCharAt(LINE_LIMIT-1, '-');
-					result.add(line.toString());
-					sb.setCharAt(0, sb.charAt(LINE_LIMIT-1));
+					line.setCharAt(sb.length()-1, '-');
+					formatForSign_addResult(result, line);
+					sb.setCharAt(0, sb.charAt(sb.length()-1));
 					sb.setLength(1);
 				} else {
-					result.add(sb.substring(0, lineBreakAt));
+					formatForSign_addResult(result, sb.substring(0, lineBreakAt));
 					final String sbRemaining = sb.substring(lineBreakAt + 1);
 					sb.setLength(0);
 					sb.append(sbRemaining);
@@ -402,10 +469,7 @@ final class PluginListener implements Listener {
 
 			if(result.size() >= 4) break;
 		}
-		if(result.size() < 4) {
-			result.add(sb.toString());
-			sb.setLength(0);
-		}
+		formatForSign_addResult(result, sb);
 		return result;
 	}
 
