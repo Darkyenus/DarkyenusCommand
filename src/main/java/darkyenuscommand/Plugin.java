@@ -1493,6 +1493,57 @@ public class Plugin extends JavaPlugin {
 					}
 				}
 				// --------------------------------------- BOOK FORMAT END
+			} else if (command.getName().equals("playerface")) {
+				// --------------------------------------- PLAYER FACE
+				final Player player;
+				if(sender instanceof Player) {
+					player = (Player) sender;
+				} else {
+					sender.sendMessage(ChatColor.RED+"In-game use only");
+					return true;
+				}
+				if(args.length != 0) return false;
+				final Location location = player.getLocation();
+
+				switch (args[0].toLowerCase()) {
+					case "north":
+					case "panorama0":
+						location.setYaw(180);
+						location.setPitch(0);
+						break;
+					case "east":
+					case "panorama1":
+						location.setYaw(270);
+						location.setPitch(0);
+						break;
+					case "south":
+					case "panorama2":
+						location.setYaw(0);
+						location.setPitch(0);
+						break;
+					case "west":
+					case "panorama3":
+						location.setYaw(90);
+						location.setPitch(0);
+						break;
+					case "up":
+					case "panorama4":
+						location.setYaw(180);
+						location.setPitch(-90);
+						break;
+					case "down":
+					case "panorama5":
+						location.setYaw(180);
+						location.setPitch(90);
+						break;
+					default:
+						return false;
+				}
+
+				player.teleport(location, PlayerTeleportEvent.TeleportCause.COMMAND);
+				player.sendMessage(ChatColor.BLUE+"Facing "+args[0]);
+				return true;
+				// --------------------------------------- PLAYER FACE END
 			} else if (command.getName().equals("donothing")) {
 				return true;
 			}

@@ -185,6 +185,10 @@ commands:
     aliases: [formatbook, fbook, bookf]
     usage: /bookformat [help]
     permission: darkyenuscommand.command.bookformat
+  playerface:
+    description: Turn to face given direction
+    usage: /playerface [up,down,north,south,east,west,panoramaN]
+    permission: darkyenuscommand.command.playerface
 permissions:
   darkyenuscommand.command.rules:
     description: Access to /rules command.
@@ -317,6 +321,9 @@ permissions:
     default: op
   darkyenuscommand.command.bookformat:
     description: Access to /bookformat command.
+    default: op
+  darkyenuscommand.command.playerface:
+    description: Access to /playerface command.
     default: op
 # Here lies the additional command permissions
   darkyenuscommand.command.kill.anyone:
