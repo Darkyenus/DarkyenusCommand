@@ -294,7 +294,8 @@ public class Plugin extends JavaPlugin {
 				return true;
 			} else if (command.getName().equals("report")) {
 				// --------------------------------------- REPORT
-				if (!args[0].startsWith("-") || !sender.hasPermission("darkyenuscommand.command.report.view")) {
+				//TODO Probably broken, review
+				if ((args.length > 0 && !args[0].startsWith("-")) || !sender.hasPermission("darkyenuscommand.command.report.view")) {
 					StringBuilder messageB = new StringBuilder();
 					for (String arg : args) {
 						messageB.append(arg);
