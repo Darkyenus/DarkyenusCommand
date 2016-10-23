@@ -246,16 +246,7 @@ public final class PluginData {
 
 		public ItemStack getDisplayItem() {
 			if(displayItemCache != null) return displayItemCache;
-			final ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
-			final BookMeta itemMeta = (BookMeta) book.getItemMeta();
-			itemMeta.setDisplayName("Note Sign");
-			//Minecraft is buggy and resets don't work for colors. So we need to make it work explicitly.
-			for (String page : pages) {
-				itemMeta.addPage(page.replace(ChatColor.RESET.toString(), ChatColor.RESET.toString() + ChatColor.BLACK.toString()));
-			}
-			//itemMeta.addPage(pages);
-			book.setItemMeta(itemMeta);
-			return displayItemCache = book;
+			return displayItemCache = BookUtil.createBookForDisplay(pages);
 		}
 
 	}

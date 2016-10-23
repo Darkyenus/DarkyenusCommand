@@ -28,8 +28,6 @@ import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.metadata.MetadataValue;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -42,7 +40,7 @@ final class PluginListener implements Listener {
 	PluginListener (Plugin plugin) {
 		plugin.getServer().getPluginManager().registerEvents(this, plugin);
 		this.plugin = plugin;
-		Bukkit.getServer().getMessenger().registerOutgoingPluginChannel(plugin, "MC|BOpen");
+		BookUtil.initialize(plugin);
 	}
 
 	@EventHandler
@@ -326,23 +324,12 @@ final class PluginListener implements Listener {
 				state.update();
 			}
 
-			final TextComponent component = new TextComponent("Notice Board Created");
-			component.setColor(net.md_5.bungee.api.ChatColor.BLUE);
-			player.spigot().sendMessage(ChatMessageType.SYSTEM, component);
+			final TextComponent component = new TextComponent(net.md_5.bungee.api.ChatColor.BLUE+"Notice Board Created");
+			//component.setColor(net.md_5.bungee.api.ChatColor.BLUE);
+			player.spigot().sendMessage(ChatMessageType.ACTION_BAR, component);
 		} else {
 			//Show the sign!
-			if(!addChannel(player, "MC|BOpen")){
-				return;
-			}
-
-			final ItemStack displayItem = noticeBoard.getDisplayItem();
-			final ItemStack itemInMainHand = player.getInventory().getItemInMainHand();
-			try {
-				player.getInventory().setItemInMainHand(displayItem);
-				player.sendPluginMessage(plugin, "MC|BOpen", new byte[]{0});
-			} finally {
-				player.getInventory().setItemInMainHand(itemInMainHand);
-			}
+			BookUtil.displayBook(player, noticeBoard.getDisplayItem());
 		}
 
 		ev.setUseInteractedBlock(Event.Result.DENY);
@@ -471,18 +458,6 @@ final class PluginListener implements Listener {
 		}
 		formatForSign_addResult(result, sb);
 		return result;
-	}
-
-	private boolean addChannel(Player player, String channel) {
-		try {
-			final Method addChannel = player.getClass().getMethod("addChannel", String.class);
-			addChannel.invoke(player, channel);
-			return true;
-		} catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-			Bukkit.getLogger().log(Level.WARNING, "Failed to add channel, disabling notice boards", e);
-			plugin.data.bookNoticeBoardsEnabled = false;
-			return false;
-		}
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
