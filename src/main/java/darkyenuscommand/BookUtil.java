@@ -46,6 +46,9 @@ public class BookUtil {
             return false;
         }
 
+        //Important workaround, server would think that the player is still in own inventory, while actually being in the book!
+        player.closeInventory();
+
         final ItemStack itemInMainHand = player.getInventory().getItemInMainHand();
         try {
             player.getInventory().setItemInMainHand(book);
