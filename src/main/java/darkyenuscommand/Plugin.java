@@ -1,6 +1,9 @@
 
 package darkyenuscommand;
 
+import darkyenuscommand.util.Parameters;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -294,48 +297,95 @@ public class Plugin extends JavaPlugin {
 				return true;
 			} else if (command.getName().equals("report")) {
 				// --------------------------------------- REPORT
-				//TODO Probably broken, review
-				if ((args.length > 0 && !args[0].startsWith("-")) || !sender.hasPermission("darkyenuscommand.command.report.view")) {
-					StringBuilder messageB = new StringBuilder();
-					for (String arg : args) {
-						messageB.append(arg);
-						messageB.append(" ");
-					}
-					if (messageB.length() != 0) {
-						String message = messageB.substring(0, messageB.length() - 1);
-						sender.sendMessage(ChatColor.GREEN + "We'll look at it soon.");
-						data.reports.add(sender.getName() + ": " + message);
-						getServer().broadcast(ChatColor.BLUE + "New report from " + sender.getName() + " added!",
-							"darkyenuscommand.command.report.view");
-					} else {
-						return false;
-					}
-				} else {
-					if (data.reports.size() == 0) {
-						sender.sendMessage(ChatColor.RED + "There are no reports.");
-					} else {
-						int index = 0;
-						if (args.length > 1) {
-							try {
-								index = Integer.parseInt(args[1]);
-								if (index < 0) {
-									index = 0;
-								} else if (index >= data.reports.size()) {
-									index = data.reports.size() - 1;
+				final Parameters p = new Parameters(args);
+				final ArrayList<String> reports = data.reports;
+				if (sender.hasPermission("darkyenuscommand.command.report.view")) {
+					if (p.match("add")) {
+						final String message = p.rest(" ");
+						if (message.isEmpty()) {
+							sender.sendMessage(ChatColor.RED+"Specify message to report");
+						} else {
+							reports.add(sender.getName()+": "+message);
+							sender.sendMessage(ChatColor.GREEN+"Added to reports");
+						}
+					} else if (p.match("remove")) {
+						final int index = p.matchInt(-1);
+						if (index == -1) {
+							sender.sendMessage(ChatColor.RED+"Specify index of message to remove");
+						} else {
+							final int expectedHash = p.matchInt(-1);
+							if (index >= 0 && index < reports.size()) {
+								if (expectedHash != -1 && reports.get(index).hashCode() != expectedHash) {
+									sender.sendMessage(ChatColor.RED+"Reports changed, please refresh and try again");
+									return true;
 								}
-							} catch (NumberFormatException ignored) {
+
+								reports.remove(index);
+								sender.sendMessage(ChatColor.GREEN+"Report removed");
+							} else {
+								sender.sendMessage(ChatColor.RED+"Invalid index");
 							}
 						}
-						if ("-read".equalsIgnoreCase(args[0])) {
-							sender.sendMessage(ChatColor.BLUE.toString() + index + ")" + ChatColor.ITALIC.toString()
-								+ data.reports.get(index));
-						} else if ("-delete".equalsIgnoreCase(args[0])) {
-							data.reports.remove(index);
-							sender.sendMessage(ChatColor.BLUE.toString() + "Report #" + index + " removed!");
-						} else {
-							sender.sendMessage(ChatColor.BLUE.toString() + "There are " + data.reports.size() + " reports.");
-							sender.sendMessage(ChatColor.BLUE.toString() + "Arguments: -read -delete");
+					} else {
+						//Show
+						if (reports.isEmpty()) {
+							sender.sendMessage(ChatColor.AQUA + "There are no reports");
+							return true;
 						}
+						final int index = p.matchInt(0);
+						if (index < 0) return false;
+						if (index >= reports.size()) {
+							sender.sendMessage(ChatColor.RED + "There are only "+reports.size()+" reports");
+							return true;
+						}
+
+						final String reportText = reports.get(index);
+						sender.sendMessage("");
+						sender.sendMessage(ChatColor.BLUE+"Report "+(index+1)+"/"+reports.size());
+						sender.sendMessage(ChatColor.ITALIC+reportText);
+						if (sender instanceof Player) {
+							//Send buttons only to the player
+							final Player.Spigot spigot = ((Player) sender).spigot();
+							final TextComponent message = new TextComponent("");
+
+							if (index > 0) {
+								final TextComponent previous = new TextComponent("Previous");
+								previous.setColor(net.md_5.bungee.api.ChatColor.BLUE);
+								previous.setUnderlined(true);
+								previous.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/report "+(index-1)));
+								message.addExtra(previous);
+								message.addExtra("    ");
+							}
+							{
+								final TextComponent remove = new TextComponent("Remove");
+								remove.setColor(net.md_5.bungee.api.ChatColor.BLUE);
+								remove.setUnderlined(true);
+								remove.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/report remove "+index+" "+reportText.hashCode()+" refresh "+Math.min(reports.size() - 1, Math.max(0, index))));
+								message.addExtra(remove);
+							}
+							if (index < reports.size() - 1){
+								message.addExtra("    ");
+								final TextComponent next = new TextComponent("Next");
+								next.setColor(net.md_5.bungee.api.ChatColor.BLUE);
+								next.setUnderlined(true);
+								next.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/report "+(index+1)));
+								message.addExtra(next);
+							}
+
+							spigot.sendMessage(message);
+						}
+					}
+					if (p.match("refresh") && sender instanceof Player) {
+						((Player) sender).performCommand("report "+p.matchInt(0));
+					}
+				} else {
+					if (p.eof()) {
+						return false;
+					} else {
+						sender.sendMessage(ChatColor.GREEN + "Thank you for your report, administrator will review it as soon as possible");
+						reports.add(sender.getName() + ": " + p.rest(" "));
+						getServer().broadcast(ChatColor.BLUE + "New report from " + sender.getName(),
+								"darkyenuscommand.command.report.view");
 					}
 				}
 				// --------------------------------------- REPORT END
