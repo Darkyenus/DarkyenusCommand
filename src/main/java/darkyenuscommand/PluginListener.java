@@ -302,7 +302,7 @@ final class PluginListener implements Listener {
 			final BookMeta itemMeta = (BookMeta) item.getItemMeta();
 
 			final PluginData.NoticeBoard board = new PluginData.NoticeBoard();
-			board.init(player, itemMeta.getPages());
+			final String signFragment = board.init(player, itemMeta.getPages());
 
 			if(lines.length >= 2) {
 				if("readonly".equalsIgnoreCase(lines[1])) {
@@ -317,7 +317,7 @@ final class PluginListener implements Listener {
 
 			plugin.data.bookNoticeBoards.put(location, board);
 			if(board.pages.length != 0) {
-				final List<String> strings = formatForSign(board.pages[0]);
+				final List<String> strings = formatForSign(signFragment);
 				for (int i = 0; i < strings.size() && i < 4; i++) {
 					state.setLine(i, strings.get(i));
 				}

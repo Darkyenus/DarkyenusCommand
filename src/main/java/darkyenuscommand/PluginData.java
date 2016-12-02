@@ -8,16 +8,16 @@ import darkyenuscommand.util.TextProcessingInput;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.BookMeta;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 
 /**
@@ -128,6 +128,19 @@ public final class PluginData {
 	}
 
 	public static String formatPage(String page) {
+		return formatPage(page, null);
+	}
+
+	/**
+	 * @param signStop null or int[1] that serves as an "out" parameter.
+	 *                    Will contain the translated first location of "#~#" in resulting page or -1 if this substring
+	 *                    does not appear anywhere in the page.
+	 */
+	public static String formatPage(String page, int[] signStop) {
+		if (signStop != null) {
+			assert signStop.length == 1 : "Length of sign stop must be exactly 1";
+			signStop[0] = -1;
+		}
         final TextProcessingInput in = new TextProcessingInput(page);
         final StringBuilder sb = new StringBuilder();
 
@@ -164,7 +177,11 @@ public final class PluginData {
                             continue charWhile;
                         }
                     }
-                    if(in.peekEqualsIgnoreCaseAndPop("full_width#") || in.peekEqualsIgnoreCaseAndPop("fw#")) {
+					if (in.peekEqualsIgnoreCaseAndPop("~#")) {
+                    	if (signStop != null && signStop[0] == -1) {
+                    		signStop[0] = sb.length();
+						}
+					} else if(in.peekEqualsIgnoreCaseAndPop("full_width#") || in.peekEqualsIgnoreCaseAndPop("fw#")) {
                         mode = MODE_FULL_WIDTH;
                     } else if(in.peekEqualsIgnoreCaseAndPop("runic#") || in.peekEqualsIgnoreCaseAndPop("rc#")) {
                         mode = MODE_RUNIC;
@@ -219,13 +236,27 @@ public final class PluginData {
 
 		private transient ItemStack displayItemCache = null;
 
-		public void init(Player owner, List<String> pages){
+		/** @return Fragment to display on the sign */
+		public String init(Player owner, List<String> pages) {
+			String signFragment = "";
 			this.owner = owner.getUniqueId();
 			this.pages = new String[pages.size()];
 			for (int i = 0; i < this.pages.length; i++) {
-				this.pages[i] = formatPage(pages.get(i));
+				if (i == 0) {
+					final int[] stopLocation = {-1};
+					final String frontPage = formatPage(pages.get(i), stopLocation);
+					this.pages[i] = frontPage;
+					if (stopLocation[0] == -1) {
+						signFragment = frontPage;
+					} else {
+						signFragment = frontPage.substring(0, stopLocation[0]);
+					}
+				} else {
+					this.pages[i] = formatPage(pages.get(i));
+				}
 			}
 			this.freeForAllAfter = 0;
+			return signFragment;
 		}
 
 		public boolean isFreeForAll(){
