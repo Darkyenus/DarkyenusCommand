@@ -160,7 +160,11 @@ public final class PluginData {
                 in.pop();
             } else if(c == '\n' || c == '\r') {
                 while(sb.length() != 0 && Character.isWhitespace(sb.charAt(sb.length()-1)) && sb.charAt(sb.length()-1) != '\n'){
-                    sb.setLength(sb.length() - 1);
+					final int length = sb.length();
+					if (signStop != null && signStop[0] == length) {
+						signStop[0]--;
+					}
+					sb.setLength(length - 1);
                 }
                 sb.append('\n');
             } else if(c == '#') {
