@@ -11,6 +11,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.material.Dye;
@@ -130,7 +131,7 @@ public final class FixManager {
 
 	private static final class BlockDropFixListener implements Listener {
 
-		@EventHandler(ignoreCancelled = true)
+		@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
 		public void onBlockBreak (BlockBreakEvent event) {
 			if (event.getPlayer().getGameMode() == GameMode.CREATIVE) {
 				return;// They are fine in creative!
@@ -170,8 +171,8 @@ public final class FixManager {
 		}
 
 		@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
-		// Highest because this changes behavior of chat event and we want it called only after making sure that nobody wants it
-// dead
+		// Highest because this changes behavior of chat event
+		// and we want it called only after making sure that nobody wants it dead
 		public void chatFormatter (AsyncPlayerChatEvent event) {
 			ChatColor playerColor = hashedColors.get(Math.abs(event.getPlayer().getDisplayName().hashCode()) % hashedColors.size());
 
@@ -187,8 +188,9 @@ public final class FixManager {
 	private static final class BonemealGrassFix implements Listener {
 
 		/**  Allow bonemeal to grow grass on dirt. */
-		@EventHandler(ignoreCancelled = true)
+		@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
 		public void onBonemealUse (PlayerInteractEvent event) {
+			if (event.getHand() != EquipmentSlot.HAND) return;
 			if (event.hasBlock() && event.hasItem() && event.getMaterial() == Material.INK_SACK
 				&& ((Dye)(event.getItem().getData())).getColor() == DyeColor.WHITE) {
 				if (event.getClickedBlock().getType() == Material.DIRT) {
@@ -212,7 +214,7 @@ public final class FixManager {
 	private static final class FireFix implements Listener {
 
 		/** Limits spread distance only to nearest 8 blocks */
-		@EventHandler
+		@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
 		public void onFireSpread (BlockSpreadEvent event) {
 			final Block source = event.getSource();
 			final Block fire = event.getBlock();

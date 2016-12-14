@@ -23,6 +23,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.metadata.MetadataValue;
@@ -61,7 +62,7 @@ final class PluginListener implements Listener {
 		}
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.MONITOR)
 	public void informAboutReportsOnJoin (PlayerJoinEvent ev) {
 		if (ev.getPlayer().hasPermission("darkyenuscommand.staff")) {
 			final List<String> reports = plugin.data.reports;
@@ -77,7 +78,7 @@ final class PluginListener implements Listener {
 		}
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOW)
 	public void stopTheMutedOnes (AsyncPlayerChatEvent event) {// Not called for commands
 		if (plugin.isMuted(event.getPlayer().getUniqueId())) {
 			event.setCancelled(true);
@@ -85,8 +86,9 @@ final class PluginListener implements Listener {
 		}
 	}
 
-	@EventHandler
+	@EventHandler(ignoreCancelled = true)
 	public void commandSigns (PlayerInteractEvent ev) {
+		if (ev.getHand() != EquipmentSlot.HAND) return;
 		if (isLocked(ev.getPlayer())) {
 			ev.setUseInteractedBlock(Event.Result.DENY);
 			ev.setUseItemInHand(Event.Result.DENY);
@@ -149,7 +151,7 @@ final class PluginListener implements Listener {
 		}
 	}
 
-	@EventHandler
+	@EventHandler(ignoreCancelled = true)
 	public void infoStickEntity (PlayerInteractEntityEvent ev) {
 		if (isLocked(ev.getPlayer())) {
 			ev.setCancelled(true);
@@ -194,7 +196,7 @@ final class PluginListener implements Listener {
 		}
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.MONITOR)
 	public void saveOfflineInventories (InventoryCloseEvent event) {
 		if (event.getInventory().getHolder() instanceof Player) {
 			Player holder = (Player)event.getInventory().getHolder();
@@ -204,7 +206,7 @@ final class PluginListener implements Listener {
 		}
 	}
 
-	@EventHandler
+	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
 	public void godFist (EntityDamageByEntityEvent event) {
 		if (event.getDamager() instanceof Player) {
 			Player damager = (Player)event.getDamager();
@@ -236,7 +238,7 @@ final class PluginListener implements Listener {
 		}
 	}
 
-	@EventHandler
+	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
 	public void checkAction (PlayerMoveEvent ev) {
 		if (isLocked(ev.getPlayer())) {
 			if (ev.getFrom().getBlockX() != ev.getTo().getBlockX() || ev.getFrom().getBlockZ() != ev.getTo().getBlockZ())
@@ -244,35 +246,35 @@ final class PluginListener implements Listener {
 		}
 	}
 
-	@EventHandler
+	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
 	public void checkAction (BlockBreakEvent ev) {
 		if (isLocked(ev.getPlayer())) {
 			ev.setCancelled(true);
 		}
 	}
 
-	@EventHandler
+	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
 	public void checkAction (PlayerPickupItemEvent ev) {
 		if (isLocked(ev.getPlayer())) {
 			ev.setCancelled(true);
 		}
 	}
 
-	@EventHandler
+	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
 	public void checkAction (PlayerDropItemEvent ev) {
 		if (isLocked(ev.getPlayer())) {
 			ev.setCancelled(true);
 		}
 	}
 
-	@EventHandler
+	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
 	public void checkAction (InventoryClickEvent ev) {
 		if (isLocked((Player)ev.getWhoClicked())) {
 			ev.setResult(Event.Result.DENY);
 		}
 	}
 
-	@EventHandler
+	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
 	public void checkAction (EntityDamageEvent ev) {
 		if (ev.getEntity() instanceof Player && isLocked((Player)ev.getEntity())) {
 			ev.setCancelled(true);
@@ -280,8 +282,9 @@ final class PluginListener implements Listener {
 	}
 
 	//Book Notice Board
-	@EventHandler
+	@EventHandler(ignoreCancelled = true)
 	public void interactWithNoticeBoard(PlayerInteractEvent ev) {
+		if (ev.getHand() != EquipmentSlot.HAND) return;
 		if(!plugin.data.bookNoticeBoardsEnabled) return;
 		final Player player = ev.getPlayer();
 		final Block block = ev.getClickedBlock();
