@@ -2,6 +2,7 @@
 package darkyenuscommand;
 
 import darkyenuscommand.util.Parameters;
+import darkyenuscommand.util.StackMap;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
@@ -38,7 +39,7 @@ public class Plugin extends JavaPlugin {
 	PluginListener listener;
 	private final HashMap<UUID, Long> kickTimer = new HashMap<>();
 	private final HashMap<UUID, Long> muteTimer = new HashMap<>();
-	private final HashMap<UUID, Location> recalls = new HashMap<>();
+	private final StackMap<UUID, Location> recalls = new StackMap<>(32);//32 recalls stored
 	private final HashMap<UUID, Location> preJailLocations = new HashMap<>();
 	private WarpSystem warpSystem;
 
@@ -68,7 +69,7 @@ public class Plugin extends JavaPlugin {
 		}
 		if (data == null) data = new PluginData();
 
-		warpSystem = new WarpSystem(data);
+		warpSystem = new WarpSystem(this, data);
 		FixManager.initialize(this);
 
 		getLogger().info("Enabled!");
@@ -491,13 +492,14 @@ public class Plugin extends JavaPlugin {
 					return false;// From command line without args? see docs!
 				}
 
-				if (recalls.containsKey(toRecall.getUniqueId())) {
-					toRecall.teleport(recalls.get(toRecall.getUniqueId()));
+				final Location recallTo = recalls.popOrNull(toRecall.getUniqueId());
+				if (recallTo == null) {
+					sender.sendMessage(ChatColor.RED + "Nowhere to recall");
+				} else {
+					teleportPlayer(toRecall, recallTo, false);
 					if (!toRecall.isOnline()) {
 						toRecall.saveData();
 					}
-				} else {
-					sender.sendMessage(ChatColor.RED + "No recall location!");
 				}
 				// --------------------------------------- RECALL END
 				return true;
@@ -509,7 +511,7 @@ public class Plugin extends JavaPlugin {
 				}
 
 				for (Player player : getServer().getOnlinePlayers()) {
-					if (player != sender) teleportPlayer(player, ((Player)sender).getLocation());
+					if (player != sender) teleportPlayer(player, ((Player)sender).getLocation(), true);
 				}
 				// --------------------------------------- TELEPORTHEREALL END
 				return true;
@@ -522,7 +524,7 @@ public class Plugin extends JavaPlugin {
 
 				final Player toTPOff = findOnlinePlayer(args[0], sender);
 				if(toTPOff != null) {
-					teleportPlayer(toTPOff, ((Player)sender).getLocation());
+					teleportPlayer(toTPOff, ((Player)sender).getLocation(), true);
 					if (!toTPOff.isOnline()) {
 						toTPOff.saveData();
 					}
@@ -538,7 +540,7 @@ public class Plugin extends JavaPlugin {
 
 				final Player toTPTo = findOnlinePlayer(args[0], sender);
 				if (toTPTo != null) {
-					teleportPlayer((Player)sender, toTPTo.getLocation());
+					teleportPlayer((Player)sender, toTPTo.getLocation(), true);
 				}
 				// --------------------------------------- TELEPORTTO END
 				return true;
@@ -573,7 +575,7 @@ public class Plugin extends JavaPlugin {
 						to.setX(result[0]);
 						to.setY(result[1]);
 						to.setZ(result[2]);
-						teleportPlayer(player, to);
+						teleportPlayer(player, to, true);
 					}
 				} else if (args.length >= 1) {
 					Player player = getPlayer(args, 1, sender);
@@ -633,7 +635,7 @@ public class Plugin extends JavaPlugin {
 							teleportTo.setX(x + 0.5);
 							teleportTo.setY(toY);
 							teleportTo.setZ(z + 0.5);
-							teleportPlayer(player, teleportTo);
+							teleportPlayer(player, teleportTo, true);
 						} else {
 							sender.sendMessage(ChatColor.BLUE + "There's no better place.");
 						}
@@ -702,12 +704,7 @@ public class Plugin extends JavaPlugin {
 						if (args.length > 1 || pluginOfThatName.getDescription().getCommands().size() <= 5) {
 							Set<String> strings = pluginOfThatName.getDescription().getCommands().keySet();
 							if (!beHonest) {
-								for (Iterator<String> iterator = strings.iterator(); iterator.hasNext();) {
-									String commandThatMayNeedToBeHidden = iterator.next();
-									if (!getCommand(commandThatMayNeedToBeHidden).testPermissionSilent(sender)) {
-										iterator.remove();
-									}
-								}
+								strings.removeIf(commandThatMayNeedToBeHidden -> !getCommand(commandThatMayNeedToBeHidden).testPermissionSilent(sender));
 							}
 							sender.sendMessage(ChatColor.BLUE + " Commands: " + ChatColor.YELLOW + ChatColor.ITALIC
 								+ String.join(", ", strings));
@@ -1206,9 +1203,11 @@ public class Plugin extends JavaPlugin {
 				final Player toJail = findOnlinePlayer(args[0], sender);
 				if(toJail == null)return true;
 
-				if (args.length >= 2 && warpSystem.getWarp(args[1]) != null) {
+				final MatchResult<String> matchingWarps = args.length >= 2 ? warpSystem.matchWarps(args[1]) : null;
+
+				if (matchingWarps != null && matchingWarps.isDefinite) {
 					preJailLocations.put(toJail.getUniqueId(), toJail.getLocation());
-					warpSystem.warp(toJail, args[1]);
+					warpSystem.warpTo(toJail, data.warps.get(matchingWarps.result()));
 					toJail.setMetadata("locked", new FixedMetadataValue(this, true));
 					if (toJail.isOnline()) {
 						toJail.sendMessage(ChatColor.BLUE + "You have been jailed.");
@@ -1217,20 +1216,20 @@ public class Plugin extends JavaPlugin {
 					}
 					sender.sendMessage(ChatColor.GREEN.toString() + toJail.getName() + " jailed in " + args[1]);
 				} else {
-					List<String> availableWarps = warpSystem.getWarps("jail_");
-					if (availableWarps.isEmpty()) {
+					MatchResult<String> availableWarps = warpSystem.matchWarps("jail_*");
+					if (availableWarps.results.length == 0) {
 						sender.sendMessage(ChatColor.RED.toString() + "Could not jail, no jails found or specified.");
 					} else {
-						int jailID = new Random().nextInt(availableWarps.size());
+						int jailID = new Random().nextInt(availableWarps.results.length);
 						preJailLocations.put(toJail.getUniqueId(), toJail.getLocation());
-						warpSystem.warp(toJail, availableWarps.get(jailID));
+						warpSystem.warpTo(toJail, data.warps.get(availableWarps.results[jailID]));
 						toJail.setMetadata("locked", new FixedMetadataValue(this, true));
 						if (toJail.isOnline()) {
 							toJail.sendMessage(ChatColor.BLUE + "You have been jailed.");
 						} else {
 							toJail.saveData();
 						}
-						sender.sendMessage(ChatColor.GREEN.toString() + toJail.getName() + " jailed in " + availableWarps.get(jailID));
+						sender.sendMessage(ChatColor.GREEN.toString() + toJail.getName() + " jailed in " + availableWarps.results[jailID]);
 					}
 				}
 				// --------------------------------------- JAIL END
@@ -1242,7 +1241,7 @@ public class Plugin extends JavaPlugin {
 
 				if (preJailLocations.containsKey(player.getUniqueId())) {
 					player.removeMetadata("locked", this);
-					teleportPlayer(player, preJailLocations.remove(player.getUniqueId()));
+					teleportPlayer(player, preJailLocations.remove(player.getUniqueId()), true);
 					if (player.isOnline()) {
 						player.sendMessage(ChatColor.BLUE + "You have been set free from jail.");
 					} else {
@@ -1287,7 +1286,7 @@ public class Plugin extends JavaPlugin {
 					sender.sendMessage(ChatColor.RED + "In-game use only.");
 					return true;
 				}
-				teleportPlayer((Player)sender, ((Player)sender).getWorld().getSpawnLocation());
+				teleportPlayer((Player)sender, ((Player)sender).getWorld().getSpawnLocation(), true);
 
 				sender.sendMessage(ChatColor.GREEN + "Teleported to spawn");
 
@@ -1399,7 +1398,7 @@ public class Plugin extends JavaPlugin {
 									targetLocation = world.getSpawnLocation();
 								}
 
-								teleportPlayer(player, targetLocation);
+								teleportPlayer(player, targetLocation, true);
 								sender.sendMessage(ChatColor.GREEN + "Teleported!");
 								if (!player.isOnline()) {
 									player.saveData();
@@ -1439,16 +1438,11 @@ public class Plugin extends JavaPlugin {
 						}
 					} else {
 						List<World> worlds = getServer().getWorlds();
-						if (worlds.isEmpty()) {
-							sender.sendMessage(ChatColor.BLUE + "Available worlds: <none>");// WTF why that would ever happen? But
-// still, its prettier that way.
-						} else {
-							sender.sendMessage(ChatColor.BLUE + "Available worlds:");
-							for (World world : worlds) {
-								sender.sendMessage(ChatColor.BLUE + world.getName() + ": " + ChatColor.WHITE + " "
+						sender.sendMessage(ChatColor.BLUE + "Available worlds:");
+						for (World world : worlds) {
+							sender.sendMessage(ChatColor.BLUE + world.getName() + ": " + ChatColor.WHITE + " "
 									+ world.getEnvironment().toString() + " | " + world.getWorldType().getName() + " | Players: "
 									+ world.getPlayers().size());
-							}
 						}
 					}
 				} catch (Exception e) {
@@ -1610,8 +1604,10 @@ public class Plugin extends JavaPlugin {
 				.getType().isSolid()));
 	}
 
-	private void teleportPlayer (Player who, Location to) {
-		recalls.put(who.getUniqueId(), who.getLocation());
+	public void teleportPlayer(Player who, Location to, boolean saveRecall) {
+		if (saveRecall) {
+			recalls.push(who.getUniqueId(), who.getLocation());
+		}
 		getLogger().info(who.getName() + " teleported from " + formatLocation(who.getLocation()) + " to " + formatLocation(to));
 		who.teleport(to, PlayerTeleportEvent.TeleportCause.PLUGIN);
 	}

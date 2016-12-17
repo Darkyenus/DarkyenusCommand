@@ -4,10 +4,6 @@ import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.permissions.Permission;
-import org.bukkit.permissions.PermissionAttachment;
-import org.bukkit.permissions.PermissionAttachmentInfo;
-import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.Array;
 import java.util.*;
@@ -190,20 +186,24 @@ public class MatchUtils {
     }
 
     public static <T> void matchFail(String noun, MatchResult<T> result, CommandSender sender){
+        matchFail(noun, result.results, sender);
+    }
+
+    public static <T> void matchFail(String noun, T[] result, CommandSender sender){
         if(sender == null)return;
-        if(result.results.length == 0){
+        if(result.length == 0){
             sender.sendMessage(ChatColor.RED+noun+" not found");
-        } else if(result.results.length == 1){
-            sender.sendMessage(ChatColor.RED+noun+" not found "+ChatColor.DARK_RED+"Did you mean: " + ChatColor.RESET + result.results[0] + ChatColor.DARK_RED + " ?");
+        } else if(result.length == 1){
+            sender.sendMessage(ChatColor.RED+noun+" not found "+ChatColor.DARK_RED+"Did you mean: " + ChatColor.RESET + result[0] + ChatColor.DARK_RED + " ?");
         } else {
             final StringBuilder sb = new StringBuilder(ChatColor.RED+noun+" not found "+ChatColor.DARK_RED+"Did you mean: " + ChatColor.RESET);
-            for (int i = 0; i < result.results.length; i++) {
+            for (int i = 0; i < result.length; i++) {
                 if(i != 0) {
                     sb.append(ChatColor.DARK_RED);
-                    sb.append(i + 1 == result.results.length ? " or " : ", ");
+                    sb.append(i + 1 == result.length ? " or " : ", ");
                     sb.append(ChatColor.RESET);
                 }
-                sb.append(result.results[i]);
+                sb.append(result[i]);
             }
             //noinspection StringConcatenationInsideStringBufferAppend
             sb.append(ChatColor.DARK_RED + "?");
