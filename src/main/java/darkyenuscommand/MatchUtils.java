@@ -66,19 +66,40 @@ public class MatchUtils {
         return c;
     }
 
+    private static boolean contentEquals(CharSequence a, CharSequence b) {
+        if (a == b) return true;
+        if (a == null || b == null) return false;
+        final int length = a.length();
+        if (length != b.length()) return false;
+        for (int i = 0; i < length; i++) {
+            if (a.charAt(i) != b.charAt(i)) return false;
+        }
+        return true;
+    }
+
     public static <T> MatchResult<T> match(T[] from, Function<T, CharSequence> toString, CharSequence target) {
         final int BAD_SCORE = 1000;
 
         //Insert only search
+        boolean considerOnlyPerfectMatches = false;
         final int[] scores = new int[from.length];
         int goodScores = 0;
         for (int i = 0; i < from.length; i++) {
             final T item = from[i];
-            final int score = levenshteinDistance(target, toString.apply(item), 1, BAD_SCORE, BAD_SCORE);
-            if(score == 0){
-                //Perfect match
-                return new MatchResult<>(item);
+            final CharSequence itemName = toString.apply(item);
+            if (considerOnlyPerfectMatches) {
+                if(contentEquals(target, itemName)) {
+                    scores[i] = 0;
+                    goodScores++;
+                } else {
+                    scores[i] = BAD_SCORE;
+                }
             } else {
+                final int score = levenshteinDistance(target, itemName, 1, BAD_SCORE, BAD_SCORE);
+                if(score == 0){
+                    //Perfect match, continue searching, there may be dupes
+                    considerOnlyPerfectMatches = true;
+                }
                 if(score < BAD_SCORE) {
                     goodScores++;
                 }
@@ -154,8 +175,48 @@ public class MatchUtils {
         return matcher.match(searched);
     }
 
+    private static boolean allHaveSameName(OfflinePlayer[] players) {
+        if (players.length <= 1) return true;
+        final String name = players[0].getName();
+        for (int i = 1; i < players.length; i++) {
+            if (!players[i].getName().equalsIgnoreCase(name)) return false;
+        }
+        return true;
+    }
+
     public static MatchResult<OfflinePlayer> matchPlayer(String from) {
-        return MatchUtils.match(Bukkit.getOfflinePlayers(), offPlayer -> offPlayer.getName().toLowerCase(), from.toLowerCase());
+        //There can be two players with same name. We prefer that one which is online/played last.
+        //However, others can be specified with ~[num] syntax, to select a different one
+
+        int index = -1;
+        {
+            final int separatorIndex = from.indexOf('~');
+            if (separatorIndex != -1) {
+                if (separatorIndex + 1 == from.length()) {
+                    index = 0;
+                } else {
+                    try {
+                        index = Integer.parseInt(from.substring(separatorIndex+1));
+                    } catch (NumberFormatException nfe) {
+                        index = 0;
+                    }
+                }
+                from = from.substring(0, separatorIndex);
+            }
+        }
+
+        final OfflinePlayer[] offlinePlayers = Bukkit.getOfflinePlayers();
+        final MatchResult<OfflinePlayer> match = MatchUtils.match(offlinePlayers, offPlayer -> offPlayer.getName().toLowerCase(), from.toLowerCase());
+        if (match.results.length > 1 && allHaveSameName(match.results)) {
+            //Do some sanity sorting
+            Arrays.sort(match.results, (p1, p2) -> Long.signum(p2.getLastPlayed() - p1.getLastPlayed()));
+            if (index != -1) {
+                //Pick one
+                index = Math.max(0, Math.min(index, match.results.length));
+                return new MatchResult<>(match.results[index]);
+            }
+        }
+        return match;
     }
 
     public static void matchPlayerFail(MatchResult<OfflinePlayer> result, CommandSender sender){
@@ -167,6 +228,7 @@ public class MatchUtils {
         } else {
             //Will be concatenated at compile time
             final StringBuilder sb = new StringBuilder(ChatColor.RED+"Player not found. "+ChatColor.DARK_RED+"Did you mean: " + ChatColor.RESET);
+            final boolean appendIdentifier = allHaveSameName(result.results);
             for (int i = 0; i < result.results.length; i++) {
                 if(i != 0) {
                     sb.append(ChatColor.DARK_RED);
@@ -178,6 +240,9 @@ public class MatchUtils {
                     sb.append(ChatColor.DARK_GREEN);
                 }
                 sb.append(player.getName());
+                if (appendIdentifier) {
+                    sb.append('~').append(i);
+                }
             }
             //noinspection StringConcatenationInsideStringBufferAppend
             sb.append(ChatColor.DARK_RED + "?");

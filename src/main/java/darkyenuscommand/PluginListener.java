@@ -86,6 +86,7 @@ final class PluginListener implements Listener {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	@EventHandler(ignoreCancelled = true)
 	public void commandSigns (PlayerInteractEvent ev) {
 		if (ev.getHand() != EquipmentSlot.HAND) return;
@@ -206,6 +207,7 @@ final class PluginListener implements Listener {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
 	public void godFist (EntityDamageByEntityEvent event) {
 		if (event.getDamager() instanceof Player) {
@@ -223,13 +225,13 @@ final class PluginListener implements Listener {
 
 	// Cancel for locked
 	private boolean isLocked (Player player) {
-		if (player.hasMetadata("locked")) {
-			List<MetadataValue> values = player.getMetadata("locked");
+		if (player.hasMetadata(Plugin.METADATA_KEY_LOCKED)) {
+			List<MetadataValue> values = player.getMetadata(Plugin.METADATA_KEY_LOCKED);
 			for (MetadataValue value : values) {
 				if (value.asBoolean()) {
 					return true;
 				} else if (value.getOwningPlugin() instanceof Plugin) {
-					player.removeMetadata("locked", plugin);
+					player.removeMetadata(Plugin.METADATA_KEY_LOCKED, plugin);
 				}
 			}
 			return false;

@@ -144,6 +144,7 @@ commands:
   unjail:
     description: Warp somebody from jail
     usage: /jail <Player>
+    aliases: [free]
     permission: darkyenuscommand.command.unjail
   viewinventory:
     description: Show someones inventory

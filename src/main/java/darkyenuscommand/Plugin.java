@@ -34,6 +34,7 @@ public class Plugin extends JavaPlugin {
 
 	PluginData data;
 
+	public static final String METADATA_KEY_LOCKED = "locked";
 	private static final String TIME_KEEP_GAME_RULE = "doDaylightCycle";
 
 	PluginListener listener;
@@ -237,8 +238,8 @@ public class Plugin extends JavaPlugin {
 				int dePanicked = 0;
 				for (Player toDePanicPlayer : getServer().getOnlinePlayers()) {
 					if (toDePanicPlayer != null) {
-						if (!toDePanicPlayer.getMetadata("locked").isEmpty()) {
-							toDePanicPlayer.removeMetadata("locked", this);
+						if (!toDePanicPlayer.getMetadata(METADATA_KEY_LOCKED).isEmpty()) {
+							toDePanicPlayer.removeMetadata(METADATA_KEY_LOCKED, this);
 							dePanicked++;
 							toDePanicPlayer.sendMessage(ChatColor.BLUE + "You have been unlocked.");
 						}
@@ -455,7 +456,7 @@ public class Plugin extends JavaPlugin {
 					sender.sendMessage(ChatColor.RED + "Level: " + ChatColor.BLUE.toString() + player.getLevel());
 					sender.sendMessage(ChatColor.RED + "Experience: " + ChatColor.BLUE.toString() + player.getTotalExperience()
 						+ " - " + (int)(player.getExp() * 100.0) + "%");
-					sender.sendMessage(ChatColor.RED + "Locked: " + ChatColor.BLUE.toString() + player.hasMetadata("locked"));
+					sender.sendMessage(ChatColor.RED + "Locked: " + ChatColor.BLUE.toString() + player.hasMetadata(METADATA_KEY_LOCKED));
 					sender.sendMessage(ChatColor.RED + "Walk Speed: " + ChatColor.BLUE.toString() + player.getWalkSpeed()
 						+ ChatColor.RED + " Fly Speed: " + ChatColor.BLUE.toString() + player.getFlySpeed());
 					if (player.isOnline()) {
@@ -1208,7 +1209,7 @@ public class Plugin extends JavaPlugin {
 				if (matchingWarps != null && matchingWarps.isDefinite) {
 					preJailLocations.put(toJail.getUniqueId(), toJail.getLocation());
 					warpSystem.warpTo(toJail, data.warps.get(matchingWarps.result()));
-					toJail.setMetadata("locked", new FixedMetadataValue(this, true));
+					toJail.setMetadata(METADATA_KEY_LOCKED, new FixedMetadataValue(this, true));
 					if (toJail.isOnline()) {
 						toJail.sendMessage(ChatColor.BLUE + "You have been jailed.");
 					} else {
@@ -1223,7 +1224,7 @@ public class Plugin extends JavaPlugin {
 						int jailID = new Random().nextInt(availableWarps.results.length);
 						preJailLocations.put(toJail.getUniqueId(), toJail.getLocation());
 						warpSystem.warpTo(toJail, data.warps.get(availableWarps.results[jailID]));
-						toJail.setMetadata("locked", new FixedMetadataValue(this, true));
+						toJail.setMetadata(METADATA_KEY_LOCKED, new FixedMetadataValue(this, true));
 						if (toJail.isOnline()) {
 							toJail.sendMessage(ChatColor.BLUE + "You have been jailed.");
 						} else {
@@ -1239,14 +1240,15 @@ public class Plugin extends JavaPlugin {
 				final Player player = findOnlinePlayer(args[0], sender);
 				if(player == null) return true;
 
-				if (preJailLocations.containsKey(player.getUniqueId())) {
-					player.removeMetadata("locked", this);
-					teleportPlayer(player, preJailLocations.remove(player.getUniqueId()), true);
-					if (player.isOnline()) {
-						player.sendMessage(ChatColor.BLUE + "You have been set free from jail.");
+				if (player.hasMetadata(METADATA_KEY_LOCKED)) {
+					player.removeMetadata(METADATA_KEY_LOCKED, this);
+					final Location preJailLocation = preJailLocations.remove(player.getUniqueId());
+					if (preJailLocation == null) {
+						teleportPlayer(player, player.getWorld().getSpawnLocation(), false);
 					} else {
-						player.saveData();
+						teleportPlayer(player, preJailLocation, false);
 					}
+					player.sendMessage(ChatColor.BLUE + "You have been set free from jail.");
 				} else {
 					sender.sendMessage(ChatColor.RED + "Player not jailed.");
 				}
@@ -1674,7 +1676,7 @@ public class Plugin extends JavaPlugin {
 			}
 			long toExpireAt = System.currentTimeMillis() + minutes * 60000;
 			for (Player playerToLock : players) {
-				playerToLock.setMetadata("locked", new ExpiringMetadataValue(toExpireAt));
+				playerToLock.setMetadata(METADATA_KEY_LOCKED, new ExpiringMetadataValue(toExpireAt));
 				playerToLock.sendMessage(ChatColor.BLUE.toString() + ChatColor.BOLD + "You have been locked for " + minutes
 					+ " minutes. Do not panic, server admin is probably dealing with problems and will unlock you shortly.");
 			}
