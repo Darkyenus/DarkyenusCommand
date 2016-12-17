@@ -39,6 +39,7 @@ public final class PluginData {
 	public boolean chatFormatColorShuffle = false;
 	public boolean bonemealGrassFix = false;
 	public boolean fireFix = false;
+	public boolean creeperFix = false;
 	public boolean bookNoticeBoardsEnabled = false;
 
 	private static final Json JSON = new Json(OutputType.javascript);

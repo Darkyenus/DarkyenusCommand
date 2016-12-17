@@ -2,13 +2,18 @@
 package darkyenuscommand;
 
 import org.bukkit.*;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Creeper;
+import org.bukkit.entity.EntityType;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockSpreadEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -16,10 +21,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.material.Dye;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
+
+import static org.bukkit.Material.*;
 
 /** Private property. User: Darkyen Date: 7/30/13 Time: 11:34 AM */
 public final class FixManager {
@@ -101,6 +105,9 @@ public final class FixManager {
 		}
 		if (config.fireFix) {
 			server.getPluginManager().registerEvents(new FireFix(), plugin);
+		}
+		if (config.creeperFix) {
+			server.getPluginManager().registerEvents(new CreeperFix(), plugin);
 		}
 	}
 
@@ -213,13 +220,107 @@ public final class FixManager {
 
 	private static final class FireFix implements Listener {
 
-		/** Limits spread distance only to nearest 8 blocks */
+		/** Limits spread distance only to nearest blocks */
 		@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
 		public void onFireSpread (BlockSpreadEvent event) {
 			final Block source = event.getSource();
 			final Block fire = event.getBlock();
 			if (Math.abs(source.getX() - fire.getX()) > 1 || Math.abs(source.getY() - fire.getY()) > 1
 				|| Math.abs(source.getZ() - fire.getZ()) > 1) {
+				event.setCancelled(true);
+			}
+		}
+	}
+
+	private static final class CreeperFix implements Listener {
+
+		private static final EnumSet<Material> FRAGILE_MATERIALS = EnumSet.of(
+				GLASS,
+				STAINED_GLASS,
+				THIN_GLASS,
+				STAINED_GLASS_PANE,
+				SAPLING,
+				LEAVES,
+				LEAVES_2,
+				WEB,
+				LONG_GRASS,
+				DEAD_BUSH,
+				YELLOW_FLOWER,
+				RED_ROSE,
+				BROWN_MUSHROOM,
+				RED_MUSHROOM,
+				TNT,
+				TORCH,
+				REDSTONE_WIRE,
+				CROPS,
+				WOODEN_DOOR,
+				ACACIA_DOOR,
+				BIRCH_DOOR,
+				JUNGLE_DOOR,
+				SPRUCE_DOOR,
+				SPRUCE_DOOR,
+				TRAP_DOOR,
+				LADDER,
+				RAILS,
+				REDSTONE_TORCH_ON,
+				REDSTONE_TORCH_OFF,
+				SNOW,
+				ICE,
+				SNOW_BLOCK,
+				CACTUS,
+				SUGAR_CANE_BLOCK,
+				FENCE,
+				FENCE_GATE,
+				CAKE_BLOCK,
+				DIODE_BLOCK_ON,
+				DIODE_BLOCK_OFF,
+				HUGE_MUSHROOM_1,
+				HUGE_MUSHROOM_2,
+				PUMPKIN_STEM,
+				MELON_STEM,
+				VINE,
+				WATER_LILY,
+				NETHER_WARTS,
+				BREWING_STAND,
+				COCOA,
+				TRIPWIRE_HOOK,
+				TRIPWIRE,
+				FLOWER_POT,
+				CARROT,
+				POTATO,
+				WOOD_BUTTON,
+				WOOD_PLATE,
+				SKULL,
+				REDSTONE_COMPARATOR_ON,
+				REDSTONE_COMPARATOR_OFF,
+				DAYLIGHT_DETECTOR,
+				DAYLIGHT_DETECTOR_INVERTED,
+				ACTIVATOR_RAIL,
+				DETECTOR_RAIL,
+				POWERED_RAIL,
+				CARPET,
+				DOUBLE_PLANT,
+				STANDING_BANNER,
+				WALL_BANNER,
+				END_ROD,
+				CHORUS_PLANT,
+				CHORUS_FLOWER,
+				CHORUS_FRUIT,
+				CHORUS_FRUIT_POPPED,
+				BEETROOT_BLOCK
+		);
+
+		/** Limit creeper explosions only to more fragile blocks */
+		@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+		public void onCreeperExplode (EntityExplodeEvent event) {
+			if(event.getEntityType() == EntityType.CREEPER) {
+				event.blockList().removeIf(b -> !FRAGILE_MATERIALS.contains(b.getType()));
+			}
+		}
+
+		@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+		public void onCreeperDestroyItem (EntityDamageByEntityEvent event) {
+			if (event.getEntityType() == EntityType.DROPPED_ITEM && event.getDamager() instanceof Creeper) {
 				event.setCancelled(true);
 			}
 		}
