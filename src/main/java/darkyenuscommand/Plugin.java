@@ -1262,7 +1262,7 @@ public class Plugin extends JavaPlugin {
 				}
 
 				final Player viewInventory = findOnlinePlayer(args[0], sender);
-				if(viewInventory == null)return true;
+				if(viewInventory == null) return true;
 
 				Player toShowTo = (Player)sender;
 				toShowTo.openInventory(viewInventory.getInventory());
@@ -1274,8 +1274,9 @@ public class Plugin extends JavaPlugin {
 					sender.sendMessage(ChatColor.RED + "In-game use only.");
 					return true;
 				}
-				if (((Player)sender).getWorld().setSpawnLocation(((Player)sender).getLocation().getBlockX(),
-					((Player)sender).getLocation().getBlockY(), ((Player)sender).getLocation().getBlockZ())) {
+				final Player player = (Player) sender;
+				final Location location = player.getLocation();
+				if (player.getWorld().setSpawnLocation(location.getBlockX(), location.getBlockY(), location.getBlockZ())) {
 					sender.sendMessage(ChatColor.GREEN + "Spawn set.");
 				} else {
 					sender.sendMessage(ChatColor.RED + "Spawn couldn't be set.");
