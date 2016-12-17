@@ -1611,7 +1611,18 @@ public class Plugin extends JavaPlugin {
 			recalls.push(who.getUniqueId(), who.getLocation());
 		}
 		getLogger().info(who.getName() + " teleported from " + formatLocation(who.getLocation()) + " to " + formatLocation(to));
-		who.teleport(to, PlayerTeleportEvent.TeleportCause.PLUGIN);
+
+		if (who.isInsideVehicle() && who.getVehicle() instanceof Animals && !who.getVehicle().isDead()) {
+			final Animals vehicle = (Animals) who.getVehicle();
+			//Teleport player first, to load the chunk
+			who.teleport(to, PlayerTeleportEvent.TeleportCause.PLUGIN);
+			//Then teleport the vehicle
+			vehicle.teleport(to, PlayerTeleportEvent.TeleportCause.PLUGIN);
+			//Then place the player back on the vehicle
+			vehicle.setPassenger(who);
+		} else {
+			who.teleport(to, PlayerTeleportEvent.TeleportCause.PLUGIN);
+		}
 	}
 
 	private String formatLocation (Location location) {
