@@ -959,54 +959,69 @@ public class Plugin extends JavaPlugin {
 				return true;
 			} else if (command.getName().equals("item")) {
 				// --------------------------------------- ITEM
-				if (args.length != 0) {
-					final MatchUtils.MaterialSpec materialSpec = matchMaterialData(args[0], sender);
-					if(materialSpec == null)return true;
-					int playerIndex = 1;
-					int amount = 1;
-					try {
-						amount = Integer.parseInt(args[1]);
-						playerIndex = 2;
-					} catch (Exception ignored) {
-					}
-					final Player player = getPlayer(args, playerIndex, sender);
-					if (player == null) return true;
-
-					final ItemStack toGive = materialSpec.toItemStack(amount);
-					final PlayerInventory inventory = player.getInventory();
-					if(inventory.getItemInMainHand() == null || inventory.getItemInMainHand().getType() == Material.AIR) {
-						inventory.setItemInMainHand(toGive);
-					} else {
-						inventory.addItem(toGive);
-					}
-					if (player.isOnline()) {
-						player.updateInventory();
-					} else {
-						player.saveData();
-					}
-					sender.sendMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + player.getName() + " was given " + amount
-							+ " " + toGive.getType().toString().toLowerCase());
-
-					return true;
-				} else if (sender instanceof Player) {
-					ItemStack item = ((Player)sender).getInventory().getItemInMainHand();
-					if (item == null) {
-						return false;
-					} else {
-						sender.sendMessage(ChatColor.BLUE.toString() + ChatColor.BOLD.toString() + "Item Info");
-						sender.sendMessage(ChatColor.BLUE.toString() + "Material: " + item.getType().toString());
-						sender.sendMessage(ChatColor.BLUE.toString() + "Data: " + item.getData());
-						sender.sendMessage(ChatColor.BLUE.toString() + "Durability: " + item.getDurability());
-						sender.sendMessage(ChatColor.BLUE.toString() + "Amount: " + item.getAmount());
-						for (Map.Entry<Enchantment, Integer> entry : item.getEnchantments().entrySet()) {
-							sender.sendMessage(ChatColor.BLUE.toString() + " " + entry.getKey().getName() + " - " + entry.getValue());
+				final Parameters params = new Parameters(args);
+				if (params.eof()) {
+					if (sender instanceof Player) {
+						ItemStack item = ((Player)sender).getInventory().getItemInMainHand();
+						if (item == null) {
+							return false;
+						} else {
+							sender.sendMessage(ChatColor.BLUE.toString() + ChatColor.BOLD.toString() + "Item Info");
+							sender.sendMessage(ChatColor.BLUE.toString() + "Material: " + item.getType().toString());
+							sender.sendMessage(ChatColor.BLUE.toString() + "Data: " + item.getData());
+							sender.sendMessage(ChatColor.BLUE.toString() + "Durability: " + item.getDurability());
+							sender.sendMessage(ChatColor.BLUE.toString() + "Amount: " + item.getAmount());
+							for (Map.Entry<Enchantment, Integer> entry : item.getEnchantments().entrySet()) {
+								sender.sendMessage(ChatColor.BLUE.toString() + " " + entry.getKey().getName() + " - " + entry.getValue());
+							}
+							return true;
 						}
+					} else {
+						return false;
 					}
 				} else {
-					return false;
+					final MatchUtils.MaterialSpec materialSpec = matchMaterialData(params.collect("", Math.max(1, params.remaining() - 2)), sender);
+					if(materialSpec == null) return true;
+
+					final int amount = params.matchInt(1);
+
+					if (amount <= 0) {
+						sender.sendMessage(ChatColor.RED+"Invalid amount");
+						return true;
+					}
+
+					final Player toPlayer = params.matchPlayer(sender instanceof Player ? (Player) sender : null, sender);
+					if (toPlayer == null) return true;
+
+					int remainingToGive = amount;
+					int given = 0;
+
+					final PlayerInventory inventory = toPlayer.getInventory();
+					while (remainingToGive > 0) {
+						final int itemStackSize = Math.min(materialSpec.material.getMaxStackSize(), remainingToGive);
+						final ItemStack item = materialSpec.toItemStack(itemStackSize);
+
+						final HashMap<Integer, ItemStack> rejected = inventory.addItem(item);
+						int givenNow = itemStackSize;
+						for (ItemStack rejectedItem : rejected.values()) {
+							givenNow -= rejectedItem.getAmount();
+						}
+						if (givenNow == 0) {
+							break;
+						}
+						given += givenNow;
+						remainingToGive -= givenNow;
+					}
+
+					if (given == 0) {
+						sender.sendMessage(ChatColor.DARK_RED.toString() + ChatColor.ITALIC + toPlayer.getName() + "'s inventory is full");
+					} else {
+						sender.sendMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + toPlayer.getName() + " was given " + given
+								+ " " + materialSpec.material.toString().toLowerCase());
+					}
+					return true;
 				}
 				// --------------------------------------- ITEM END
-				return true;
 			} else if (command.getName().equals("repair")) {
 				// --------------------------------------- REPAIR
 				Player player;
