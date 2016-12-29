@@ -114,7 +114,7 @@ commands:
     permission: darkyenuscommand.command.gamemode
   item:
     description: Give an item or see item info
-    usage: /item [Item Name][:Data] [Amount] [Player]]
+    usage: /item [Item Name][:Data] [Amount] [Player] [{nbt tags}]
     aliases: [give]
     permission: darkyenuscommand.command.item
   repair:

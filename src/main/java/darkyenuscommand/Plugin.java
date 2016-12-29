@@ -1,8 +1,14 @@
 
 package darkyenuscommand;
 
+import com.darkyen.nbtapi.NBT;
+import com.darkyen.nbtapi.NBTException;
+import com.darkyen.nbtapi.json.NBTJson;
+import com.darkyen.nbtapi.nbt.NBTCompound;
+import com.esotericsoftware.jsonbeans.*;
 import darkyenuscommand.util.Parameters;
 import darkyenuscommand.util.StackMap;
+import darkyenuscommand.util.UnsafeUtil;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
@@ -974,14 +980,25 @@ public class Plugin extends JavaPlugin {
 							for (Map.Entry<Enchantment, Integer> entry : item.getEnchantments().entrySet()) {
 								sender.sendMessage(ChatColor.BLUE.toString() + " " + entry.getKey().getName() + " - " + entry.getValue());
 							}
+
+							final NBTCompound tag = NBT.getItemTag(item);
+							if (!tag.value.isEmpty()) {
+								sender.sendMessage(ChatColor.BLUE.toString() + "NBT: \n"+ChatColor.ITALIC+tag.toString().replace("\n","\n"+ChatColor.ITALIC));
+							}
+
 							return true;
 						}
 					} else {
 						return false;
 					}
 				} else {
-					final MatchUtils.MaterialSpec materialSpec = matchMaterialData(params.collect("", Math.max(1, params.remaining() - 2)), sender);
+					final MatchUtils.MaterialSpec materialSpec = matchMaterialData(params.take(""), sender);
 					if(materialSpec == null) return true;
+
+					if (!UnsafeUtil.isValidItemMaterial(materialSpec.material)) {
+						sender.sendMessage(ChatColor.RED+"Material "+materialSpec+" can not be created as item");
+						return true;
+					}
 
 					final int amount = params.matchInt(1);
 
@@ -993,13 +1010,45 @@ public class Plugin extends JavaPlugin {
 					final Player toPlayer = params.matchPlayer(sender instanceof Player ? (Player) sender : null, sender);
 					if (toPlayer == null) return true;
 
+					final String nbtSource = params.rest(" ");
+					final NBTCompound itemNBT;
+					if (!nbtSource.isEmpty()) {
+						final JsonReader jsonReader = new JsonReader();
+						final JsonValue nbtJson;
+						try {
+							nbtJson = jsonReader.parse(nbtSource);
+						} catch (JsonException e) {
+							sender.sendMessage(ChatColor.RED+("Malformed json: "+e.getMessage()).replace("\n", "\n"+ChatColor.RED));
+							return false;
+						}
+						if (!nbtJson.isObject()) {
+							sender.sendMessage(ChatColor.RED+"NBT Json must be object");
+							return false;
+						}
+
+						try {
+							itemNBT = (NBTCompound) NBTJson.nbtFromJson(nbtJson);
+						} catch (NBTException | ClassCastException e) {
+							sender.sendMessage(ChatColor.RED+("Json could not be transformed to NBT: "+e.getMessage()).replace("\n", "\n"+ChatColor.RED));
+							return false;
+						}
+					} else {
+						itemNBT = null;
+					}
+
 					int remainingToGive = amount;
 					int given = 0;
 
 					final PlayerInventory inventory = toPlayer.getInventory();
 					while (remainingToGive > 0) {
 						final int itemStackSize = Math.min(materialSpec.material.getMaxStackSize(), remainingToGive);
-						final ItemStack item = materialSpec.toItemStack(itemStackSize);
+						final ItemStack item;
+
+						if (itemNBT != null) {
+							item = NBT.createItemWithTag(materialSpec.toItemStack(itemStackSize), itemNBT);
+						} else {
+							item = materialSpec.toItemStack(itemStackSize);
+						}
 
 						final HashMap<Integer, ItemStack> rejected = inventory.addItem(item);
 						int givenNow = itemStackSize;

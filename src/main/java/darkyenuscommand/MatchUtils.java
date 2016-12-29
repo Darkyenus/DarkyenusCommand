@@ -1,5 +1,7 @@
 package darkyenuscommand;
 
+import com.darkyen.nbtapi.reflection.ReflectionClass;
+import com.darkyen.nbtapi.reflection.ReflectionMethod;
 import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;

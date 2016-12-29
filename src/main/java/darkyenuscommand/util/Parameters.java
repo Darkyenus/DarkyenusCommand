@@ -6,9 +6,6 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import static darkyenuscommand.MatchUtils.matchPlayer;
-import static darkyenuscommand.MatchUtils.matchPlayerFail;
-
 /**
  *
  */
@@ -52,8 +49,21 @@ public final class Parameters {
         }
     }
 
+    private boolean peekCanBePlayer() {
+        if (eof()) return false;
+        final String peek = args[index];
+        if (peek.length() < 3 || peek.length() > 16) return false;
+        for (int i = 0; i < peek.length(); i++) {
+            final char c = peek.charAt(i);
+            if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || (c == '_'))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public Player matchPlayer (Player eofValue, CommandSender reportErrorsTo) {
-        if (eof()) {
+        if (!peekCanBePlayer()) {
             if (eofValue == null && reportErrorsTo != null) {
                 reportErrorsTo.sendMessage(ChatColor.RED+"You must specify a player");
             }
@@ -71,7 +81,7 @@ public final class Parameters {
                     return null;
                 }
             } else {
-                matchPlayerFail(playerMatch, reportErrorsTo);
+                MatchUtils.matchPlayerFail(playerMatch, reportErrorsTo);
                 return null;
             }
         }
