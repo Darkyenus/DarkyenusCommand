@@ -983,7 +983,10 @@ public class Plugin extends JavaPlugin {
 
 							final NBTCompound tag = NBT.getItemTag(item);
 							if (!tag.value.isEmpty()) {
-								sender.sendMessage(ChatColor.BLUE.toString() + "NBT: \n"+ChatColor.ITALIC+tag.toString().replace("\n","\n"+ChatColor.ITALIC));
+								final JsonValue value = NBTJson.nbtToJson(tag);
+								final String tagString = value.prettyPrint(OutputType.minimal, 128);
+								final String tagStringColorStrip = tagString.replace(ChatColor.COLOR_CHAR, '^');
+								sender.sendMessage(ChatColor.BLUE.toString() + "NBT: \n"+ChatColor.RESET+ChatColor.ITALIC+tagStringColorStrip.replace("\n","\n"+ChatColor.ITALIC));
 							}
 
 							return true;
