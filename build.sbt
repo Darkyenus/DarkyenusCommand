@@ -10,7 +10,9 @@ resolvers += Resolver.sonatypeRepo("snapshots")
 
 libraryDependencies += ("org.spigotmc" % "spigot-api" % "1.11.2-R0.1-SNAPSHOT" % "provided")
 
-libraryDependencies += "com.esotericsoftware" % "jsonbeans" % "0.7"
+resolvers += "jitpack" at "https://jitpack.io"
+
+libraryDependencies += "com.github.EsotericSoftware" % "jsonbeans" % "7306654ed3"
 
 libraryDependencies += "com.darkyen" % "bukkit-nbt-api" % "1.0-SNAPSHOT"
 
