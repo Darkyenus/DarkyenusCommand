@@ -34,13 +34,24 @@ public final class PluginData {
 	public boolean recordRecipe = false;
 	public boolean horseArmorRecipe = false;
 	public boolean nameTagRecipe = false;
+	/** Blocks that should drop, but don't, now do (glass, bookshelves, ...) */
 	public boolean blockDropFix = false;
+	/** Prettier chat formatting */
 	public boolean chatFormat = false;
+	/** Every day different chat colors, only when chatFormat is enabled */
 	public boolean chatFormatColorShuffle = false;
+	/** Bonemeal will change dirt blocks into grass blocks */
 	public boolean bonemealGrassFix = false;
+	/** Fire won't spread beyond direct (even diagonal) neighbors */
 	public boolean fireFix = false;
+	/** Creeper explosions will destroy only fragile blocks */
 	public boolean creeperFix = false;
 	public boolean bookNoticeBoardsEnabled = false;
+
+	/** How deep does miner have to be, to be excluded from sleeping? */
+	public int minerInsomniaDepth = 50;
+	/** Ignore sleeping of admins, miners and inform sleepers about how many people are sleeping? */
+	public boolean betterBeds = false;
 
 	private static final Json JSON = new Json(OutputType.javascript);
 	private static final File PATH_HOME = new File("plugins/");

@@ -1,11 +1,13 @@
 
 package darkyenuscommand;
 
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Creeper;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -14,8 +16,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
@@ -39,9 +40,8 @@ public final class FixManager {
 		if (config.saddleRecipe) {
 			try {
 				ShapedRecipe saddleCraftRecipe = new ShapedRecipe(new ItemStack(Material.SADDLE));
-				saddleCraftRecipe.shape("lll", " s ", " i ");
+				saddleCraftRecipe.shape("lll", "lil", "i i");
 				saddleCraftRecipe.setIngredient('l', Material.LEATHER);
-				saddleCraftRecipe.setIngredient('s', Material.STRING);
 				saddleCraftRecipe.setIngredient('i', Material.IRON_INGOT);
 				if (!server.addRecipe(saddleCraftRecipe)) {
 					System.out.println("DarkyenusCommand: Saddle recipe could not be added.");
@@ -109,12 +109,15 @@ public final class FixManager {
 		if (config.creeperFix) {
 			server.getPluginManager().registerEvents(new CreeperFix(), plugin);
 		}
+		if (config.betterBeds) {
+			server.getPluginManager().registerEvents(new BetterBeds(config.minerInsomniaDepth), plugin);
+		}
 	}
 
 	private static void addRecordRecipe (Server server, Material record, DyeColor dye) {
 		ShapedRecipe recipe = new ShapedRecipe(new ItemStack(record));
 		recipe.shape(" c ", "cdc", " c ");
-		recipe.setIngredient('c', Material.COAL);
+		recipe.setIngredient('c', Material.COAL_BLOCK);
 		Dye dyeToUse = new Dye(Material.INK_SACK);
 		dyeToUse.setColor(dye);
 		recipe.setIngredient('d', dyeToUse);
@@ -324,5 +327,66 @@ public final class FixManager {
 				event.setCancelled(true);
 			}
 		}
+	}
+
+	private static final class BetterBeds implements Listener {
+		private final int minerInsomniaDepth;
+
+		private BetterBeds(int minerInsomniaDepth) {
+			this.minerInsomniaDepth = minerInsomniaDepth;
+		}
+
+		private boolean doesSleep(GameMode mode){
+			switch (mode) {
+				case CREATIVE:
+				case SPECTATOR:
+					return false;
+				default:
+					return true;
+			}
+		}
+
+		@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+		public void adminsDoNotSleep(PlayerGameModeChangeEvent event) {
+			event.getPlayer().setSleepingIgnored(!doesSleep(event.getNewGameMode()));
+		}
+
+		@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+		public void minersDoNotSleep(PlayerMoveEvent event){
+			final Player player = event.getPlayer();
+			if (!doesSleep(player.getGameMode())) return;
+
+			final int sleepEdge = minerInsomniaDepth;
+			final boolean sleepBefore = event.getFrom().getBlockY() < sleepEdge;
+			final boolean sleepNow = event.getTo().getBlockY() < sleepEdge;
+			if (sleepBefore != sleepNow) {
+				player.setSleepingIgnored(!sleepNow);
+			}
+		}
+
+		@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+		public void playersKnowHowManyPeopleAreInBed(PlayerBedEnterEvent event) {
+			int totalSleepy = 0;
+			int sleeping = 0;
+			final Player player = event.getPlayer();
+			for (Player p : player.getWorld().getPlayers()) {
+				if (p == player) continue;
+				if (p.isSleepingIgnored()) continue;
+				totalSleepy++;
+				if (p.isSleeping()) {
+					sleeping++;
+				}
+			}
+
+			final int remaining = totalSleepy - sleeping;
+			if (totalSleepy == 0 || remaining < 1) return;
+
+			final TextComponent component = new TextComponent(ChatColor.DARK_AQUA + "Waiting for " + remaining + " more "+(remaining == 1?"person":"people")+" to sleep...");
+			for (Player p : player.getWorld().getPlayers()) {
+				if (p.isSleepingIgnored() && !p.isOp()) continue;
+				player.spigot().sendMessage(ChatMessageType.ACTION_BAR, component);
+			}
+		}
+
 	}
 }
