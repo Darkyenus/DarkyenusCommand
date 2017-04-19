@@ -190,6 +190,10 @@ commands:
     description: Turn to face given direction
     usage: /playerface [up,down,north,south,east,west,panoramaN]
     permission: darkyenuscommand.command.playerface
+  server-stats:
+    description: Show server usage statistics
+    usage: /server-stats
+    permission: darkyenuscommand.command.serverstats
 permissions:
   darkyenuscommand.command.rules:
     description: Access to /rules command.
@@ -326,6 +330,9 @@ permissions:
   darkyenuscommand.command.playerface:
     description: Access to /playerface command.
     default: op
+  darkyenuscommand.command.serverstats:
+    description: Access to /server-stats command.
+    default: true
 # Here lies the additional command permissions
   darkyenuscommand.command.kill.anyone:
     description: You can kill anyone with /kill command, not only yourself.
@@ -385,6 +392,7 @@ permissions:
       darkyenuscommand.staff: true
       darkyenuscommand.command.command: true
       darkyenuscommand.infostick: true
+      darkyenuscommand.command.serverstats: true
   darkyenuscommand.gamemaster:
     description: You are gamemaster and have acces to almost every command.
     default: false

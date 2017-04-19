@@ -14,6 +14,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
@@ -27,6 +28,8 @@ import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffectType;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -666,7 +669,7 @@ public class Plugin extends JavaPlugin {
 					sender.sendMessage(ChatColor.GOLD.toString() + ChatColor.BOLD + "Darkyenus Command "
 						+ getDescription().getVersion());
 					sender.sendMessage(ChatColor.BLUE + "Created by " + ChatColor.GOLD + ChatColor.BOLD + "Darkyen");
-					sender.sendMessage(ChatColor.BLUE.toString() + ChatColor.ITALIC + "   (c) 2012 - 2016 darkyen@me.com");
+					sender.sendMessage(ChatColor.BLUE.toString() + ChatColor.ITALIC + "   (c) 2012 - 2017 darkyen@me.com");
 				}
 				// --------------------------------------- DARKYENUSCOMMAND END
 				return true;
@@ -1659,6 +1662,28 @@ public class Plugin extends JavaPlugin {
 				player.sendMessage(ChatColor.BLUE+"Facing "+args[0]);
 				return true;
 				// --------------------------------------- PLAYER FACE END
+			} else if (command.getName().equals("server-stats")) {
+				// --------------------------------------- SERVER STATS BEGIN
+				final Runtime runtime = Runtime.getRuntime();
+				sender.sendMessage(ChatColor.BLUE+"OS: "+ChatColor.WHITE+System.getProperty("os.name")+" ("+System.getProperty("os.arch")+") on "+runtime.availableProcessors()+" cores");
+				try {
+					final OperatingSystemMXBean os = ManagementFactory.getOperatingSystemMXBean();
+					sender.sendMessage(ChatColor.BLUE+"CPU load: "+ChatColor.WHITE+os.getSystemLoadAverage());
+				} catch (Throwable ex) {
+					sender.sendMessage(ChatColor.RED+"Failed to retrieve full server stats");
+					if (sender instanceof ConsoleCommandSender) {
+						ex.printStackTrace();
+					}
+				}
+
+				final long freeMemory = runtime.freeMemory();
+				final long totalMemory = runtime.totalMemory();
+				final long maxMemory = runtime.maxMemory();
+				sender.sendMessage(ChatColor.BLUE+"Free Memory: "+ChatColor.WHITE+formatBytes(freeMemory)+" ("+(int)Math.round((double)(maxMemory - freeMemory)/(double)maxMemory)+"% of max used)");
+				sender.sendMessage(ChatColor.BLUE+"Total Memory: "+ChatColor.WHITE+formatBytes(totalMemory));
+				sender.sendMessage(ChatColor.BLUE+"Max Memory: "+ChatColor.WHITE+formatBytes(maxMemory));
+				return true;
+				// --------------------------------------- SERVER STATS END
 			} else if (command.getName().equals("donothing")) {
 				return true;
 			}
@@ -1666,6 +1691,16 @@ public class Plugin extends JavaPlugin {
 			return false;
 		}
 		return false;
+	}
+
+	private static String formatBytes(long bytes) {
+		if (bytes < 1024) {
+			return bytes+" B";
+		} else if (bytes < 1024 * 1024) {
+			return (bytes / 1024)+" KiB";
+		} else {
+			return (bytes / (1024 * 1024))+" MiB";
+		}
 	}
 
 	private boolean isGoodTeleportLocation (World world, int x, int y, int z) {
