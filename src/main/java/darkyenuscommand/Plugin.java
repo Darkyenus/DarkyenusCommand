@@ -28,6 +28,7 @@ import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffectType;
 
+import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.util.*;
@@ -1682,6 +1683,12 @@ public class Plugin extends JavaPlugin {
 				sender.sendMessage(ChatColor.BLUE+"Free Memory: "+ChatColor.WHITE+formatBytes(freeMemory)+" ("+(int)Math.round((double)(maxMemory - freeMemory)/(double)maxMemory)+"% of max used)");
 				sender.sendMessage(ChatColor.BLUE+"Total Memory: "+ChatColor.WHITE+formatBytes(totalMemory));
 				sender.sendMessage(ChatColor.BLUE+"Max Memory: "+ChatColor.WHITE+formatBytes(maxMemory));
+
+				final File file = new File(".");
+				final long freeSpace = file.getFreeSpace();
+				final long totalSpace = file.getTotalSpace();
+				sender.sendMessage(ChatColor.BLUE+"Free Space: "+ChatColor.WHITE+formatBytes(freeSpace)+" ("+(int)Math.round((double)(totalSpace - freeSpace)/(double)totalSpace)+"% of total used)");
+				sender.sendMessage(ChatColor.BLUE+"Total Space: "+ChatColor.WHITE+formatBytes(totalSpace));
 				return true;
 				// --------------------------------------- SERVER STATS END
 			} else if (command.getName().equals("donothing")) {
