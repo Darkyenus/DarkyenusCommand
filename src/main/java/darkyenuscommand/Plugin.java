@@ -1680,14 +1680,14 @@ public class Plugin extends JavaPlugin {
 				final long freeMemory = runtime.freeMemory();
 				final long totalMemory = runtime.totalMemory();
 				final long maxMemory = runtime.maxMemory();
-				sender.sendMessage(ChatColor.BLUE+"Free Memory: "+ChatColor.WHITE+formatBytes(freeMemory)+" ("+(int)Math.round((double)(maxMemory - freeMemory)/(double)maxMemory)+"% of max used)");
+				sender.sendMessage(ChatColor.BLUE+"Free Memory: "+ChatColor.WHITE+formatBytes(freeMemory)+" ("+(int)Math.round((double)(maxMemory - freeMemory)*100.0/(double)maxMemory)+"% of max used)");
 				sender.sendMessage(ChatColor.BLUE+"Total Memory: "+ChatColor.WHITE+formatBytes(totalMemory));
 				sender.sendMessage(ChatColor.BLUE+"Max Memory: "+ChatColor.WHITE+formatBytes(maxMemory));
 
 				final File file = new File(".");
 				final long freeSpace = file.getFreeSpace();
 				final long totalSpace = file.getTotalSpace();
-				sender.sendMessage(ChatColor.BLUE+"Free Space: "+ChatColor.WHITE+formatBytes(freeSpace)+" ("+(int)Math.round((double)(totalSpace - freeSpace)/(double)totalSpace)+"% of total used)");
+				sender.sendMessage(ChatColor.BLUE+"Free Space: "+ChatColor.WHITE+formatBytes(freeSpace)+" ("+(int)Math.round((double)(totalSpace - freeSpace)*100.0/(double)totalSpace)+"% of total used)");
 				sender.sendMessage(ChatColor.BLUE+"Total Space: "+ChatColor.WHITE+formatBytes(totalSpace));
 				return true;
 				// --------------------------------------- SERVER STATS END
