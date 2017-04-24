@@ -474,6 +474,13 @@ public class Plugin extends JavaPlugin {
 							+ player.getAddress().getAddress().getHostAddress());
 					}
 				}
+				sender.sendMessage(ChatColor.RED + "UUID: " + ChatColor.BLUE.toString() + getInfo.getUniqueId().toString());
+
+				for (OfflinePlayer player : getServer().getOfflinePlayers()) {
+					if (player != getInfo && player.getName().equals(getInfo.getName())) {
+						sender.sendMessage(ChatColor.RED + "Duplicate Player: " + ChatColor.BLUE.toString() + player.getUniqueId().toString()+(player.isOnline() ? " (online)" : ""));
+					}
+				}
 				// --------------------------------------- PLAYERINFO END
 				return true;
 			} else if (command.getName().equals("compass")) {
