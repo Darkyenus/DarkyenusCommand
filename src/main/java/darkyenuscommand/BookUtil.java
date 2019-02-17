@@ -16,9 +16,9 @@ import java.util.logging.Level;
  */
 public class BookUtil {
 
-    private static Plugin plugin;
+    private static DarkyenusCommandPlugin plugin;
 
-    public static void initialize(Plugin plugin) {
+    public static void initialize(DarkyenusCommandPlugin plugin) {
         Bukkit.getServer().getMessenger().registerOutgoingPluginChannel(plugin, "MC|BOpen");
         BookUtil.plugin = plugin;
     }

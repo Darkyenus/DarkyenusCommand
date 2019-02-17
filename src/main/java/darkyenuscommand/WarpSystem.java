@@ -19,10 +19,10 @@ import java.util.regex.Pattern;
 /** @author Darkyen */
 final class WarpSystem {
 
-	private final Plugin plugin;
+	private final DarkyenusCommandPlugin plugin;
 	private final PluginData data;
 
-	WarpSystem(Plugin plugin, PluginData data) {
+	WarpSystem(DarkyenusCommandPlugin plugin, PluginData data) {
 		this.plugin = plugin;
 		this.data = data;
 	}

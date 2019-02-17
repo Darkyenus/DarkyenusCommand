@@ -19,79 +19,81 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.material.Dye;
 
 import java.util.*;
-
-import static org.bukkit.Material.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /** Private property. User: Darkyen Date: 7/30/13 Time: 11:34 AM */
-public final class FixManager {
+final class FixManager {
 
 	private FixManager () {
 	}
 
+	private static final Logger LOG = Logger.getLogger("DarkyenusCommand:FixManager");
+	
+	private static DarkyenusCommandPlugin plugin;
+
 	@SuppressWarnings("SpellCheckingInspection")
-	public static void initialize (Plugin plugin) {
+	static void initialize (DarkyenusCommandPlugin plugin) {
+		FixManager.plugin = plugin;
 		final PluginData config = plugin.data;
 
 		final Server server = plugin.getServer();
 		if (config.saddleRecipe) {
 			try {
-				ShapedRecipe saddleCraftRecipe = new ShapedRecipe(new ItemStack(Material.SADDLE));
+				ShapedRecipe saddleCraftRecipe = new ShapedRecipe(new NamespacedKey(plugin,"saddle"), new ItemStack(Material.SADDLE));
 				saddleCraftRecipe.shape("lll", "lil", "i i");
 				saddleCraftRecipe.setIngredient('l', Material.LEATHER);
 				saddleCraftRecipe.setIngredient('i', Material.IRON_INGOT);
 				if (!server.addRecipe(saddleCraftRecipe)) {
-					System.out.println("DarkyenusCommand: Saddle recipe could not be added.");
+					LOG.warning("Saddle recipe could not be added");
 				}
 			} catch (Exception e) {
-				System.out.println("DarkyenusCommand: Could not activate saddleCraft.");
-				e.printStackTrace();
+				LOG.log(Level.WARNING, "Could not activate saddle crafting", e);
 			}
 		}
 		if (config.recordRecipe) {
 			try {
-				addRecordRecipe(server, Material.GOLD_RECORD, DyeColor.YELLOW);// 13
-				addRecordRecipe(server, Material.GREEN_RECORD, DyeColor.GREEN);// cat
-				addRecordRecipe(server, Material.RECORD_3, DyeColor.ORANGE);// blocks
-				addRecordRecipe(server, Material.RECORD_4, DyeColor.RED);// chirp
-				addRecordRecipe(server, Material.RECORD_5, DyeColor.LIME);// far
-				addRecordRecipe(server, Material.RECORD_6, DyeColor.LIGHT_BLUE);// mall
-				addRecordRecipe(server, Material.RECORD_7, DyeColor.MAGENTA);// mellohi
-				addRecordRecipe(server, Material.RECORD_8, DyeColor.BLACK);// stal
-				addRecordRecipe(server, Material.RECORD_9, DyeColor.WHITE);// strad
-				addRecordRecipe(server, Material.RECORD_10, DyeColor.CYAN);// ward
-				addRecordRecipe(server, Material.RECORD_11, DyeColor.GRAY);// 11
-				addRecordRecipe(server, Material.RECORD_12, DyeColor.BLUE);// wait
+				addRecordRecipe(server, Material.MUSIC_DISC_13, DyeColor.YELLOW);// 13
+				addRecordRecipe(server, Material.MUSIC_DISC_CAT, DyeColor.GREEN);// cat
+				addRecordRecipe(server, Material.MUSIC_DISC_BLOCKS, DyeColor.ORANGE);// blocks
+				addRecordRecipe(server, Material.MUSIC_DISC_CHIRP, DyeColor.RED);// chirp
+				addRecordRecipe(server, Material.MUSIC_DISC_FAR, DyeColor.LIME);// far
+				addRecordRecipe(server, Material.MUSIC_DISC_MALL, DyeColor.LIGHT_BLUE);// mall
+				addRecordRecipe(server, Material.MUSIC_DISC_MELLOHI, DyeColor.MAGENTA);// mellohi
+				addRecordRecipe(server, Material.MUSIC_DISC_STAL, DyeColor.BLACK);// stal
+				addRecordRecipe(server, Material.MUSIC_DISC_STRAD, DyeColor.WHITE);// strad
+				addRecordRecipe(server, Material.MUSIC_DISC_WARD, DyeColor.CYAN);// ward
+				addRecordRecipe(server, Material.MUSIC_DISC_11, DyeColor.GRAY);// 11
+				addRecordRecipe(server, Material.MUSIC_DISC_WAIT, DyeColor.BLUE);// wait
 			} catch (Exception e) {
-				System.out.println("DarkyenusCommand: Could not activate recordCraft.");
-				e.printStackTrace();
+				LOG.log(Level.WARNING, "Could not activate record crafting", e);
 			}
 		}
 		if (config.horseArmorRecipe) {
 			try {
-				addHorseArmorRecipe(server, Material.IRON_INGOT, Material.IRON_BLOCK, Material.IRON_BARDING);
-				addHorseArmorRecipe(server, Material.GOLD_INGOT, Material.GOLD_BLOCK, Material.GOLD_BARDING);
-				addHorseArmorRecipe(server, Material.DIAMOND, Material.DIAMOND_BLOCK, Material.DIAMOND_BARDING);
+				addHorseArmorRecipe(server, Material.IRON_INGOT, Material.IRON_BLOCK, Material.IRON_HORSE_ARMOR);
+				addHorseArmorRecipe(server, Material.GOLD_INGOT, Material.GOLD_BLOCK, Material.GOLDEN_HORSE_ARMOR);
+				addHorseArmorRecipe(server, Material.DIAMOND, Material.DIAMOND_BLOCK, Material.DIAMOND_HORSE_ARMOR);
 			} catch (Exception e) {
-				System.out.println("DarkyenusCommand: Could not activate horseArmorCraft.");
-				e.printStackTrace();
+				LOG.log(Level.WARNING, "Could not activate horse armor crafting", e);
 			}
 		}
 		if (config.nameTagRecipe) {
 			try {
-				ShapedRecipe nameTagCraftRecipe = new ShapedRecipe(new ItemStack(Material.NAME_TAG));
+				ShapedRecipe nameTagCraftRecipe = new ShapedRecipe(new NamespacedKey(plugin,"name_tag"), new ItemStack(Material.NAME_TAG));
 				nameTagCraftRecipe.shape("  s", " p ", "p  ");
 				nameTagCraftRecipe.setIngredient('s', Material.STRING);
 				nameTagCraftRecipe.setIngredient('p', Material.PAPER);
 				if (!server.addRecipe(nameTagCraftRecipe)) {
-					System.out.println("DarkyenusCommand: Name Tag recipe could not be added.");
+					LOG.log(Level.WARNING, "Could not add name tag recipe");
 				}
 			} catch (Exception e) {
-				System.out.println("DarkyenusCommand: Could not activate nameTagCraft.");
-				e.printStackTrace();
+				LOG.log(Level.WARNING, "Could not activate name tag crafting", e);
 			}
 		}
 		if (config.blockDropFix) {
@@ -115,27 +117,26 @@ public final class FixManager {
 	}
 
 	private static void addRecordRecipe (Server server, Material record, DyeColor dye) {
-		ShapedRecipe recipe = new ShapedRecipe(new ItemStack(record));
+		ShapedRecipe recipe = new ShapedRecipe(new NamespacedKey(plugin, "record_"+record), new ItemStack(record));
 		recipe.shape(" c ", "cdc", " c ");
 		recipe.setIngredient('c', Material.COAL_BLOCK);
-		Dye dyeToUse = new Dye(Material.INK_SACK);
-		dyeToUse.setColor(dye);
+		Dye dyeToUse = new Dye(dye);
 		recipe.setIngredient('d', dyeToUse);
 
 		if (!server.addRecipe(recipe)) {
-			System.out.println("DarkyenusCommand: Recipe for " + record.toString() + " could not be added.");
+			LOG.log(Level.WARNING, "Could not add recipe for " + record);
 		}
 	}
 
 	private static void addHorseArmorRecipe (Server server, Material ingot, Material block, Material result) {
-		ShapedRecipe recipe = new ShapedRecipe(new ItemStack(result));
+		ShapedRecipe recipe = new ShapedRecipe(new NamespacedKey(plugin, "horse_armor_"+block), new ItemStack(result));
 		recipe.shape("i  ", "bwb", "i i");
-		recipe.setIngredient('w', Material.WOOL);
+		recipe.setIngredient('w', new RecipeChoice.MaterialChoice(new ArrayList<>(Materials.WOOL)));
 		recipe.setIngredient('b', block);
 		recipe.setIngredient('i', ingot);
 
 		if (!server.addRecipe(recipe)) {
-			System.out.println("DarkyenusCommand: Recipe for " + result + " could not be added.");
+			LOG.log(Level.WARNING, "Could not add recipe for "+result);
 		}
 	}
 
@@ -147,22 +148,14 @@ public final class FixManager {
 				return;// They are fine in creative!
 			}
 			try {
-				if (event.getBlock().getType() == Material.GLASS) {
+				final Material blockMaterial = event.getBlock().getType();
+				if (Materials.GLASS.contains(blockMaterial) || Materials.GLASS_PANE.contains(blockMaterial) || blockMaterial == Material.BOOKSHELF) {
 					event.setCancelled(true);
 					event.getBlock().setType(Material.AIR);
-					event.getBlock().getWorld().dropItemNaturally(event.getBlock().getLocation(), new ItemStack(Material.GLASS));
-				} else if (event.getBlock().getType() == Material.THIN_GLASS) {
-					event.setCancelled(true);
-					event.getBlock().setType(Material.AIR);
-					event.getBlock().getWorld().dropItemNaturally(event.getBlock().getLocation(), new ItemStack(Material.THIN_GLASS));
-				} else if (event.getBlock().getType() == Material.BOOKSHELF) {
-					event.setCancelled(true);
-					event.getBlock().setType(Material.AIR);
-					event.getBlock().getWorld().dropItemNaturally(event.getBlock().getLocation(), new ItemStack(Material.BOOKSHELF));
+					event.getBlock().getWorld().dropItemNaturally(event.getBlock().getLocation(), new ItemStack(blockMaterial));
 				}
 			} catch (Exception e) {
-				System.out.println("DarkyenusCommand: blockDropFix crashed.");
-				e.printStackTrace();
+				LOG.log(Level.WARNING, "Could not fix block drops", e);
 			}
 		}
 	}
@@ -175,8 +168,8 @@ public final class FixManager {
 
 		private ChatFormatterListener (boolean shuffle) {
 			if (shuffle) {
-				Collections.shuffle(hashedColors, new Random(System.currentTimeMillis() / (24 * 60 * 60 * 1000)));// Every day,
-// different seed!
+				// Every day, different seed!
+				Collections.shuffle(hashedColors, new Random(System.currentTimeMillis() / (24 * 60 * 60 * 1000)));
 			}
 		}
 
@@ -201,8 +194,7 @@ public final class FixManager {
 		@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
 		public void onBonemealUse (PlayerInteractEvent event) {
 			if (event.getHand() != EquipmentSlot.HAND) return;
-			if (event.hasBlock() && event.hasItem() && event.getMaterial() == Material.INK_SACK
-				&& ((Dye)(event.getItem().getData())).getColor() == DyeColor.WHITE) {
+			if (event.getMaterial() == Material.BONE_MEAL) {
 				if (event.getClickedBlock().getType() == Material.DIRT) {
 					event.getClickedBlock().setType(Material.GRASS);
 					event.setUseInteractedBlock(Event.Result.DENY);
@@ -237,81 +229,45 @@ public final class FixManager {
 
 	private static final class CreeperFix implements Listener {
 
-		private static final EnumSet<Material> FRAGILE_MATERIALS = EnumSet.of(
-				GLASS,
-				STAINED_GLASS,
-				THIN_GLASS,
-				STAINED_GLASS_PANE,
-				SAPLING,
-				LEAVES,
-				LEAVES_2,
-				WEB,
-				LONG_GRASS,
-				DEAD_BUSH,
-				YELLOW_FLOWER,
-				RED_ROSE,
-				BROWN_MUSHROOM,
-				RED_MUSHROOM,
-				TNT,
-				TORCH,
-				REDSTONE_WIRE,
-				CROPS,
-				WOODEN_DOOR,
-				ACACIA_DOOR,
-				BIRCH_DOOR,
-				JUNGLE_DOOR,
-				SPRUCE_DOOR,
-				SPRUCE_DOOR,
-				TRAP_DOOR,
-				LADDER,
-				RAILS,
-				REDSTONE_TORCH_ON,
-				REDSTONE_TORCH_OFF,
-				SNOW,
-				ICE,
-				SNOW_BLOCK,
-				CACTUS,
-				SUGAR_CANE_BLOCK,
-				FENCE,
-				FENCE_GATE,
-				CAKE_BLOCK,
-				DIODE_BLOCK_ON,
-				DIODE_BLOCK_OFF,
-				HUGE_MUSHROOM_1,
-				HUGE_MUSHROOM_2,
-				PUMPKIN_STEM,
-				MELON_STEM,
-				VINE,
-				WATER_LILY,
-				NETHER_WARTS,
-				BREWING_STAND,
-				COCOA,
-				TRIPWIRE_HOOK,
-				TRIPWIRE,
-				FLOWER_POT,
-				CARROT,
-				POTATO,
-				WOOD_BUTTON,
-				WOOD_PLATE,
-				SKULL,
-				REDSTONE_COMPARATOR_ON,
-				REDSTONE_COMPARATOR_OFF,
-				DAYLIGHT_DETECTOR,
-				DAYLIGHT_DETECTOR_INVERTED,
-				ACTIVATOR_RAIL,
-				DETECTOR_RAIL,
-				POWERED_RAIL,
-				CARPET,
-				DOUBLE_PLANT,
-				STANDING_BANNER,
-				WALL_BANNER,
-				END_ROD,
-				CHORUS_PLANT,
-				CHORUS_FLOWER,
-				CHORUS_FRUIT,
-				CHORUS_FRUIT_POPPED,
-				BEETROOT_BLOCK
-		);
+		private static final EnumSet<Material> FRAGILE_MATERIALS = EnumSet.noneOf(Material.class);
+		static {
+			FRAGILE_MATERIALS.addAll(Materials.GLASS);
+			FRAGILE_MATERIALS.addAll(Materials.GLASS_PANE);
+			FRAGILE_MATERIALS.addAll(Materials.SAPLING);
+			FRAGILE_MATERIALS.addAll(Materials.POT);
+			FRAGILE_MATERIALS.addAll(Materials.LEAVES);
+			FRAGILE_MATERIALS.addAll(Materials.FLOWERS);
+			FRAGILE_MATERIALS.add(Material.COBWEB);
+			FRAGILE_MATERIALS.add(Material.NETHER_WART);
+			FRAGILE_MATERIALS.addAll(Materials.PLANTS);
+			FRAGILE_MATERIALS.addAll(Materials.CHORUS_PLANT);
+			FRAGILE_MATERIALS.addAll(Materials.MUSHROOMS);
+			FRAGILE_MATERIALS.addAll(Materials.HUGE_MUSHROOMS);
+			FRAGILE_MATERIALS.addAll(Materials.WOODEN_DOORS);
+			FRAGILE_MATERIALS.addAll(Materials.WOODEN_TRAP_DOORS);
+			FRAGILE_MATERIALS.add(Material.LADDER);
+			FRAGILE_MATERIALS.add(Material.TNT);
+			FRAGILE_MATERIALS.addAll(Materials.TORCHES);
+			FRAGILE_MATERIALS.addAll(Materials.RAILS);
+			FRAGILE_MATERIALS.addAll(Materials.WOODEN_BUTTONS);
+			FRAGILE_MATERIALS.addAll(Materials.WOODEN_PRESSURE_PLATES);
+			FRAGILE_MATERIALS.addAll(Materials.REDSTONE_TORCHES);
+			FRAGILE_MATERIALS.add(Material.TRIPWIRE);
+			FRAGILE_MATERIALS.add(Material.TRIPWIRE_HOOK);
+			FRAGILE_MATERIALS.add(Material.REDSTONE_WIRE);
+			FRAGILE_MATERIALS.add(Material.COMPARATOR);
+			FRAGILE_MATERIALS.add(Material.REPEATER);
+
+			FRAGILE_MATERIALS.add(Material.ICE);
+			FRAGILE_MATERIALS.add(Material.BREWING_STAND);
+			FRAGILE_MATERIALS.add(Material.CAKE);
+			FRAGILE_MATERIALS.addAll(Materials.SKULLS);
+			FRAGILE_MATERIALS.addAll(Materials.WOODEN_FENCES);
+			FRAGILE_MATERIALS.addAll(Materials.WOODEN_FENCE_GATES);
+			FRAGILE_MATERIALS.addAll(Materials.CARPETS);
+			FRAGILE_MATERIALS.addAll(Materials.BANNERS);
+			FRAGILE_MATERIALS.add(Material.END_ROD);
+		}
 
 		/** Limit creeper explosions only to more fragile blocks */
 		@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
@@ -336,25 +292,25 @@ public final class FixManager {
 			this.minerInsomniaDepth = minerInsomniaDepth;
 		}
 
-		private boolean doesSleep(GameMode mode){
+		private boolean neverSleeps(GameMode mode){
 			switch (mode) {
 				case CREATIVE:
 				case SPECTATOR:
-					return false;
-				default:
 					return true;
+				default:
+					return false;
 			}
 		}
 
 		@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
 		public void adminsDoNotSleep(PlayerGameModeChangeEvent event) {
-			event.getPlayer().setSleepingIgnored(!doesSleep(event.getNewGameMode()));
+			event.getPlayer().setSleepingIgnored(neverSleeps(event.getNewGameMode()));
 		}
 
 		@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
 		public void minersDoNotSleep(PlayerMoveEvent event){
 			final Player player = event.getPlayer();
-			if (!doesSleep(player.getGameMode())) return;
+			if (neverSleeps(player.getGameMode())) return;
 
 			final int sleepEdge = minerInsomniaDepth;
 			final boolean sleepBefore = event.getFrom().getBlockY() < sleepEdge;

@@ -314,7 +314,7 @@ public class MatchUtils {
         if (dataSplit == -1){
             material = name;
             data = null;
-        }else {
+        } else {
             material = name.substring(0, dataSplit);
             final String dataRaw = name.substring(dataSplit + 1);
             if(dataRaw.isEmpty() || "*".equals(dataRaw) || "any".equalsIgnoreCase(dataRaw)) {
@@ -354,7 +354,7 @@ public class MatchUtils {
         {
             final MatchResult<DyeColor> colorMatch = match(DyeColor.class, data);
             if (colorMatch.isDefinite) {
-                if(mat == Material.INK_SACK) {
+                if(mat == Material.INK_SAC) {
                     return new MaterialSpec(mat, colorMatch.result().getDyeData());
                 } else {
                     return new MaterialSpec(mat, colorMatch.result().getWoolData());

@@ -28,7 +28,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.metadata.MetadataValue;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -36,9 +35,9 @@ import java.util.logging.Level;
 /** @author Darkyen */
 final class PluginListener implements Listener {
 
-	private final Plugin plugin;
+	private final DarkyenusCommandPlugin plugin;
 
-	PluginListener (Plugin plugin) {
+	PluginListener (DarkyenusCommandPlugin plugin) {
 		plugin.getServer().getPluginManager().registerEvents(this, plugin);
 		this.plugin = plugin;
 		BookUtil.initialize(plugin);
@@ -46,7 +45,7 @@ final class PluginListener implements Listener {
 
 	@EventHandler
 	@SuppressWarnings("LoggerStringConcat")
-	public void kickAndBanCheck (PlayerLoginEvent ev) throws IOException {
+	public void kickAndBanCheck (PlayerLoginEvent ev) {
 		// Kick check
 		int kickedMinutes = plugin.kickedMinutes(ev.getPlayer().getUniqueId());
 		if (kickedMinutes > 0) {
@@ -94,21 +93,19 @@ final class PluginListener implements Listener {
 			ev.setUseInteractedBlock(Event.Result.DENY);
 			ev.setUseItemInHand(Event.Result.DENY);
 			try {
-				// noinspection deprecation
 				ev.getPlayer().updateInventory();
-			} catch (Exception ignored) {
-			}
+			} catch (Exception ignored) {}
 		} else {
 			if ((ev.getAction() == Action.LEFT_CLICK_BLOCK || ev.getAction() == Action.RIGHT_CLICK_BLOCK)// Is clicking block
-				&& (ev.getClickedBlock().getType() == Material.WALL_SIGN || ev.getClickedBlock().getType() == Material.SIGN_POST)// Is
-// the block a sign
+				&& (ev.getClickedBlock().getType() == Material.WALL_SIGN)// Is the block a sign
 				&& ev.getPlayer().hasPermission("darkyenuscommand.sign")// Has permission?
 				&& !ev.isCancelled() && !ev.getPlayer().isSneaking()) {// Is not already cancelled && classic sneak check
 				Sign sign = (Sign)ev.getClickedBlock().getState();
-				String signText = "";
+				StringBuilder signTextBuilder = new StringBuilder();
 				for (String line : sign.getLines()) {
-					signText = signText + line;
+					signTextBuilder.append(line);
 				}
+				String signText = signTextBuilder.toString();
 				if (signText.startsWith("//")) {
 					// Cancel event
 					ev.setCancelled(true);
@@ -137,7 +134,7 @@ final class PluginListener implements Listener {
 					+ clicked.getLocation().getBlockX() + " Y: " + clicked.getLocation().getBlockY() + " Z: "
 					+ clicked.getLocation().getBlockZ());
 				player.sendMessage(ChatColor.BLUE.toString() + " Material: " + ChatColor.WHITE + ChatColor.ITALIC
-					+ clicked.getType().toString() + " (ID: " + clicked.getTypeId() + " Data: " + clicked.getData() + ")");
+					+ clicked.getType().toString() + " (Key: " + clicked.getType().getKey() + " Data: " + clicked.getData() + ")");
 				player.sendMessage(ChatColor.BLUE.toString() + " Biome: " + ChatColor.WHITE + ChatColor.ITALIC + clicked.getBiome()
 					+ " (Temperature: " + clicked.getTemperature() + " Humidity:" + clicked.getHumidity() + ")");
 				player.sendMessage(ChatColor.BLUE.toString() + " Redstone power: " + ChatColor.WHITE + ChatColor.ITALIC
@@ -215,7 +212,7 @@ final class PluginListener implements Listener {
 			if (!damager.getWorld().getPVP() && event.getEntity() instanceof Player) return;
 			if (damager.getGameMode() == GameMode.CREATIVE
 				&& damager.hasPermission("darkyenuscommand.godfist")
-				&& (damager.getItemInHand() == null || damager.getItemInHand().getTypeId() == 0 || damager.getItemInHand()
+				&& (damager.getItemInHand() == null || damager.getItemInHand().getType() == Material.AIR || damager.getItemInHand()
 					.getAmount() == 0)) {
 				event.setDamage(Integer.MAX_VALUE);
 				damager.playEffect(event.getEntity().getLocation(), Effect.EXTINGUISH, null);
@@ -225,13 +222,13 @@ final class PluginListener implements Listener {
 
 	// Cancel for locked
 	private boolean isLocked (Player player) {
-		if (player.hasMetadata(Plugin.METADATA_KEY_LOCKED)) {
-			List<MetadataValue> values = player.getMetadata(Plugin.METADATA_KEY_LOCKED);
+		if (player.hasMetadata(DarkyenusCommandPlugin.METADATA_KEY_LOCKED)) {
+			List<MetadataValue> values = player.getMetadata(DarkyenusCommandPlugin.METADATA_KEY_LOCKED);
 			for (MetadataValue value : values) {
 				if (value.asBoolean()) {
 					return true;
-				} else if (value.getOwningPlugin() instanceof Plugin) {
-					player.removeMetadata(Plugin.METADATA_KEY_LOCKED, plugin);
+				} else if (value.getOwningPlugin() instanceof DarkyenusCommandPlugin) {
+					player.removeMetadata(DarkyenusCommandPlugin.METADATA_KEY_LOCKED, plugin);
 				}
 			}
 			return false;
@@ -290,7 +287,7 @@ final class PluginListener implements Listener {
 		if(!plugin.data.bookNoticeBoardsEnabled) return;
 		final Player player = ev.getPlayer();
 		final Block block = ev.getClickedBlock();
-		if (block == null || (block.getType() != Material.WALL_SIGN && block.getType() != Material.SIGN_POST) || player.isSneaking()) {
+		if (block == null || (block.getType() != Material.WALL_SIGN) || player.isSneaking()) {
 			return;
 		}
 		final Location location = block.getLocation();
@@ -303,7 +300,7 @@ final class PluginListener implements Listener {
 			if (lines.length == 0) return;
 			if (!"[notice]".equalsIgnoreCase(lines[0])) return;
 			final ItemStack item = ev.getItem();
-			if(item == null || (item.getType() != Material.WRITTEN_BOOK && item.getType() != Material.BOOK_AND_QUILL)) return;
+			if(item == null || (item.getType() != Material.WRITTEN_BOOK && item.getType() != Material.WRITABLE_BOOK)) return;
 			final BookMeta itemMeta = (BookMeta) item.getItemMeta();
 
 			final PluginData.NoticeBoard board = new PluginData.NoticeBoard();
