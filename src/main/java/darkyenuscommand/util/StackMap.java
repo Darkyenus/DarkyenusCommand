@@ -7,16 +7,12 @@ import java.util.ArrayList;
 /**
  *
  */
-public class StackMap <K, V> extends ObjectMap<K, ArrayList<V>> {
+public final class StackMap <K, V> extends ObjectMap<K, ArrayList<V>> {
 
     private final int limit;
 
     public StackMap(int limit) {
         this.limit = limit;
-    }
-
-    public StackMap() {
-        this(Integer.MAX_VALUE);
     }
 
     @Override

@@ -8,7 +8,7 @@ import java.util.logging.Level;
 /**
  *
  */
-public class ComplexKeyMap<K,V> extends ObjectMap<K, V> {
+public final class ComplexKeyMap<K,V> extends ObjectMap<K, V> {
 
     private final Class<K> keyClass;
     private final Class<V> valueClass;
@@ -35,13 +35,13 @@ public class ComplexKeyMap<K,V> extends ObjectMap<K, V> {
             json.writeObjectEnd();
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         public ComplexKeyMap<?, ?> read(Json json, JsonValue jsonData, Class type) {
             try {
                 final Class<?> keyClass = Class.forName(jsonData.getString("key"));
                 final Class<?> valueClass = Class.forName(jsonData.getString("value"));
-                final ComplexKeyMap result = new ComplexKeyMap(keyClass, valueClass);
+                //noinspection unchecked
+                final ComplexKeyMap<Object, Object> result = new ComplexKeyMap(keyClass, valueClass);
                 final JsonValue entries = jsonData.get("entries");
                 for (JsonValue entry : entries) {
                     final JsonValue keyJson = entry.get(0);

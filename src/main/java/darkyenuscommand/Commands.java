@@ -1,0 +1,542 @@
+package darkyenuscommand;
+
+import darkyenuscommand.command.Cmd;
+import darkyenuscommand.match.EnumMatcher;
+import darkyenuscommand.match.Match;
+import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.command.PluginCommand;
+import org.bukkit.entity.*;
+import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.BookMeta;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.potion.PotionEffectType;
+
+import java.io.File;
+import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Predicate;
+
+import static darkyenuscommand.systems.PanicSystem.METADATA_KEY_LOCKED;
+import static org.bukkit.Bukkit.getServer;
+
+/**
+ *
+ */
+public final class Commands {
+
+	private final Plugin plugin;
+	private final PluginData data;
+
+	public Commands(Plugin plugin) {
+		this.plugin = plugin;
+		this.data = plugin.data;
+	}
+
+	@Cmd
+	public void rules(CommandSender sender) {
+		final List<String> rules = data.rules;
+		if (!rules.isEmpty()) {
+			for (String message : rules) {
+				sender.sendMessage(ChatColor.translateAlternateColorCodes('$', message));
+			}
+		} else {
+			sender.sendMessage(ChatColor.RED + "Here are some commandments that you should follow:");
+			sender.sendMessage(ChatColor.BLUE + "1. Thou shalt not be a hindrance");
+			sender.sendMessage(ChatColor.BLUE + "2. Thou shalt not be malicious nor vile");
+			sender.sendMessage(ChatColor.BLUE + "3. Thou shalt not open the wrong end of a banana");
+		}
+	}
+
+	@Cmd ///say -[Name] <Message>
+	public void say(CommandSender sender, @Cmd.UseDefault @Cmd.Prefix("-") String as, @Cmd.VarArg String message) {
+		if (as == null) {
+			as = "Server";
+		}
+		getServer().broadcastMessage(ChatColor.DARK_PURPLE + as + ChatColor.GRAY + ": " + ChatColor.DARK_GREEN + message);
+	}
+
+
+	@Cmd
+	public void strike(CommandSender sender, Player target, @Cmd.UseDefault int damage) {
+		if (damage == 0) {
+			damage = 2;
+		}
+
+		target.getWorld().strikeLightningEffect(target.getLocation());
+		final double maxHealth = target.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+		double healthToSet = target.getHealth() - damage;
+		if (healthToSet < 0) {
+			healthToSet = 0;
+		} else if (healthToSet > maxHealth) {
+			healthToSet = maxHealth;
+		}
+		target.setHealth(healthToSet);
+		target.playEffect(EntityEffect.HURT);
+		sender.sendMessage(ChatColor.GREEN.toString() + target.getName() + " has been striked");
+	}
+
+	@Cmd
+	public void kill(CommandSender sender, @Cmd.UseImplicit Player target) {
+		if (sender != target && !sender.hasPermission("darkyenuscommand.command.kill.anyone")) {
+			sender.sendMessage(ChatColor.RED+"I can't let you do that.");
+			return;
+		}
+		target.setHealth(0);
+	}
+
+	@Cmd
+	public void heal(CommandSender sender, @Cmd.UseDefault int amount, @Cmd.UseImplicit Player player) {
+		final double maxHealth = player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+		final double to = amount == 0 ? maxHealth : Math.min(maxHealth, Math.max(0, player.getHealth() + amount));
+
+		player.setHealth(to);
+		player.setFireTicks(0);
+		player.setNoDamageTicks(player.getMaximumNoDamageTicks());
+		player.setRemainingAir(player.getMaximumAir());
+		player.removePotionEffect(PotionEffectType.BLINDNESS);
+		player.removePotionEffect(PotionEffectType.CONFUSION);
+		player.removePotionEffect(PotionEffectType.HARM);
+		player.removePotionEffect(PotionEffectType.HUNGER);
+		player.removePotionEffect(PotionEffectType.POISON);
+		player.removePotionEffect(PotionEffectType.SLOW);
+		player.removePotionEffect(PotionEffectType.SLOW_DIGGING);
+		player.removePotionEffect(PotionEffectType.WEAKNESS);
+		player.removePotionEffect(PotionEffectType.WITHER);
+		sender.sendMessage(ChatColor.BLUE + player.getName() + " has been healed and cured!");
+	}
+
+	@Cmd
+	public void playerInfo(CommandSender sender, OfflinePlayer aboutPlayer) {
+		sender.sendMessage(ChatColor.RED.toString() + ChatColor.BOLD.toString() + aboutPlayer
+				.getName() + ChatColor.BLUE
+				+ "'s info");
+		sender.sendMessage(ChatColor.RED + "Online: " + ChatColor.BLUE.toString() + aboutPlayer.isOnline());
+		sender.sendMessage(ChatColor.RED + "Op: " + ChatColor.BLUE.toString() + aboutPlayer
+				.isOp() + ChatColor.RED
+				+ " Whitelisted: " + ChatColor.BLUE.toString() + aboutPlayer
+				.isWhitelisted() + ChatColor.RED + " Banned: "
+				+ ChatColor.BLUE.toString() + aboutPlayer.isBanned());
+		if (aboutPlayer instanceof Player) {
+			Player player = (Player) aboutPlayer;
+			sender.sendMessage(ChatColor.RED + "Position: " + ChatColor.BLUE.toString()
+					+ player.getLocation().getWorld().getName() + " " + player.getLocation()
+					.getBlockX() + " "
+					+ player.getLocation().getBlockY() + " " + player.getLocation().getBlockZ());
+			sender.sendMessage(ChatColor.RED + "Health: " + ChatColor.BLUE.toString() + (((float) player
+					.getHealth()) / 2)
+					+ "/" + player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
+			if (player.getFireTicks() >= 0)
+				sender.sendMessage(ChatColor.RED + "Fire Ticks: " + ChatColor.BLUE.toString() + player
+						.getFireTicks());
+			if (player.getLastDamageCause() != null && player.getLastDamageCause().getCause() != null)
+				sender.sendMessage(ChatColor.RED + "Last Damage: " + ChatColor.BLUE.toString() + player
+						.getLastDamage()
+						+ " from " + player.getLastDamageCause().getCause().toString().toLowerCase()
+						.replace("_", " "));
+			sender.sendMessage(ChatColor.RED + "Food: " + ChatColor.BLUE.toString() + (((float) player
+					.getFoodLevel()) / 2)
+					+ "/10");
+			sender.sendMessage(ChatColor.RED + "Gamemode: " + ChatColor.BLUE.toString() + player
+					.getGameMode().toString());
+			sender.sendMessage(ChatColor.RED + "Level: " + ChatColor.BLUE.toString() + player.getLevel());
+			sender.sendMessage(ChatColor.RED + "Experience: " + ChatColor.BLUE.toString() + player
+					.getTotalExperience()
+					+ " - " + (int) (player.getExp() * 100.0) + "%");
+			sender.sendMessage(ChatColor.RED + "Locked: " + ChatColor.BLUE.toString() + player
+					.hasMetadata(METADATA_KEY_LOCKED));
+			sender.sendMessage(ChatColor.RED + "Walk Speed: " + ChatColor.BLUE.toString() + player
+					.getWalkSpeed()
+					+ ChatColor.RED + " Fly Speed: " + ChatColor.BLUE.toString() + player.getFlySpeed());
+			if (player.isOnline()) {
+				sender.sendMessage(ChatColor.RED + "IP: " + ChatColor.BLUE.toString()
+						+ player.getAddress().getAddress().getHostAddress());
+			}
+		}
+		sender.sendMessage(ChatColor.RED + "UUID: " + ChatColor.BLUE.toString() + aboutPlayer.getUniqueId()
+				.toString());
+
+		for (OfflinePlayer player : getServer().getOfflinePlayers()) {
+			if (player != aboutPlayer && player.getName().equals(aboutPlayer.getName())) {
+				sender.sendMessage(ChatColor.RED + "Duplicate Player: " + ChatColor.BLUE.toString() + player
+						.getUniqueId().toString() + (player.isOnline() ? " (online)" : ""));
+			}
+		}
+	}
+
+	@Cmd
+	public void compass(Player sender, @Cmd.UseImplicit Player targetPlayer) {
+		sender.setCompassTarget(targetPlayer.getLocation());
+		sender.sendMessage(ChatColor.BLUE + "Compass target set to current location of " + targetPlayer.getName());
+	}
+
+	enum DarkyenusCommandAction {
+		GC
+	}
+
+	@Cmd
+	public void darkyenusCommand(CommandSender sender, @Cmd.UseDefault DarkyenusCommandAction action) {
+		if (action == DarkyenusCommandAction.GC && sender.hasPermission("darkyenuscommand.command.darkyenuscommand")) {
+			for (int i = 0; i < 10; i++) {
+				System.gc();
+			}
+		} else {
+			sender.sendMessage(ChatColor.GOLD.toString() + ChatColor.BOLD + "Darkyenus Command " + plugin.getDescription().getVersion());
+			sender.sendMessage(ChatColor.BLUE + "Created by " + ChatColor.GOLD + ChatColor.BOLD + "Darkyen");
+			sender.sendMessage(ChatColor.BLUE.toString() + ChatColor.ITALIC + "   (c) 2012 - 2019 darkyen@me.com");
+		}
+	}
+
+	@Cmd
+	public void gamemode(CommandSender sender, GameMode gameMode, @Cmd.UseImplicit Player player) {
+		player.setGameMode(gameMode);
+		sender.sendMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + "Gamemode of " + player
+				.getName() + " set to "
+				+ gameMode.toString());
+	}
+
+	@SuppressWarnings("unused")
+	enum GameModeToggle { TOGGLE }
+
+	@Cmd
+	public void gamemode(CommandSender sender, GameModeToggle toggle, @Cmd.UseImplicit Player player) {
+		GameMode gameMode;
+		if (player.getGameMode() == GameMode.CREATIVE) {
+			gameMode = GameMode.SURVIVAL;
+		} else {
+			gameMode = GameMode.CREATIVE;
+		}
+		player.setGameMode(gameMode);
+		sender.sendMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + "Gamemode of " + player
+				.getName() + " set to "
+				+ gameMode.toString());
+	}
+
+	@Cmd
+	public void clear(CommandSender sender) {
+		sender.sendMessage(ChatColor.BLUE.toString() + ChatColor.BOLD + "/Clear Arguments");
+		sender.sendMessage(ChatColor.BLUE.toString() + "[EntityType] - exact entity type");
+		sender.sendMessage(ChatColor.BLUE.toString() + "item - same as DROPPED_ITEM");
+		sender.sendMessage(ChatColor.BLUE.toString() + "mob - all mobs");
+		sender.sendMessage(ChatColor.BLUE.toString() + "monster - all usually hostile mobs");
+		sender.sendMessage(ChatColor.BLUE.toString() + "animal - domestic animals");
+		sender.sendMessage(ChatColor.BLUE.toString() + "water - water mobs");
+		sender.sendMessage(ChatColor.BLUE.toString() + "projectiles - all shootable items");
+		sender.sendMessage(ChatColor.BLUE.toString() + "vehicle - all vehicles");
+		sender.sendMessage(ChatColor.BLUE.toString() + "all - all entities");
+	}
+
+	@Cmd
+	public void clear(CommandSender sender, String what, @Cmd.UseImplicit World world) {
+		what = what.toLowerCase();
+
+		final Predicate<Entity> filter;
+		if (what.startsWith("item")) {
+			filter = e -> e instanceof Item;
+		} else if (what.startsWith("mob") || what.startsWith("creature")) {
+			filter = e -> e instanceof Creature;
+		} else if (what.startsWith("monster")) {
+			filter = e -> e instanceof Monster;
+		} else if (what.startsWith("animal")) {
+			filter = e -> e instanceof Animals;
+		} else if (what.startsWith("water")) {
+			filter = e -> e instanceof WaterMob;
+		} else if (what.startsWith("projectile")) {
+			filter = e -> e instanceof Projectile;
+		} else if (what.startsWith("vehicle")) {
+			filter = e -> e instanceof Vehicle;
+		} else if (what.startsWith("all")) {
+			filter = e -> !(e instanceof Player);
+		} else {
+			final Match<EntityType> result = EnumMatcher.match(EntityType.class, what);
+			if (result.success()) {
+				final EntityType entityType = result.successResult();
+				if (entityType == EntityType.PLAYER) {
+					sender.sendMessage(ChatColor.RED + "Removing player entities is not allowed");
+					return;
+				}
+				filter = e -> e.getType() == entityType;
+			} else {
+				sender.sendMessage(result.suggestionMessage());
+				return;
+			}
+		}
+		int trashed = 0;
+		for (Entity entity : world.getEntities()) {
+			if (filter.test(entity)) {
+				entity.remove();
+				trashed++;
+			}
+		}
+		getServer().broadcast(
+				ChatColor.GRAY.toString() + ChatColor.ITALIC + "[" + sender
+						.getName() + " removed " + trashed
+						+ " entities from world " + world.getName() + "]", "darkyenuscommand.staff");
+	}
+
+	@Cmd
+	public void viewInventory(Player sender, Player player) {
+		sender.openInventory(player.getInventory());
+	}
+
+	@Cmd
+	public void spawnEntity(Player sender, EntityType entityType, @Cmd.UseDefault int amount) {
+		Location at = sender.getTargetBlock(null, 200).getLocation().add(0.5, 1, 0.5);
+		if (at == null) {
+			at = sender.getLocation();
+		}
+
+		if (amount <= 0) {
+			amount = 1;
+		} else if (amount > 50) {
+			amount = 50;
+		}
+
+		int spawned = 0;
+		for (int i = 0; i < amount; i++) {
+			if (sender.getWorld().spawnEntity(at, entityType) != null) {
+				spawned++;
+			}
+		}
+		sender.sendMessage(ChatColor.GREEN + "Spawned " + spawned + " of " + entityType);
+	}
+
+	@Cmd
+	public void setFlySpeed(CommandSender sender, @Cmd.UseDefault float speed, @Cmd.UseImplicit Player player) {
+		if (speed == 0f) {
+			speed = 0.1f;// Probably default speed?
+		}
+		// TODO(jp): Test this
+		if (speed < -1) {
+			speed = -1;
+		} else if (speed > 1) {
+			speed = 1;
+		}
+
+		player.setFlySpeed(speed);
+		if (sender == player) {
+			sender.sendMessage(ChatColor.GREEN + "Flying speed adjusted to " + speed);
+		} else {
+			sender.sendMessage(ChatColor.GREEN + "Flying speed of " + player
+					.getName() + " adjusted to " + speed);
+		}
+	}
+
+	@Cmd
+	public void command(CommandSender sender) {
+		boolean beHonest = sender.hasPermission("darkyenuscommand.command.command.all");
+		if (beHonest) {
+			// Show plugins
+			sender.sendMessage(ChatColor.BLUE.toString() + ChatColor.BOLD + "Active plugins:");
+			for (org.bukkit.plugin.Plugin plugin : getServer().getPluginManager().getPlugins()) {
+				sender.sendMessage(ChatColor.YELLOW + "  " + plugin.getDescription()
+						.getName() + " " + ChatColor.ITALIC
+						+ plugin.getDescription().getVersion());
+			}
+			ArrayList<String> availableCommands = new ArrayList<>();
+			for (org.bukkit.plugin.Plugin plugin : getServer().getPluginManager().getPlugins()) {
+				availableCommands.addAll(plugin.getDescription().getCommands().keySet());
+			}
+			sender.sendMessage(ChatColor.BLUE.toString() + ChatColor.BOLD + "Available Commands:");
+			sender.sendMessage(ChatColor.YELLOW.toString() + ChatColor.ITALIC + String
+					.join(", ", availableCommands));
+		} else {
+			ArrayList<String> availableCommands = new ArrayList<>();
+			for (org.bukkit.plugin.Plugin plugin : getServer().getPluginManager().getPlugins()) {
+				for (String maybeAvailableCommand : plugin.getDescription().getCommands().keySet()) {
+					if (Bukkit.getPluginCommand(maybeAvailableCommand).testPermissionSilent(sender)) {
+						availableCommands.add(maybeAvailableCommand);
+					}
+				}
+			}
+			sender.sendMessage(ChatColor.BLUE + "Available Commands: " + ChatColor.YELLOW + ChatColor.ITALIC
+					+ String.join(", ", availableCommands));
+		}
+	}
+
+	@Cmd
+	public void command(CommandSender sender, @Cmd.UseDefault String pluginOrCommandName) {
+		boolean beHonest = sender.hasPermission("darkyenuscommand.command.command.all");
+		boolean outputDone = false;
+		org.bukkit.plugin.Plugin pluginOfThatName = getServer().getPluginManager().getPlugin(pluginOrCommandName);
+		if (pluginOfThatName != null) {
+			outputDone = true;
+			sender.sendMessage(ChatColor.BLUE + "Plugin: " + ChatColor.BOLD + pluginOfThatName
+					.getDescription().getName()
+					+ " " + ChatColor.ITALIC + pluginOfThatName.getDescription().getVersion());
+			Set<String> strings = pluginOfThatName.getDescription().getCommands().keySet();
+			if (!beHonest) {
+				strings.removeIf(commandThatMayNeedToBeHidden -> !Bukkit.getPluginCommand(commandThatMayNeedToBeHidden)
+						.testPermissionSilent(sender));
+			}
+			sender.sendMessage(ChatColor.BLUE + " Commands: " + ChatColor.YELLOW + ChatColor.ITALIC
+					+ String.join(", ", strings));
+		}
+		PluginCommand commandOfThatName = getServer().getPluginCommand(pluginOrCommandName);
+		if (commandOfThatName != null && (beHonest || commandOfThatName.testPermissionSilent(sender))) {
+			outputDone = true;
+			sender.sendMessage(ChatColor.BLUE + "Command: " + ChatColor.BOLD + commandOfThatName
+					.getName()
+					+ ChatColor.RESET + ChatColor.BLUE.toString() + ChatColor.ITALIC + " (of plugin "
+					+ commandOfThatName.getPlugin().getDescription().getName() + ")");
+			sender.sendMessage(ChatColor.BLUE + "  Aliases: " + ChatColor.YELLOW
+					+ String.join(", ", commandOfThatName.getAliases()));
+			sender.sendMessage(ChatColor.BLUE + "  Description: " + ChatColor.YELLOW + commandOfThatName
+					.getDescription());
+			sender.sendMessage(ChatColor.BLUE + "  Usage: " + ChatColor.YELLOW + commandOfThatName
+					.getUsage());
+			sender.sendMessage(ChatColor.BLUE + "  Permission: " + ChatColor.YELLOW + commandOfThatName
+					.getPermission());
+			sender.sendMessage(ChatColor.BLUE.toString()
+					+ ChatColor.ITALIC
+					+ (commandOfThatName.testPermissionSilent(sender) ? "You " + ChatColor.GREEN + "can"
+					+ ChatColor.BLUE
+					.toString() + ChatColor.ITALIC + " perform this command." : "You " + ChatColor.RED
+					+ "can't" + ChatColor.BLUE
+					.toString() + ChatColor.ITALIC + " perform this command."));
+		}
+
+		if (!outputDone) {
+			sender.sendMessage(ChatColor.RED + "No plugins nor commands with name \"" + pluginOrCommandName + "\" found");
+		}
+	}
+
+	enum BookFormatMode {
+		HELP
+	}
+
+	@Cmd
+	public void bookFormat(Player sender, @Cmd.UseDefault BookFormatMode mode) {
+		if (mode == BookFormatMode.HELP) {
+			sender.sendMessage(ChatColor.BLUE + "Book Formatting Rules");
+			sender.sendMessage(ChatColor.AQUA + "Existing color tags are stripped and then control codes are interpreted.");
+			sender.sendMessage(ChatColor.AQUA + "Control code is in form #?#, where ? is one of codes below. \\# is interpreted as single # without interpreting anything.");
+			final StringBuilder colorsSB = new StringBuilder();
+			for (ChatColor chatColor : ChatColor.values()) {
+				if (chatColor == ChatColor.RESET) continue;
+				colorsSB.append(chatColor.asBungee().getName()).append('/').append(chatColor.getChar())
+						.append(", ");
+			}
+			colorsSB.setLength(colorsSB.length() - 2);//Strip extra ", "
+			sender.sendMessage(ChatColor.ITALIC + colorsSB
+					.toString() + ChatColor.RESET + ": Are color codes, in long form/alias form");
+			sender.sendMessage(ChatColor.ITALIC + "reset/r/" + ChatColor.RESET + ": Clear color code and mode. Also triggered by ##.");
+			sender.sendMessage(ChatColor.ITALIC + "full_width/fw" + ChatColor.RESET + ": Switch to mode in which all (ASCII) characters are converted to full width variants");
+			sender.sendMessage(ChatColor.ITALIC + "runic/rc" + ChatColor.RESET + ": Switch to mode in which all basic characters are converted to runes");
+			return;
+		}
+		final PlayerInventory inventory = sender.getInventory();
+		final ItemStack item = inventory.getItemInMainHand();
+		final ItemMeta itemMeta = item.getItemMeta();
+		if (itemMeta instanceof BookMeta) {
+			final BookMeta bookMeta = (BookMeta) itemMeta;
+			for (int i = 1; i <= bookMeta.getPageCount(); i++) {
+				bookMeta.setPage(i, PluginData.formatPage(bookMeta.getPage(i)));
+			}
+			item.setItemMeta(bookMeta);
+			inventory.setItemInMainHand(item);//Just to refresh in client UI
+
+			sender.sendMessage(ChatColor.BLUE + "" + bookMeta.getPageCount() + " pages formatted");
+		} else {
+			sender.sendMessage(ChatColor.RED + "Held item is not a book");
+		}
+	}
+
+	enum PlayerFaceMode {
+		UP, DOWN, NORTH, SOUTH, EAST, WEST,
+		PANORAMA0, PANORAMA1, PANORAMA2, PANORAMA3, PANORAMA4, PANORAMA5,
+	}
+
+	@Cmd
+	public void playerFace(Player sender, PlayerFaceMode mode) {
+		final Location location = sender.getLocation();
+
+		switch (mode) {
+			case NORTH:
+			case PANORAMA0:
+				location.setYaw(180);
+				location.setPitch(0);
+				break;
+			case EAST:
+			case PANORAMA1:
+				location.setYaw(270);
+				location.setPitch(0);
+				break;
+			case SOUTH:
+			case PANORAMA2:
+				location.setYaw(0);
+				location.setPitch(0);
+				break;
+			case WEST:
+			case PANORAMA3:
+				location.setYaw(90);
+				location.setPitch(0);
+				break;
+			case UP:
+			case PANORAMA4:
+				location.setYaw(180);
+				location.setPitch(-90);
+				break;
+			case DOWN:
+			case PANORAMA5:
+				location.setYaw(180);
+				location.setPitch(90);
+				break;
+			default:
+				return;
+		}
+
+		sender.teleport(location, PlayerTeleportEvent.TeleportCause.COMMAND);
+		sender.sendMessage(ChatColor.BLUE + "Facing " + mode.toString().toLowerCase());
+	}
+
+	@Cmd("server-stats")
+	public void serverStats(CommandSender sender) {
+		final Runtime runtime = Runtime.getRuntime();
+		sender.sendMessage(ChatColor.BLUE + "OS: " + ChatColor.WHITE + System
+				.getProperty("os.name") + " (" + System.getProperty("os.arch") + ") on " + runtime
+				.availableProcessors() + " cores");
+		try {
+			final OperatingSystemMXBean os = ManagementFactory.getOperatingSystemMXBean();
+			sender.sendMessage(ChatColor.BLUE + "CPU load: " + ChatColor.WHITE + os.getSystemLoadAverage());
+		} catch (Throwable ex) {
+			sender.sendMessage(ChatColor.RED + "Failed to retrieve full server stats");
+			if (sender instanceof ConsoleCommandSender) {
+				ex.printStackTrace();
+			}
+		}
+
+		final long freeMemory = runtime.freeMemory();
+		final long totalMemory = runtime.totalMemory();
+		final long maxMemory = runtime.maxMemory();
+		sender.sendMessage(ChatColor.BLUE + "Free Memory: " + ChatColor.WHITE + formatBytes(freeMemory) + " (" + (int) Math
+				.round((double) (totalMemory - freeMemory) * 100.0 / (double) maxMemory) + "% of max used)");
+		sender.sendMessage(ChatColor.BLUE + "Total Memory: " + ChatColor.WHITE + formatBytes(totalMemory));
+		sender.sendMessage(ChatColor.BLUE + "Max Memory: " + ChatColor.WHITE + formatBytes(maxMemory));
+
+		final File file = new File(".");
+		final long freeSpace = file.getFreeSpace();
+		final long totalSpace = file.getTotalSpace();
+		sender.sendMessage(ChatColor.BLUE + "Free Space: " + ChatColor.WHITE + formatBytes(freeSpace) + " (" + (int) Math
+				.round((double) (totalSpace - freeSpace) * 100.0 / (double) totalSpace) + "% of total used)");
+		sender.sendMessage(ChatColor.BLUE + "Total Space: " + ChatColor.WHITE + formatBytes(totalSpace));
+	}
+
+
+	private static String formatBytes(long bytes) {
+		if (bytes < 1024) {
+			return bytes+" B";
+		} else if (bytes < 1024 * 1024) {
+			return (bytes / 1024)+" KiB";
+		} else {
+			return (bytes / (1024 * 1024))+" MiB";
+		}
+	}
+}

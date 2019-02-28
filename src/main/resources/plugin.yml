@@ -30,7 +30,7 @@ commands:
     description: Temporary lock all players
     usage: /globalpanic [Minutes]
     permission: darkyenuscommand.command.globalpanic
-    aliases: [gp]
+    aliases: [gp, gpanic]
   strike:
     description: Strike player as warning
     usage: /strike <Player> [Damage]
@@ -41,9 +41,13 @@ commands:
     permission: darkyenuscommand.command.kill
   report:
     description: Report a bug or player breaking rules
-    usage: /report <Player | Message>
-    aliases: [hack, hacker, cheat, cheater]
+    usage: /report <Message>
     permission: darkyenuscommand.command.report
+  view-report:
+    description: View problems reported via /report
+    usage: /view-report
+    permission: darkyenuscommand.command.viewreport
+    aliases: [viewreport, viewreports, showreport, showreports, reports]
   mute:
     description: Mute player in chat
     usage: /mute <Player> [Minutes]
@@ -91,7 +95,7 @@ commands:
     permission: darkyenuscommand.command.compass
   darkyenuscommand:
     description: Plugin gateway
-    usage: /darkyenuscommand [Gc, Reload, Interpreter]
+    usage: /darkyenuscommand [Gc, Reload]
     aliases: [dcommand]
   time:
     description: Set time
@@ -115,8 +119,7 @@ commands:
     permission: darkyenuscommand.command.gamemode
   item:
     description: Give an item or see item info
-    usage: /item [Item Name][:Data] [Amount] [Player] [{nbt tags}]
-    aliases: [give]
+    usage: /item [Item Name] [Amount] [Player]
     permission: darkyenuscommand.command.item
   repair:
     description: Repair held item
@@ -144,7 +147,7 @@ commands:
     permission: darkyenuscommand.command.jail
   unjail:
     description: Warp somebody from jail
-    usage: /jail <Player>
+    usage: /unjail <Player>
     aliases: [free]
     permission: darkyenuscommand.command.unjail
   viewinventory:
@@ -176,7 +179,7 @@ commands:
   command:
     description: Show info about command or list commands.
     aliases: [commands, cmd, cmds, man]
-    usage: /command [Plugin Name | Command Name] [list]
+    usage: /command [Plugin Name | Command Name]
     permission: darkyenuscommand.command.command
   heal:
     description: Heal player by given amount
@@ -235,6 +238,9 @@ permissions:
   darkyenuscommand.command.report:
     description: Access to /report command.
     default: true
+  darkyenuscommand.command.viewreport:
+    description: Access to /view-report command.
+    default: op
   darkyenuscommand.command.mute:
     description: Access to /mute command.
     default: op
@@ -341,9 +347,6 @@ permissions:
   darkyenuscommand.command.world.manage:
     description: You can create and delete worlds with /world command.
     default: op
-  darkyenuscommand.command.report.view:
-    description: You can use /report command to see reports.
-    default: op
   darkyenuscommand.command.trash.anyone:
     description: You can use /trash command to trash anyones inventory.
     default: op
@@ -366,9 +369,6 @@ permissions:
   darkyenuscommand.infostick:
     description: If you right-click anything with stick, you'll get detailed info about it.
     default: op
-  darkyenuscommand.debug:
-    description: You can use #enter command to enter debug interpreter mode. In this mode you can directly call game's code. DANGEROUS!!!
-    default: op
 # Here lies the hierarchy universal permissions
   darkyenuscommand.player:
     description: You are player and have access to very few commands.
@@ -389,7 +389,7 @@ permissions:
       darkyenuscommand.command.jail: true
       darkyenuscommand.command.unjail: true
       darkyenuscommand.donotpanic: true
-      darkyenuscommand.command.report.view: true
+      darkyenuscommand.command.viewreport: true
       darkyenuscommand.staff: true
       darkyenuscommand.command.command: true
       darkyenuscommand.infostick: true

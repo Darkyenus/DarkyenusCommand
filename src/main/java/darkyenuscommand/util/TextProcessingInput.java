@@ -3,7 +3,7 @@ package darkyenuscommand.util;
 /**
  *
  */
-public class TextProcessingInput {
+public final class TextProcessingInput {
 
     private int[] codePoints = new int[512];
     private int length = 0;

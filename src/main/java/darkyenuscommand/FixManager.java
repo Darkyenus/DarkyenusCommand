@@ -33,12 +33,12 @@ final class FixManager {
 	private FixManager () {
 	}
 
-	private static final Logger LOG = Logger.getLogger("DarkyenusCommand:FixManager");
+	private static final Logger LOG = Plugin.logger(FixManager.class);
 	
-	private static DarkyenusCommandPlugin plugin;
+	private static Plugin plugin;
 
 	@SuppressWarnings("SpellCheckingInspection")
-	static void initialize (DarkyenusCommandPlugin plugin) {
+	static void initialize (Plugin plugin) {
 		FixManager.plugin = plugin;
 		final PluginData config = plugin.data;
 

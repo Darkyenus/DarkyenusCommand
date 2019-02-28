@@ -1,4 +1,4 @@
-import darkyenuscommand.MatchUtils;
+import darkyenuscommand.match.MatchUtils;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
 import org.bukkit.permissions.Permission;

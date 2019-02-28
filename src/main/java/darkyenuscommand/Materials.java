@@ -7,7 +7,7 @@ import java.util.EnumSet;
 /**
  * Various sets of material related utilities.
  */
-public class Materials {
+public final class Materials {
 
 	public static final EnumSet<Material> WOOL = EnumSet.of(
 			Material.BLACK_WOOL,

@@ -14,12 +14,13 @@ import java.util.logging.Level;
 /**
  *
  */
-public class BookUtil {
+public final class BookUtil {
 
-    private static DarkyenusCommandPlugin plugin;
+    private static final String BOOK_OPEN_CHANNEL = "minecraft:book_open";
 
-    public static void initialize(DarkyenusCommandPlugin plugin) {
-        Bukkit.getServer().getMessenger().registerOutgoingPluginChannel(plugin, "MC|BOpen");
+    private static Plugin plugin;
+
+    public static void initialize(Plugin plugin) {
         BookUtil.plugin = plugin;
     }
 
@@ -37,7 +38,7 @@ public class BookUtil {
     }
 
     public static boolean displayBook(Player player, ItemStack book) {
-        if(!addChannel(player, "MC|BOpen")){
+        if(!addChannel(player, BOOK_OPEN_CHANNEL)){
             return false;
         }
 
@@ -52,14 +53,14 @@ public class BookUtil {
         final ItemStack itemInMainHand = player.getInventory().getItemInMainHand();
         try {
             player.getInventory().setItemInMainHand(book);
-            player.sendPluginMessage(plugin, "MC|BOpen", new byte[]{0});
+            player.sendPluginMessage(plugin, BOOK_OPEN_CHANNEL, new byte[]{0});
         } finally {
             player.getInventory().setItemInMainHand(itemInMainHand);
         }
         return true;
     }
 
-    private static boolean addChannel(Player player, String channel) {
+    private static boolean addChannel(Player player, @SuppressWarnings("SameParameterValue") String channel) {
         try {
             final Method addChannel = player.getClass().getMethod("addChannel", String.class);
             addChannel.invoke(player, channel);
