@@ -153,7 +153,7 @@ public final class MatchUtils {
             Collections.sort(results);
 
             final int resultItems = Math.min(8, results.size());
-            //noinspection unchecked
+            @SuppressWarnings("unchecked")
             final T[] resultArray = (T[]) Array.newInstance(from.getClass().getComponentType(), resultItems);
             for (int i = 0; i < resultItems; i++) {
                 resultArray[i] = from[results.get(i).index];

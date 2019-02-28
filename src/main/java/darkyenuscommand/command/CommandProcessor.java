@@ -278,6 +278,7 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 
 	private static <T> Argument<T> wrapMatcherWithDefault(Argument<T> matcher) {
 		return new Argument<T>(matcher.symbol, matcher.type) {
+			@SuppressWarnings("unchecked")
 			@NotNull
 			@Override
 			public Match<T> match(@NotNull CommandSender sender, @NotNull Parameters params) {
@@ -306,7 +307,6 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 						otherwise = false;
 					}
 
-					//noinspection unchecked
 					return Match.success((T)otherwise);
 				}
 			}
@@ -341,6 +341,7 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 		}
 
 		return new Argument<T>(matcher.symbol, matcher.type) {
+			@SuppressWarnings("unchecked")
 			@NotNull
 			@Override
 			public Match<T> match(@NotNull CommandSender sender, @NotNull Parameters params) {
@@ -355,7 +356,6 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 					return match;
 				}
 
-				//noinspection unchecked
 				return Match.success((T)implicit);
 			}
 
@@ -366,6 +366,7 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 		};
 	}
 
+	@SuppressWarnings("unchecked")
 	@NotNull
 	private static Argument createMatcher(@NotNull Parameter param) {
 		try {
@@ -390,7 +391,6 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 						if (i > 0) {
 							sb.append(" | ");
 						}
-						//noinspection unchecked
 						sb.append(prettyEnumName(enumConstants[i]));
 					}
 				} else {
@@ -402,25 +402,20 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 			}
 
 			final Class<?> type = param.getType();
-			//noinspection unchecked
 			Argument matcher = enumConstants == null ? createMatcher(symbol, type) : createEnumArgument(symbol, (Class<Enum>)type, enumConstants);
 
 			if (varArg != null) {
-				//noinspection unchecked
 				matcher = wrapMatcherWithVarArg(matcher, varArg.separator());
 			}
 
 			if (prefix != null && !prefix.value().isEmpty()) {
-				//noinspection unchecked
 				matcher = wrapMatcherWithPrefix(matcher, prefix.value());
 			}
 
 			if (useImplicit) {
-				//noinspection unchecked
 				matcher = wrapMatcherWithImplicit(matcher);
 			}
 			if (useDefault) {
-				//noinspection unchecked
 				matcher = wrapMatcherWithDefault(matcher);
 			}
 			return matcher;
@@ -516,7 +511,7 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 
 		private void tabCompleteArgument(CommandSender sender, String[] args, Consumer<String> suggestionConsumer) {
 			final Parameters params = new Parameters(args, 0, args.length);
-			for (Argument argument : arguments) {
+			for (Argument<?> argument : arguments) {
 				if (params.remaining() <= 1) {
 					argument.suggest(sender, suggestionConsumer);
 				}

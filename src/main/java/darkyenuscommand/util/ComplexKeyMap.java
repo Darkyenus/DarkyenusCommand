@@ -35,12 +35,12 @@ public final class ComplexKeyMap<K,V> extends ObjectMap<K, V> {
             json.writeObjectEnd();
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public ComplexKeyMap<?, ?> read(Json json, JsonValue jsonData, Class type) {
             try {
                 final Class<?> keyClass = Class.forName(jsonData.getString("key"));
                 final Class<?> valueClass = Class.forName(jsonData.getString("value"));
-                //noinspection unchecked
                 final ComplexKeyMap<Object, Object> result = new ComplexKeyMap(keyClass, valueClass);
                 final JsonValue entries = jsonData.get("entries");
                 for (JsonValue entry : entries) {

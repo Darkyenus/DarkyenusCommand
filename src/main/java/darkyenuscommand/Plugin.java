@@ -21,19 +21,20 @@ public final class Plugin extends JavaPlugin {
 
 	@Override
 	public void onEnable () {
-		PluginListener listener = new PluginListener(this);
 		try {
-			data = PluginData.load();
+			data = PluginData.load(getDataFolder());
 		} catch (Exception e) {
 			LOG.log(Level.SEVERE, "Could not load files: " + e);
 		}
 		if (data == null) data = new PluginData();
 
 		FixManager.initialize(this);
+		BookUtil.initialize(this);
 
 		final TeleportSystem teleportSystem = new TeleportSystem();
 		final WarpSystem warpSystem = new WarpSystem(data, teleportSystem);
 		CommandProcessor.registerCommandsAndEvents(this, new EnvironmentSystem());
+		CommandProcessor.registerCommandsAndEvents(this, new InfoSystem(data.bookNoticeBoardsEnabled, data.bookNoticeBoards));
 		CommandProcessor.registerCommandsAndEvents(this, new ItemSystem());
 		CommandProcessor.registerCommandsAndEvents(this, new JailSystem(this, warpSystem, teleportSystem));
 		CommandProcessor.registerCommandsAndEvents(this, new KickSystem());
@@ -44,6 +45,7 @@ public final class Plugin extends JavaPlugin {
 		CommandProcessor.registerCommandsAndEvents(this, warpSystem);
 		CommandProcessor.registerCommandsAndEvents(this, new WorldSystem(teleportSystem));
 
+		CommandProcessor.registerCommandsAndEvents(this, new PluginListener());
 		CommandProcessor.registerCommandsAndEvents(this, new Commands(this));
 
 		LOG.info("Enabled!");

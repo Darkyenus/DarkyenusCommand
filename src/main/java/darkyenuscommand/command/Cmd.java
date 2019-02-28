@@ -1,7 +1,6 @@
 package darkyenuscommand.command;
 
 import org.bukkit.World;
-import org.jetbrains.annotations.NotNull;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -67,8 +66,8 @@ public @interface Cmd {
 	class Util {
 		/** Retrieve which enum constants does given parameter expect.
 		 * Considers {@link OneOf}. When parameter does not take an enum, returns null. */
+		@SuppressWarnings("unchecked")
 		static <T extends Enum<T>> Enum<T>[] viableEnumConstants(Parameter parameter) {
-			//noinspection unchecked
 			final Class<T> paramType = (Class<T>) parameter.getType();
 			if (!paramType.isEnum()) {
 				return null;
@@ -79,7 +78,6 @@ public @interface Cmd {
 			if (oneOf == null) {
 				return enumConstants;
 			} else {
-				//noinspection unchecked
 				final T[] constants = (T[]) new Enum[oneOf.value().length];
 				int i = 0;
 				for (String s : oneOf.value()) {
@@ -100,10 +98,5 @@ public @interface Cmd {
 			}
 		}
 
-		/** Return whether given parameter is optional. */
-		static boolean isOptional(Parameter param) {
-			return param.getDeclaredAnnotation(Cmd.UseDefault.class) != null
-					|| param.getDeclaredAnnotation(Cmd.UseImplicit.class) != null;
-		}
 	}
 }

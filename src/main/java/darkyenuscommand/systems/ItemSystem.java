@@ -1,10 +1,5 @@
 package darkyenuscommand.systems;
 
-import com.darkyen.nbtapi.NBT;
-import com.darkyen.nbtapi.json.NBTJson;
-import com.darkyen.nbtapi.nbt.NBTCompound;
-import com.esotericsoftware.jsonbeans.JsonValue;
-import com.esotericsoftware.jsonbeans.OutputType;
 import darkyenuscommand.command.Cmd;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -30,7 +25,6 @@ public final class ItemSystem {
 		sender.sendMessage(ChatColor.BLUE.toString() + ChatColor.BOLD.toString() + "Item Info");
 		sender.sendMessage(ChatColor.BLUE.toString() + "Material: " + item.getType()
 				.toString());
-		sender.sendMessage(ChatColor.BLUE.toString() + "Data: " + item.getData());
 		final ItemMeta meta = item.getItemMeta();
 		if (meta instanceof Damageable && ((Damageable) meta).hasDamage()) {
 			sender.sendMessage(ChatColor.BLUE.toString() + "Damage: " + ((Damageable) meta).getDamage());
@@ -38,16 +32,6 @@ public final class ItemSystem {
 		sender.sendMessage(ChatColor.BLUE.toString() + "Amount: " + item.getAmount());
 		for (Map.Entry<Enchantment, Integer> entry : item.getEnchantments().entrySet()) {
 			sender.sendMessage(ChatColor.BLUE.toString() + " " + entry.getKey().getKey() + " - " + entry.getValue());
-		}
-
-		final NBTCompound tag = NBT.getItemTag(item);
-		if (!tag.value.isEmpty()) {
-			final JsonValue value = NBTJson.nbtToJson(tag);
-			final String tagString = value.prettyPrint(OutputType.minimal, 128);
-			final String tagStringColorStrip = tagString.replace(ChatColor.COLOR_CHAR, '^');
-			sender.sendMessage(ChatColor.BLUE
-					.toString() + "NBT: \n" + ChatColor.RESET + ChatColor.ITALIC + tagStringColorStrip
-					.replace("\n", "\n" + ChatColor.ITALIC));
 		}
 	}
 
