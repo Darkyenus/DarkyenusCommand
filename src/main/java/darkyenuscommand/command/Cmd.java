@@ -97,6 +97,5 @@ public @interface Cmd {
 				return constants;
 			}
 		}
-
 	}
 }

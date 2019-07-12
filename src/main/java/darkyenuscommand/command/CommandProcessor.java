@@ -2,13 +2,13 @@ package darkyenuscommand.command;
 
 import darkyenuscommand.Plugin;
 import darkyenuscommand.command.argument.*;
-import darkyenuscommand.match.EnumMatcher;
 import darkyenuscommand.match.Match;
+import darkyenuscommand.match.MatchUtils;
 import darkyenuscommand.util.Parameters;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -27,6 +27,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static darkyenuscommand.command.argument.EnumArgument.prettyEnumName;
 
 /**
  *
@@ -66,7 +68,7 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 	}
 
 	@Override
-	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+	public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
 		StringBuilder failures = new StringBuilder();
 
 		for (CommandMethod method : methods) {
@@ -75,7 +77,7 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 				// Successful binding, use it
 				assert binding.matched == binding.arguments.length;
 				try {
-					method.method.invoke(method.instance, binding.matched);
+					method.method.invoke(method.instance, binding.arguments);
 				} catch (IllegalAccessException e) {
 					throw new RuntimeException("Could not access " + method.method, e);
 				} catch (InvocationTargetException e) {
@@ -87,6 +89,7 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 			if (failures.length() > 0) {
 				failures.append('\n');
 			}
+			failures.append(ChatColor.WHITE).append(method.usageArguments).append(' ');
 			failures.append(ChatColor.RED).append(binding.error);
 		}
 
@@ -98,12 +101,17 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 	}
 
 	@Override
-	public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-		final ArrayList<String> completions = new ArrayList<>();
+	public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
+		final ArrayList<StringWithScore> completions = new ArrayList<>();
 		for (CommandMethod method : methods) {
 			method.tabCompleteArgument(sender, args, completions::add);
 		}
-		return completions;
+
+		final ArrayList<String> sortedCompletions = new ArrayList<>(completions.size());
+		// Sadly, this sorting is useless, because brigadier will sort it again
+		completions.sort(StringWithScore::compareTo);
+		completions.forEach((withScore) -> sortedCompletions.add(withScore.value));
+		return sortedCompletions;
 	}
 
 	private String createUsageString(String name) {
@@ -113,10 +121,7 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 				sb.append('\n');
 			}
 			sb.append('/').append(name);
-
-			for (Argument matcher : method.arguments) {
-				sb.append(' ').append(matcher.symbol);
-			}
+			sb.append(' ').append(method.usageArguments);
 
 			final Cmd cmd = method.method.getDeclaredAnnotation(Cmd.class);
 			if (cmd != null) {
@@ -180,32 +185,6 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 		});
 	}
 
-	private static <T extends Enum<T>> Argument<T> createEnumArgument(String symbol, Class<T> type, T[] constants) {
-		if (constants.length == 0) {
-			throw new IllegalArgumentException("no enum constants specified");
-		}
-		final EnumMatcher<T> enumMatcher = new EnumMatcher<>(type.getSimpleName(), constants);
-		return new Argument<T>(symbol, type){
-
-			@NotNull
-			@Override
-			public Match<T> match(@NotNull CommandSender sender, @NotNull Parameters params) {
-				final String item = params.take(null);
-				if (item == null) {
-					return missing();
-				}
-				return enumMatcher.match(item);
-			}
-
-			@Override
-			public void suggest(@NotNull CommandSender sender, @NotNull Consumer<String> suggestionConsumer) {
-				for (T constant : constants) {
-					suggestionConsumer.accept(prettyEnumName(constant));
-				}
-			}
-		};
-	}
-
 	private static Argument createMatcher(String symbol, Class<?> type) {
 		if (String.class.equals(type)) {
 			return new StringArgument(symbol);
@@ -221,7 +200,7 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 			return new OfflinePlayerArgument(symbol);
 		} else if (World.class.equals(type)) {
 			return new WorldArgument(symbol);
-		} else if (BlockData.class.equals(type)) {
+		} else if (Material.class.equals(type)) {
 			return new MaterialArgument(symbol);
 		}
 
@@ -374,7 +353,7 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 			final boolean useDefault = param.getDeclaredAnnotation(Cmd.UseDefault.class) != null;
 			final Cmd.Prefix prefix = param.getDeclaredAnnotation(Cmd.Prefix.class);
 			final Cmd.VarArg varArg = param.getDeclaredAnnotation(Cmd.VarArg.class);
-			final Enum[] enumConstants = Cmd.Util.viableEnumConstants(param);
+			final Enum[] enumConstants = Material.class.equals(param.getType()) ? null : Cmd.Util.viableEnumConstants(param);
 
 			final String symbol;
 			{
@@ -391,7 +370,7 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 						if (i > 0) {
 							sb.append(" | ");
 						}
-						sb.append(prettyEnumName(enumConstants[i]));
+						sb.append('"').append(prettyEnumName(enumConstants[i])).append('"');
 					}
 				} else {
 					sb.append(param.getName());
@@ -402,7 +381,7 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 			}
 
 			final Class<?> type = param.getType();
-			Argument matcher = enumConstants == null ? createMatcher(symbol, type) : createEnumArgument(symbol, (Class<Enum>)type, enumConstants);
+			Argument matcher = enumConstants == null ? createMatcher(symbol, type) : new EnumArgument<>(symbol, (Class<Enum>) type, enumConstants);
 
 			if (varArg != null) {
 				matcher = wrapMatcherWithVarArg(matcher, varArg.separator());
@@ -421,18 +400,6 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 			return matcher;
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to create matcher for "+param, e);
-		}
-	}
-
-	@NotNull
-	private static <E extends Enum<E>> String prettyEnumName(@NotNull E constant) {
-		// If enum provides custom toString, use it, otherwise fallback to lowercase name
-		final String constantString = constant.toString();
-		final String constantName = constant.name();
-		if (constantString.equals(constantName)) {
-			return constantName.toLowerCase();
-		} else {
-			return constantString;
 		}
 	}
 
@@ -470,11 +437,23 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 		private final Object instance;
 		private final Argument[] arguments;
 
+		public final String usageArguments;
+
 		private CommandMethod(boolean needsPlayerSender, Object instance, @NotNull Method method, @NotNull Argument[] arguments) {
 			this.needsPlayerSender = needsPlayerSender;
 			this.instance = Modifier.isStatic(method.getModifiers()) ? null : instance;
 			this.method = method;
 			this.arguments = arguments;
+
+			final StringBuilder usage = new StringBuilder();
+			for (Argument matcher : arguments) {
+				if (usage.length() > 0) {
+					usage.append(' ');
+				}
+				usage.append(matcher.symbol);
+			}
+
+			this.usageArguments = usage.toString();
 		}
 
 		public static final class ArgumentBinding {
@@ -492,6 +471,7 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 		private ArgumentBinding createArgumentBinding(CommandSender sender, String[] args) {
 			int methodArgIndex = 1;
 			final Object[] methodArgs = new Object[methodArgIndex + arguments.length];
+			methodArgs[0] = sender;
 			if (needsPlayerSender && !(sender instanceof Player)) {
 				return new ArgumentBinding(methodArgs, 0, "In-game only");
 			}
@@ -506,21 +486,54 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 				}
 			}
 
+			if (!params.eof()) {
+				return new ArgumentBinding(methodArgs, methodArgIndex, "Unexpected extra parameters: "+params.rest(" "));
+			}
+
 			return new ArgumentBinding(methodArgs, methodArgIndex, null);
 		}
 
-		private void tabCompleteArgument(CommandSender sender, String[] args, Consumer<String> suggestionConsumer) {
+		private void tabCompleteArgument(CommandSender sender, String[] args, Consumer<StringWithScore> suggestionConsumer) {
 			final Parameters params = new Parameters(args, 0, args.length);
 			for (Argument<?> argument : arguments) {
 				if (params.remaining() <= 1) {
-					argument.suggest(sender, suggestionConsumer);
+					final String completing = params.rest(" ").toLowerCase();
+					argument.suggest(sender, (suggestion) -> {
+						final String sanitizedSuggestion = suggestion.toLowerCase();
+						if (sanitizedSuggestion.startsWith(completing)) {
+							suggestionConsumer.accept(new StringWithScore(suggestion, -1));
+						} else if (sanitizedSuggestion.contains(completing)) {
+							suggestionConsumer.accept(new StringWithScore(suggestion, 0));
+						} else {
+							final int score = MatchUtils.levenshteinDistance(completing, sanitizedSuggestion, 1, 5, 5);
+							if (score <= 9) {
+								suggestionConsumer.accept(new StringWithScore(suggestion, score));
+							}
+						}
+					});
 				}
 
 				final Match match = argument.match(sender, params);
 				if (!match.success()) {
-					return;
+					break;
 				}
 			}
+		}
+	}
+
+	private static final class StringWithScore implements Comparable<StringWithScore> {
+		public final String value;
+		/** Less is better. */
+		public final int score;
+
+		private StringWithScore(String value, int score) {
+			this.value = value;
+			this.score = score;
+		}
+
+		@Override
+		public int compareTo(@NotNull CommandProcessor.StringWithScore o) {
+			return Integer.compare(score, o.score);
 		}
 	}
 }

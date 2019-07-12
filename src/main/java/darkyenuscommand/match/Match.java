@@ -5,6 +5,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Array;
+import java.util.LinkedHashSet;
+import java.util.function.Function;
 
 /**
  *
@@ -15,14 +17,16 @@ public final class Match<T> {
 	private final T result;
 	private String message;
 	private final T[] suggestions;
+	private final Function<T, CharSequence> toString;
 
 	private String defaultNoun;
 
-	private Match(boolean success, @Nullable T result, @Nullable String message, @Nullable T[] suggestions) {
+	private Match(boolean success, @Nullable T result, @Nullable String message, @Nullable T[] suggestions, @Nullable Function<T, CharSequence> toString) {
 		this.success = success;
 		this.result = result;
 		this.message = message;
 		this.suggestions = suggestions;
+		this.toString = toString;
 	}
 
 	public boolean success() {
@@ -62,6 +66,9 @@ public final class Match<T> {
 		assert !success();
 		if (message == null) {
 			final T[] suggestions = this.suggestions;
+			final Function<T, CharSequence> toString = this.toString;
+			assert toString != null;
+
 			String noun = defaultNoun;
 			if (noun == null) {
 				noun = "Item";
@@ -70,7 +77,8 @@ public final class Match<T> {
 			if(suggestions == null || suggestions.length == 0){
 				message = ChatColor.RED+noun+" not found";
 			} else if(suggestions.length == 1){
-				message = (ChatColor.RED+noun+" not found "+ChatColor.DARK_RED+"Did you mean: " + ChatColor.RESET + suggestions[0] + ChatColor.DARK_RED + " ?");
+				message = (ChatColor.RED+noun+" not found "+ChatColor.DARK_RED+"Did you mean: " + ChatColor.RESET + toString
+						.apply(suggestions[0]) + ChatColor.DARK_RED + " ?");
 			} else {
 				final StringBuilder sb = new StringBuilder(ChatColor.RED+noun+" not found "+ChatColor.DARK_RED+"Did you mean: " + ChatColor.RESET);
 				for (int i = 0; i < suggestions.length; i++) {
@@ -79,7 +87,7 @@ public final class Match<T> {
 						sb.append(i + 1 == suggestions.length ? " or " : ", ");
 						sb.append(ChatColor.RESET);
 					}
-					sb.append(suggestions[i]);
+					sb.append(toString.apply(suggestions[i]));
 				}
 				sb.append(ChatColor.DARK_RED).append('?');
 				message = sb.toString();
@@ -89,18 +97,33 @@ public final class Match<T> {
 		return message;
 	}
 
-	@NotNull
-	public static <T> Match<T> success(@Nullable T item) {
-		return new Match<>(true, item, null, null);
+	@SuppressWarnings("unchecked")
+	public <E> Match<E> map(Class<E> resultClass, Function<T, E> mapping, Function<E, CharSequence> toString) {
+		if (success) {
+			return success(mapping.apply(successResult()));
+		} else if (suggestions == null) {
+			return (Match<E>) this;
+		} else {
+			final LinkedHashSet<E> newSuggestions = new LinkedHashSet<>();
+			for (T suggestion : suggestions) {
+				newSuggestions.add(mapping.apply(suggestion));
+			}
+			return failure(defaultNoun, newSuggestions.toArray((E[])Array.newInstance(resultClass, 0)), toString);
+		}
 	}
 
 	@NotNull
-	public static <T> Match<T> failure(@Nullable String noun, @NotNull T[] suggestions) {
-		return new Match<>(false, null, null, suggestions).withDefaultNoun(noun);
+	public static <T> Match<T> success(@Nullable T item) {
+		return new Match<>(true, item, null, null, null);
+	}
+
+	@NotNull
+	public static <T> Match<T> failure(@Nullable String noun, @NotNull T[] suggestions, @NotNull Function<T, CharSequence> toString) {
+		return new Match<>(false, null, null, suggestions, toString).withDefaultNoun(noun);
 	}
 
 	@NotNull
 	public static <T> Match<T> failure(@NotNull String message) {
-		return new Match<>(false, null, message, null);
+		return new Match<>(false, null, message, null, null);
 	}
 }

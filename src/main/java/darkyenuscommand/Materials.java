@@ -1,6 +1,7 @@
 package darkyenuscommand;
 
 import org.bukkit.Material;
+import org.bukkit.Tag;
 
 import java.util.EnumSet;
 
@@ -8,25 +9,6 @@ import java.util.EnumSet;
  * Various sets of material related utilities.
  */
 public final class Materials {
-
-	public static final EnumSet<Material> WOOL = EnumSet.of(
-			Material.BLACK_WOOL,
-			Material.BLUE_WOOL,
-			Material.BROWN_WOOL,
-			Material.CYAN_WOOL,
-			Material.GRAY_WOOL,
-			Material.GREEN_WOOL,
-			Material.LIGHT_BLUE_WOOL,
-			Material.LIGHT_GRAY_WOOL,
-			Material.LIME_WOOL,
-			Material.MAGENTA_WOOL,
-			Material.ORANGE_WOOL,
-			Material.PINK_WOOL,
-			Material.PURPLE_WOOL,
-			Material.RED_WOOL,
-			Material.WHITE_WOOL,
-			Material.YELLOW_WOOL
-	);
 
 	public static final EnumSet<Material> GLASS_PANE = EnumSet.of(
 			Material.BLACK_STAINED_GLASS_PANE,
@@ -70,46 +52,12 @@ public final class Materials {
 
 	public static final EnumSet<Material> SAPLING = EnumSet.of(
 			Material.ACACIA_SAPLING,
-			//Material.BAMBOO_SAPLING, // 1.14
+			Material.BAMBOO_SAPLING,
 			Material.BIRCH_SAPLING,
 			Material.DARK_OAK_SAPLING,
 			Material.JUNGLE_SAPLING,
 			Material.OAK_SAPLING,
 			Material.SPRUCE_SAPLING
-	);
-
-	public static final EnumSet<Material> POT = EnumSet.of(
-			Material.FLOWER_POT,
-			Material.POTTED_ACACIA_SAPLING,
-			Material.POTTED_ALLIUM,
-			Material.POTTED_AZURE_BLUET,
-			Material.POTTED_BIRCH_SAPLING,
-			Material.POTTED_BLUE_ORCHID,
-			Material.POTTED_BROWN_MUSHROOM,
-			Material.POTTED_CACTUS,
-			Material.POTTED_DANDELION,
-			Material.POTTED_DARK_OAK_SAPLING,
-			Material.POTTED_DEAD_BUSH,
-			Material.POTTED_FERN,
-			Material.POTTED_JUNGLE_SAPLING,
-			Material.POTTED_OAK_SAPLING,
-			Material.POTTED_ORANGE_TULIP,
-			Material.POTTED_OXEYE_DAISY,
-			Material.POTTED_PINK_TULIP,
-			Material.POTTED_POPPY,
-			Material.POTTED_RED_MUSHROOM,
-			Material.POTTED_RED_TULIP,
-			Material.POTTED_SPRUCE_SAPLING,
-			Material.POTTED_WHITE_TULIP
-			);
-
-	public static final EnumSet<Material> LEAVES = EnumSet.of(
-			Material.ACACIA_LEAVES,
-			Material.BIRCH_LEAVES,
-			Material.DARK_OAK_LEAVES,
-			Material.JUNGLE_LEAVES,
-			Material.OAK_LEAVES,
-			Material.SPRUCE_LEAVES
 	);
 
 	public static final EnumSet<Material> FLOWERS = EnumSet.of(
@@ -123,9 +71,9 @@ public final class Materials {
 			Material.WHITE_TULIP,
 			Material.PINK_TULIP,
 			Material.OXEYE_DAISY,
-			// Material.CORNFLOWER‌, // 1.14
-			// Material.LILY_OF_THE_VALLEY, // 1.14
-			// Material.WITHER_ROSE‌, // 1.14
+			Material.CORNFLOWER,
+			Material.LILY_OF_THE_VALLEY,
+			Material.WITHER_ROSE,
 			Material.SUNFLOWER,
 			Material.LILAC,
 			Material.ROSE_BUSH,
@@ -133,7 +81,7 @@ public final class Materials {
 	);
 
 	public static final EnumSet<Material> PLANTS = EnumSet.of(
-			//Material.BAMBOO, // 1.14
+			Material.BAMBOO,
 			Material.BEETROOTS,
 			Material.BEETROOT_SEEDS,
 			Material.CACTUS,
@@ -156,7 +104,7 @@ public final class Materials {
 			Material.SEAGRASS,
 			Material.TALL_SEAGRASS,
 			Material.SUGAR_CANE,
-			//Material.SWEET_BERRY_BUSH, // 1.14
+			Material.SWEET_BERRY_BUSH,
 			Material.VINE,
 			Material.WHEAT,
 			Material.DEAD_BUSH
@@ -283,40 +231,5 @@ public final class Materials {
 			Material.RED_CARPET,
 			Material.WHITE_CARPET,
 			Material.YELLOW_CARPET
-	);
-
-	public static final EnumSet<Material> BANNERS = EnumSet.of(
-			Material.BLACK_BANNER,
-			Material.BLACK_WALL_BANNER,
-			Material.BLUE_BANNER,
-			Material.BLUE_WALL_BANNER,
-			Material.BROWN_BANNER,
-			Material.BROWN_WALL_BANNER,
-			Material.CYAN_BANNER,
-			Material.CYAN_WALL_BANNER,
-			Material.GRAY_BANNER,
-			Material.GRAY_WALL_BANNER,
-			Material.GREEN_BANNER,
-			Material.GREEN_WALL_BANNER,
-			Material.LIGHT_BLUE_BANNER,
-			Material.LIGHT_BLUE_WALL_BANNER,
-			Material.LIGHT_GRAY_BANNER,
-			Material.LIGHT_GRAY_WALL_BANNER,
-			Material.LIME_BANNER,
-			Material.LIME_WALL_BANNER,
-			Material.MAGENTA_BANNER,
-			Material.MAGENTA_WALL_BANNER,
-			Material.ORANGE_BANNER,
-			Material.ORANGE_WALL_BANNER,
-			Material.PINK_BANNER,
-			Material.PINK_WALL_BANNER,
-			Material.PURPLE_BANNER,
-			Material.PURPLE_WALL_BANNER,
-			Material.RED_BANNER,
-			Material.RED_WALL_BANNER,
-			Material.WHITE_BANNER,
-			Material.WHITE_WALL_BANNER,
-			Material.YELLOW_BANNER,
-			Material.YELLOW_WALL_BANNER
 	);
 }

@@ -1,6 +1,7 @@
 package darkyenuscommand.systems;
 
 import darkyenuscommand.command.Cmd;
+import darkyenuscommand.match.Alt;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
@@ -100,11 +101,14 @@ public final class ItemSystem {
 	}
 
 	enum TrashWhat {
-		Item, Single,
-		Hotbar, ActionBar, Bar,
-		Inventory,
-		Armor,
-		All, Full
+		@Alt("SINGLE")
+		ITEM,
+		@Alt({"ACTION_BAR", "BAR"})
+		HOT_BAR,
+		INVENTORY,
+		ARMOR,
+		@Alt("FULL")
+		ALL
 	}
 
 	@Cmd
@@ -117,16 +121,13 @@ public final class ItemSystem {
 		final String what;
 
 		switch (trashWhat) {
-			case Item:
-			case Single:
+			case ITEM:
 			{
 				player.getInventory().clear(player.getInventory().getHeldItemSlot());
 				what = "held item";
 			}
 				break;
-			case Hotbar:
-			case ActionBar:
-			case Bar:
+			case HOT_BAR:
 			{
 				for (int i = 0; i <= 8; i++) {
 					player.getInventory().clear(i);
@@ -134,7 +135,7 @@ public final class ItemSystem {
 				what = "hotbar";
 			}
 				break;
-			case Inventory:
+			case INVENTORY:
 			{
 				for (int i = 0; i <= 35; i++) {
 					player.getInventory().clear(i);
@@ -142,14 +143,13 @@ public final class ItemSystem {
 				what = "inventory";
 			}
 				break;
-			case Armor:
+			case ARMOR:
 			{
 				player.getInventory().setArmorContents(new ItemStack[4]);
 				what = "armor";
 			}
 				break;
-			case All:
-			case Full:
+			case ALL:
 			{
 				for (int i = 0; i <= 35; i++) {
 					player.getInventory().clear(i);

@@ -9,6 +9,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Tag;
 import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
@@ -31,7 +32,7 @@ import java.util.UUID;
 /**
  * Book formatting and notice boards.
  */
-public class InfoSystem implements Listener {
+public final class InfoSystem implements Listener {
 
 	private final boolean bookNoticeBoardsEnabled;
 	private final ObjectMap<Location, NoticeBoard> bookNoticeBoards;
@@ -88,7 +89,7 @@ public class InfoSystem implements Listener {
 		if (!bookNoticeBoardsEnabled) return;
 		final Player player = ev.getPlayer();
 		final Block block = ev.getClickedBlock();
-		if (block == null || (block.getType() != Material.WALL_SIGN) || player.isSneaking()) {
+		if (block == null || (!Tag.SIGNS.isTagged(block.getType())) || player.isSneaking()) {
 			return;
 		}
 		final Location location = block.getLocation();

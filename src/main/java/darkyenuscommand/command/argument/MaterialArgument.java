@@ -8,6 +8,7 @@ import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.function.Consumer;
 
 /**
@@ -15,7 +16,15 @@ import java.util.function.Consumer;
  */
 public final class MaterialArgument extends CommandProcessor.Argument<Material> {
 
-	private static final Material[] MATERIALS = Material.values();
+	@SuppressWarnings("deprecation")
+	private static final Material[] MATERIALS = Arrays.stream(Material.values())
+			.filter((m) -> {
+				try {
+					return !m.isLegacy();
+				} catch (Throwable isLegacyWasProbablyRemoved) {
+					return !m.name().startsWith(Material.LEGACY_PREFIX);
+				}
+			}).toArray(Material[]::new);
 	private static final EnumMatcher<Material> materialMatcher = new EnumMatcher<>("Material", MATERIALS);
 
 	public MaterialArgument(@NotNull String symbol) {

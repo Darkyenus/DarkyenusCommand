@@ -1,10 +1,14 @@
 @file:Suppress("unused")
 
 import wemi.Archetypes
-import wemi.dependency.Jitpack
-import wemi.*
+import wemi.boot.WemiRootFolder
 import wemi.compile.JavaCompilerFlags
+import wemi.dependency
+import wemi.dependency.Jitpack
 import wemi.dependency.sonatypeOss
+import wemi.util.copyRecursively
+import wemi.util.exists
+import java.nio.file.StandardCopyOption
 
 val darkyenusCommand by project(Archetypes.JavaProject) {
 
@@ -19,12 +23,28 @@ val darkyenusCommand by project(Archetypes.JavaProject) {
 	extend(compilingJava) {
 		compilerOptions[JavaCompilerFlags.customFlags] += "-Xlint:unchecked"
 		compilerOptions[JavaCompilerFlags.customFlags] += "-Xlint:deprecation"
+
+		// Not only for debugging, plugin reflectively loads parameter names!
+		// https://docs.oracle.com/javase/tutorial/reflect/member/methodparameterreflection.html
+		compilerOptions[JavaCompilerFlags.customFlags] += "-parameters"
+		
+		//<"morning"|"day"|"afternoon"|"evening" | "dusk" | "night" | "dawn">
 	}
-	
+
 	extend(compiling) {
 		libraryDependencies add { dependency("org.jetbrains", "annotations", "16.0.2") }
-		libraryDependencies add { dependency("org.spigotmc", "spigot-api", "1.13.2-R0.1-SNAPSHOT") }
+		libraryDependencies add { dependency("org.spigotmc", "spigot-api", "1.14.2-R0.1-SNAPSHOT") }
 	}
 
 	libraryDependencies add { dependency("com.github.EsotericSoftware", "jsonbeans", "7306654ed3") }
+
+	assembly modify { assembled ->
+		val testServerPlugins = WemiRootFolder / "../TEST SERVER/plugins"
+		if (testServerPlugins.exists()) {
+			assembled.copyRecursively(testServerPlugins / (projectName.get() + ".jar"), StandardCopyOption.REPLACE_EXISTING)
+			println("Copied to test server")
+		}
+
+		assembled
+	}
 }

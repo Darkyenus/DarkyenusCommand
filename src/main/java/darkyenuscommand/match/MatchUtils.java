@@ -75,14 +75,17 @@ public final class MatchUtils {
 
     public static <T> Match<T> match(String noun, T[] from, Function<T, CharSequence> toString, CharSequence target) {
         final int BAD_SCORE = 1000;
+        final CharSequence[] fromString = new CharSequence[from.length];
+        for (int i = 0; i < from.length; i++) {
+            fromString[i] = toString.apply(from[i]);
+        }
 
         //Insert only search
         boolean considerOnlyPerfectMatches = false;
         final int[] scores = new int[from.length];
         int goodScores = 0;
         for (int i = 0; i < from.length; i++) {
-            final T item = from[i];
-            final CharSequence itemName = toString.apply(item);
+            final CharSequence itemName = fromString[i];
             if (considerOnlyPerfectMatches) {
                 if(contentEquals(target, itemName)) {
                     scores[i] = 0;
@@ -119,7 +122,7 @@ public final class MatchUtils {
             //No good scores, search again with weights allowing other edits than adding
             findCanBeUnambiguous = false;
             for (int i = 0; i < from.length; i++) {
-                scores[i] =  levenshteinDistance(target, toString.apply(from[i]), 1, 6, 3);
+                scores[i] =  levenshteinDistance(target, fromString[i], 1, 6, 3);
             }
         }
 
@@ -158,7 +161,7 @@ public final class MatchUtils {
             for (int i = 0; i < resultItems; i++) {
                 resultArray[i] = from[results.get(i).index];
             }
-            return Match.failure(noun, resultArray);
+            return Match.failure(noun, resultArray, toString);
         }
     }
 

@@ -107,9 +107,10 @@ public final class PluginData {
 
 	public static PluginData load (File pluginFolder) {
 		final File pluginFile = new File(pluginFolder, PLUGIN_FILE_NAME);
-		PluginData result;
 		try {
-			result = JSON.fromJson(PluginData.class, pluginFile);
+			PluginData pluginData = JSON.fromJson(PluginData.class, pluginFile);
+			pluginData.loadedFrom = pluginFile;
+			return pluginData;
 		} catch (JsonException e) {
 			if(!e.causedBy(FileNotFoundException.class)) {
 				Bukkit.getLogger().log(Level.SEVERE, "Failed to load PluginData", e);
@@ -118,11 +119,11 @@ public final class PluginData {
 				//noinspection ResultOfMethodCallIgnored
 				pluginFile.renameTo(new File(pluginFolder, PLUGIN_FILE_NAME+"."+System.currentTimeMillis()+".corrupted"));
 			}
-			result = new PluginData();
-			save(result);
+			PluginData newPluginData = new PluginData();
+			newPluginData.loadedFrom = pluginFile;
+			save(newPluginData);
+			return newPluginData;
 		}
-		result.loadedFrom = pluginFile;
-		return result;
 	}
 
 	public static void save (PluginData data) {

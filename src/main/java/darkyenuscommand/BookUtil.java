@@ -18,12 +18,6 @@ public final class BookUtil {
 
     private static final String BOOK_OPEN_CHANNEL = "minecraft:book_open";
 
-    private static Plugin plugin;
-
-    public static void initialize(Plugin plugin) {
-        BookUtil.plugin = plugin;
-    }
-
     public static ItemStack createBookForDisplay(String...pages) {
         final ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
         final BookMeta itemMeta = (BookMeta) book.getItemMeta();
@@ -38,37 +32,17 @@ public final class BookUtil {
     }
 
     public static boolean displayBook(Player player, ItemStack book) {
-        if(!addChannel(player, BOOK_OPEN_CHANNEL)){
-            return false;
-        }
-
-        if(plugin == null) {
-            Bukkit.getLogger().log(Level.WARNING, "displayBook called before initialize!");
-            return false;
-        }
-
         //Important workaround, server would think that the player is still in own inventory, while actually being in the book!
         player.closeInventory();
 
         final ItemStack itemInMainHand = player.getInventory().getItemInMainHand();
         try {
             player.getInventory().setItemInMainHand(book);
-            player.sendPluginMessage(plugin, BOOK_OPEN_CHANNEL, new byte[]{0});
+
+            //player.sendPluginMessage(plugin, BOOK_OPEN_CHANNEL, new byte[]{0});
         } finally {
             player.getInventory().setItemInMainHand(itemInMainHand);
         }
         return true;
     }
-
-    private static boolean addChannel(Player player, @SuppressWarnings("SameParameterValue") String channel) {
-        try {
-            final Method addChannel = player.getClass().getMethod("addChannel", String.class);
-            addChannel.invoke(player, channel);
-            return true;
-        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-            Bukkit.getLogger().log(Level.WARNING, "Failed to add channel", e);
-            return false;
-        }
-    }
-
 }

@@ -1,29 +1,63 @@
 package darkyenuscommand.match;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
 
 /**
  *
  */
-public final class EnumMatcher<E extends Enum<E>> implements Function<E, CharSequence> {
+public final class EnumMatcher<E extends Enum<E>> {
 
 	private final String noun;
-	private final E[] VALUES;
-	private final String[] NAMES;
+	private final Class<E> enumClass;
+	private final EnumPair<E>[] values;
 
+	@SuppressWarnings("unchecked")
 	public EnumMatcher(String noun, E[] values) {
 		this.noun = noun;
-		VALUES = values;
-		NAMES = new String[values.length];
-		for (int i = 0; i < values.length; i++) {
-			NAMES[i] = simplify(values[i].toString());
+
+		if (values == null || values.length == 0) {
+			this.enumClass = null;
+			this.values = (EnumPair<E>[]) new EnumPair[0];
+			return;
+		}
+
+		final Class<E> declaringClass = values[0].getDeclaringClass();
+		enumClass = declaringClass;
+
+		final ArrayList<EnumPair<E>> pairs = new ArrayList<>();
+		for (E value : values) {
+			final Field field;
+			try {
+				field = declaringClass.getField(value.name());
+			} catch (NoSuchFieldException e) {
+				throw new IllegalStateException(declaringClass+" does not have a field named after "+value);
+			}
+			pairs.add(new EnumPair<>(simplify(value.name()), value));
+			final Alt alternates = field.getAnnotation(Alt.class);
+			if (alternates != null) {
+				for (String altName : alternates.value()) {
+					pairs.add(new EnumPair<>(simplify(altName), value));
+				}
+			}
+		}
+		this.values = pairs.toArray(new EnumPair[0]);
+	}
+
+	private static final class EnumPair<E extends Enum<E>> {
+		public final String name;
+		public final E value;
+
+		EnumPair(String name, E value) {
+			this.name = name;
+			this.value = value;
 		}
 	}
 
 	private String simplify(String string) {
-		StringBuilder fromBuilder = new StringBuilder();
+		StringBuilder fromBuilder = new StringBuilder(string.length());
 		for (char character : string.toCharArray()) {
 			if (Character.isLetterOrDigit(character)) {
 				fromBuilder.append(Character.toLowerCase(character));
@@ -32,13 +66,9 @@ public final class EnumMatcher<E extends Enum<E>> implements Function<E, CharSeq
 		return fromBuilder.toString();
 	}
 
-	@Override
-	public String apply(E e) {
-		return NAMES[e.ordinal()];
-	}
-
 	public Match<E> match(String searched) {
-		return MatchUtils.match(noun, VALUES, this, simplify(searched));
+		final Match<EnumPair<E>> resultMatch = MatchUtils.match(noun, values, e -> e.name, simplify(searched));
+		return resultMatch.map(enumClass, pair -> pair.value, Enum::toString);
 	}
 
 	private static final Map<Class<?>, EnumMatcher<?>> MATCHER_CACHE = new HashMap<>();

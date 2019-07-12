@@ -2,10 +2,21 @@
 package darkyenuscommand;
 
 import darkyenuscommand.command.CommandProcessor;
-import darkyenuscommand.systems.*;
+import darkyenuscommand.systems.EnvironmentSystem;
+import darkyenuscommand.systems.InfoSystem;
+import darkyenuscommand.systems.ItemSystem;
+import darkyenuscommand.systems.JailSystem;
+import darkyenuscommand.systems.KickSystem;
+import darkyenuscommand.systems.MuteSystem;
+import darkyenuscommand.systems.PanicSystem;
+import darkyenuscommand.systems.ReportSystem;
+import darkyenuscommand.systems.TeleportSystem;
+import darkyenuscommand.systems.WarpSystem;
+import darkyenuscommand.systems.WorldSystem;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,7 +40,6 @@ public final class Plugin extends JavaPlugin {
 		if (data == null) data = new PluginData();
 
 		FixManager.initialize(this);
-		BookUtil.initialize(this);
 
 		final TeleportSystem teleportSystem = new TeleportSystem();
 		final WarpSystem warpSystem = new WarpSystem(data, teleportSystem);
@@ -64,7 +74,7 @@ public final class Plugin extends JavaPlugin {
 	}
 
 	@Override
-	public boolean onCommand (CommandSender sender, Command command, String label, String[] args) {
+	public boolean onCommand (@NotNull CommandSender sender, Command command, @NotNull String label, @NotNull String[] args) {
 		return "donothing".equals(command.getName());
 	}
 

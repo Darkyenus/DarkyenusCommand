@@ -5,6 +5,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Effect;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.Tag;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -32,7 +33,7 @@ final class PluginListener implements Listener {
 	public void commandSigns (PlayerInteractEvent ev) {
 		if (ev.getHand() != EquipmentSlot.HAND) return;
 		if ((ev.getAction() == Action.LEFT_CLICK_BLOCK || ev.getAction() == Action.RIGHT_CLICK_BLOCK)// Is clicking block
-			&& (ev.getClickedBlock().getType() == Material.WALL_SIGN)// Is the block a sign
+			&& (Tag.SIGNS.isTagged(ev.getClickedBlock().getType()))// Is the block a sign
 			&& ev.getPlayer().hasPermission("darkyenuscommand.sign")// Has permission?
 			&& !ev.isCancelled() && !ev.getPlayer().isSneaking()) {// Is not already cancelled && classic sneak check
 			Sign sign = (Sign)ev.getClickedBlock().getState();
@@ -69,7 +70,7 @@ final class PluginListener implements Listener {
 				+ clicked.getLocation().getBlockX() + " Y: " + clicked.getLocation().getBlockY() + " Z: "
 				+ clicked.getLocation().getBlockZ());
 			player.sendMessage(ChatColor.BLUE.toString() + " Material: " + ChatColor.WHITE + ChatColor.ITALIC
-				+ clicked.getType() + " (Full: " + clicked.getBlockData().getAsString() + ")");
+				+ clicked.getBlockData().getAsString());
 			player.sendMessage(ChatColor.BLUE.toString() + " Biome: " + ChatColor.WHITE + ChatColor.ITALIC + clicked.getBiome()
 				+ " (Temperature: " + clicked.getTemperature() + " Humidity:" + clicked.getHumidity() + ")");
 			player.sendMessage(ChatColor.BLUE.toString() + " Redstone power: " + ChatColor.WHITE + ChatColor.ITALIC

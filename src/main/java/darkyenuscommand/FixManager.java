@@ -131,7 +131,7 @@ final class FixManager {
 	private static void addHorseArmorRecipe (Server server, Material ingot, Material block, Material result) {
 		ShapedRecipe recipe = new ShapedRecipe(new NamespacedKey(plugin, "horse_armor_"+block), new ItemStack(result));
 		recipe.shape("i  ", "bwb", "i i");
-		recipe.setIngredient('w', new RecipeChoice.MaterialChoice(new ArrayList<>(Materials.WOOL)));
+		recipe.setIngredient('w', new RecipeChoice.MaterialChoice(Tag.WOOL));
 		recipe.setIngredient('b', block);
 		recipe.setIngredient('i', ingot);
 
@@ -234,8 +234,8 @@ final class FixManager {
 			FRAGILE_MATERIALS.addAll(Materials.GLASS);
 			FRAGILE_MATERIALS.addAll(Materials.GLASS_PANE);
 			FRAGILE_MATERIALS.addAll(Materials.SAPLING);
-			FRAGILE_MATERIALS.addAll(Materials.POT);
-			FRAGILE_MATERIALS.addAll(Materials.LEAVES);
+			FRAGILE_MATERIALS.addAll(Tag.FLOWER_POTS.getValues());
+			FRAGILE_MATERIALS.addAll(Tag.LEAVES.getValues());
 			FRAGILE_MATERIALS.addAll(Materials.FLOWERS);
 			FRAGILE_MATERIALS.add(Material.COBWEB);
 			FRAGILE_MATERIALS.add(Material.NETHER_WART);
@@ -265,7 +265,7 @@ final class FixManager {
 			FRAGILE_MATERIALS.addAll(Materials.WOODEN_FENCES);
 			FRAGILE_MATERIALS.addAll(Materials.WOODEN_FENCE_GATES);
 			FRAGILE_MATERIALS.addAll(Materials.CARPETS);
-			FRAGILE_MATERIALS.addAll(Materials.BANNERS);
+			FRAGILE_MATERIALS.addAll(Tag.BANNERS.getValues());
 			FRAGILE_MATERIALS.add(Material.END_ROD);
 		}
 

@@ -7,6 +7,7 @@ package darkyenuscommand.systems;
 
 import darkyenuscommand.PluginData;
 import darkyenuscommand.command.Cmd;
+import darkyenuscommand.match.Alt;
 import darkyenuscommand.match.Match;
 import darkyenuscommand.match.MatchUtils;
 import darkyenuscommand.util.StringMap;
@@ -30,10 +31,14 @@ public final class WarpSystem {
 	}
 
 	enum WarpCommand {
-		CREATE, NEW,
-		REMOVE, DELETE,
-		GOTO, WARP, TO,
-		LIST, HELP
+		@Alt("NEW")
+		CREATE,
+		@Alt("DELETE")
+		REMOVE,
+		@Alt({"WARP", "TO"})
+		GOTO,
+		LIST,
+		HELP
 	}
 
 	@Cmd
@@ -42,7 +47,6 @@ public final class WarpSystem {
 
 		switch (command) {
 			case CREATE:
-			case NEW:
 				if (warp.contains("*") || warp.contains("?")) {
 					sender.sendRawMessage(ChatColor.RED+"Warp may not contain '*' or '?'");
 				} else if (warps.containsKey(warp)) {
@@ -53,16 +57,13 @@ public final class WarpSystem {
 				}
 				break;
 			case REMOVE:
-			case DELETE:
 				if (warps.remove(warp) != null) {
 					sender.sendRawMessage(ChatColor.BLUE+"Warp \"" + warp + "\" removed");
 				} else {
 					printWarpNotFound(sender, warp, "delete");
 				}
 				break;
-			case GOTO:
-			case WARP:
-			case TO: {
+			case GOTO: {
 				//Teleport to somewhere
 				final Match<String> foundWarps = matchWarps(warp);
 				if (foundWarps.success()) {
@@ -125,7 +126,7 @@ public final class WarpSystem {
 			if (result.size() == 1) {
 				return Match.success(result.get(0));
 			} else {
-				return Match.failure("Warp", result.toArray(new String[0]));
+				return Match.failure("Warp", result.toArray(new String[0]), (s) -> s);
 			}
 		} else {
 			final ArrayList<String> warpNames = data.warps.keys().toArray();
