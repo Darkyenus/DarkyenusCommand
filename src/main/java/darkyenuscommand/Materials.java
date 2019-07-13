@@ -49,30 +49,7 @@ public final class Materials {
 			Material.YELLOW_STAINED_GLASS
 	);
 
-	public static final EnumSet<Material> SAPLING = EnumSet.of(
-			Material.ACACIA_SAPLING,
-			Material.BAMBOO_SAPLING,
-			Material.BIRCH_SAPLING,
-			Material.DARK_OAK_SAPLING,
-			Material.JUNGLE_SAPLING,
-			Material.OAK_SAPLING,
-			Material.SPRUCE_SAPLING
-	);
-
-	public static final EnumSet<Material> FLOWERS = EnumSet.of(
-			Material.DANDELION,
-			Material.POPPY,
-			Material.BLUE_ORCHID,
-			Material.ALLIUM,
-			Material.AZURE_BLUET,
-			Material.RED_TULIP,
-			Material.ORANGE_TULIP,
-			Material.WHITE_TULIP,
-			Material.PINK_TULIP,
-			Material.OXEYE_DAISY,
-			Material.CORNFLOWER,
-			Material.LILY_OF_THE_VALLEY,
-			Material.WITHER_ROSE,
+	public static final EnumSet<Material> LARGE_FLOWERS = EnumSet.of(
 			Material.SUNFLOWER,
 			Material.LILAC,
 			Material.ROSE_BUSH,
@@ -126,50 +103,6 @@ public final class Materials {
 			Material.POPPED_CHORUS_FRUIT
 	);
 
-	public static final EnumSet<Material> WOODEN_DOORS = EnumSet.of(
-			Material.ACACIA_DOOR,
-			Material.BIRCH_DOOR,
-			Material.DARK_OAK_DOOR,
-			Material.JUNGLE_DOOR,
-			Material.OAK_DOOR,
-			Material.SPRUCE_DOOR
-	);
-
-	public static final EnumSet<Material> WOODEN_TRAP_DOORS = EnumSet.of(
-			Material.ACACIA_TRAPDOOR,
-			Material.BIRCH_TRAPDOOR,
-			Material.DARK_OAK_TRAPDOOR,
-			Material.IRON_TRAPDOOR,
-			Material.JUNGLE_TRAPDOOR,
-			Material.OAK_TRAPDOOR,
-			Material.SPRUCE_TRAPDOOR
-	);
-
-	public static final EnumSet<Material> RAILS = EnumSet.of(
-			Material.ACTIVATOR_RAIL,
-			Material.DETECTOR_RAIL,
-			Material.POWERED_RAIL,
-			Material.RAIL
-	);
-
-	public static final EnumSet<Material> WOODEN_BUTTONS = EnumSet.of(
-			Material.ACACIA_BUTTON,
-			Material.BIRCH_BUTTON,
-			Material.DARK_OAK_BUTTON,
-			Material.JUNGLE_BUTTON,
-			Material.OAK_BUTTON,
-			Material.SPRUCE_BUTTON
-	);
-
-	public static final EnumSet<Material> WOODEN_PRESSURE_PLATES = EnumSet.of(
-			Material.ACACIA_PRESSURE_PLATE,
-			Material.BIRCH_PRESSURE_PLATE,
-			Material.DARK_OAK_PRESSURE_PLATE,
-			Material.JUNGLE_PRESSURE_PLATE,
-			Material.OAK_PRESSURE_PLATE,
-			Material.SPRUCE_PRESSURE_PLATE
-	);
-
 	public static final EnumSet<Material> TORCHES = EnumSet.of(
 			Material.TORCH,
 			Material.WALL_TORCH
@@ -195,15 +128,6 @@ public final class Materials {
 			Material.DRAGON_WALL_HEAD
 	);
 
-	public static final EnumSet<Material> WOODEN_FENCES = EnumSet.of(
-			Material.ACACIA_FENCE,
-			Material.BIRCH_FENCE,
-			Material.DARK_OAK_FENCE,
-			Material.JUNGLE_FENCE,
-			Material.OAK_FENCE,
-			Material.SPRUCE_FENCE
-	);
-
 	public static final EnumSet<Material> WOODEN_FENCE_GATES = EnumSet.of(
 			Material.ACACIA_FENCE_GATE,
 			Material.BIRCH_FENCE_GATE,
@@ -211,24 +135,5 @@ public final class Materials {
 			Material.JUNGLE_FENCE_GATE,
 			Material.OAK_FENCE_GATE,
 			Material.SPRUCE_FENCE_GATE
-	);
-
-	public static final EnumSet<Material> CARPETS = EnumSet.of(
-			Material.BLACK_CARPET,
-			Material.BLUE_CARPET,
-			Material.BROWN_CARPET,
-			Material.CYAN_CARPET,
-			Material.GRAY_CARPET,
-			Material.GREEN_CARPET,
-			Material.LIGHT_BLUE_CARPET,
-			Material.LIGHT_GRAY_CARPET,
-			Material.LIME_CARPET,
-			Material.MAGENTA_CARPET,
-			Material.ORANGE_CARPET,
-			Material.PINK_CARPET,
-			Material.PURPLE_CARPET,
-			Material.RED_CARPET,
-			Material.WHITE_CARPET,
-			Material.YELLOW_CARPET
 	);
 }
