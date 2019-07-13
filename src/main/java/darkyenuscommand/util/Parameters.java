@@ -1,5 +1,9 @@
 package darkyenuscommand.util;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Arrays;
 
 /**
@@ -11,11 +15,11 @@ public final class Parameters {
     public int index;
     public final int end;
 
-    public Parameters(String[] args) {
+    public Parameters(@NotNull String[] args) {
         this(args, 0, args.length);
     }
 
-    public Parameters(String[] args, int index, int end) {
+    public Parameters(@NotNull String[] args, int index, int end) {
         this.args = args;
         this.index = index;
         this.end = end;
@@ -29,19 +33,22 @@ public final class Parameters {
         this.index = index;
     }
 
+    @Nullable
     public String peek() {
         if (eof()) return null;
 
         return args[index];
     }
 
-    public String take(String eofValue) {
+    @Nullable
+    @Contract("!null -> !null")
+    public String take(@Nullable String eofValue) {
         if (eof()) return eofValue;
 
         return args[index++];
     }
 
-    public boolean match(String...text) {
+    public boolean match(@NotNull String...text) {
         if(eof()) return false;
 
         for (String t : text) {
@@ -66,11 +73,13 @@ public final class Parameters {
         }
     }
 
-    public String rest(CharSequence separator) {
+    @NotNull
+    public String rest(@NotNull CharSequence separator) {
         return collect(separator, Integer.MAX_VALUE);
     }
 
-    public String collect(CharSequence separator, int elements) {
+    @NotNull
+    public String collect(@NotNull CharSequence separator, int elements) {
         if (eof()) return "";
 
         final StringBuilder sb = new StringBuilder();
@@ -92,6 +101,8 @@ public final class Parameters {
         return Math.max(end - index, 0);
     }
 
+    @Contract("-> new")
+    @NotNull
     public Parameters copy() {
         return new Parameters(Arrays.copyOfRange(args, index, end, String[].class));
     }

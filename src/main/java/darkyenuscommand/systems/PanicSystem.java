@@ -3,6 +3,7 @@ package darkyenuscommand.systems;
 import darkyenuscommand.Plugin;
 import darkyenuscommand.command.Cmd;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -20,6 +21,7 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.metadata.MetadataValue;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,7 +42,7 @@ public final class PanicSystem implements Listener {
 		this.plugin = plugin;
 	}
 
-	private void onPanicCommand (CommandSender sender, Collection<Player> players, int minutes) {
+	private void onPanicCommand (@NotNull CommandSender sender, @NotNull Collection<Player> players, int minutes) {
 		if (players.size() == 0) {
 			sender.sendMessage(ChatColor.RED + "Nobody to lock down");
 		} else {
@@ -60,7 +62,7 @@ public final class PanicSystem implements Listener {
 	}
 
 	@Cmd
-	public void panic(CommandSender sender, @Cmd.UseDefault int minutes) {
+	public void panic(@NotNull CommandSender sender, @Cmd.UseDefault int minutes) {
 		if (minutes == 0) {
 			minutes = 3;
 		}
@@ -90,7 +92,7 @@ public final class PanicSystem implements Listener {
 	}
 
 	@Cmd
-	public void globalPanic(CommandSender sender, @Cmd.UseDefault int minutes) {
+	public void globalPanic(@NotNull CommandSender sender, @Cmd.UseDefault int minutes) {
 		if (minutes == 0) {
 			minutes = 5;
 		}
@@ -106,7 +108,7 @@ public final class PanicSystem implements Listener {
 	}
 
 	@Cmd
-	public void depanic(CommandSender sender) {
+	public void depanic(@NotNull CommandSender sender) {
 		int dePanicked = 0;
 		for (Player toDePanicPlayer : getServer().getOnlinePlayers()) {
 			if (toDePanicPlayer != null) {
@@ -120,7 +122,7 @@ public final class PanicSystem implements Listener {
 		sender.sendMessage(ChatColor.GREEN.toString() + dePanicked + " players unlocked.");
 	}
 
-	private boolean isLocked (Player player) {
+	private boolean isLocked (@NotNull Player player) {
 		if (player.hasMetadata(METADATA_KEY_LOCKED)) {
 			List<MetadataValue> values = player.getMetadata(METADATA_KEY_LOCKED);
 			for (MetadataValue value : values) {
@@ -138,22 +140,28 @@ public final class PanicSystem implements Listener {
 
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
-	public void checkAction (PlayerMoveEvent ev) {
+	public void checkAction (@NotNull PlayerMoveEvent ev) {
 		if (isLocked(ev.getPlayer())) {
-			if (ev.getFrom().getBlockX() != ev.getTo().getBlockX() || ev.getFrom().getBlockZ() != ev.getTo().getBlockZ())
-				ev.setTo(ev.getFrom());
+			final Location to = ev.getTo();
+			if (to == null) {
+				ev.setCancelled(true);
+				return;
+			}
+			final Location from = ev.getFrom();
+			if (from.getBlockX() != to.getBlockX() || from.getBlockZ() != to.getBlockZ())
+				ev.setTo(from);
 		}
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
-	public void checkAction (BlockBreakEvent ev) {
+	public void checkAction (@NotNull BlockBreakEvent ev) {
 		if (isLocked(ev.getPlayer())) {
 			ev.setCancelled(true);
 		}
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
-	public void checkAction (EntityPickupItemEvent ev) {
+	public void checkAction (@NotNull EntityPickupItemEvent ev) {
 		final LivingEntity entity = ev.getEntity();
 		if (entity instanceof Player && isLocked((Player) entity)) {
 			ev.setCancelled(true);
@@ -161,35 +169,35 @@ public final class PanicSystem implements Listener {
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
-	public void checkAction (PlayerDropItemEvent ev) {
+	public void checkAction (@NotNull PlayerDropItemEvent ev) {
 		if (isLocked(ev.getPlayer())) {
 			ev.setCancelled(true);
 		}
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
-	public void checkAction (InventoryClickEvent ev) {
+	public void checkAction (@NotNull InventoryClickEvent ev) {
 		if (isLocked((Player)ev.getWhoClicked())) {
 			ev.setResult(Event.Result.DENY);
 		}
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
-	public void checkAction (EntityDamageEvent ev) {
+	public void checkAction (@NotNull EntityDamageEvent ev) {
 		if (ev.getEntity() instanceof Player && isLocked((Player)ev.getEntity())) {
 			ev.setCancelled(true);
 		}
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
-	public void checkAction (PlayerInteractEntityEvent ev) {
+	public void checkAction (@NotNull PlayerInteractEntityEvent ev) {
 		if (isLocked(ev.getPlayer())) {
 			ev.setCancelled(true);
 		}
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
-	public void checkAction (PlayerInteractEvent ev) {
+	public void checkAction (@NotNull PlayerInteractEvent ev) {
 		if (isLocked(ev.getPlayer())) {
 			ev.setUseInteractedBlock(Event.Result.DENY);
 			ev.setUseItemInHand(Event.Result.DENY);
@@ -247,6 +255,7 @@ public final class PanicSystem implements Listener {
 			return System.currentTimeMillis() < toExpireAtMillis;
 		}
 
+		@NotNull
 		@Override
 		public String asString () {
 			return Boolean.toString(asBoolean());

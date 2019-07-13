@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerLoginEvent;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -24,7 +25,7 @@ public final class KickSystem implements Listener {
 	private final HashMap<UUID, Long> kickTimer = new HashMap<>();
 
 	@Cmd
-	public void kick(CommandSender sender, Player kickedPlayer, @Cmd.UseDefault @Cmd.Prefix("-") int minutes, @Cmd.UseDefault @Cmd.VarArg String message) {
+	public void kick(@NotNull CommandSender sender, @NotNull Player kickedPlayer, @Cmd.UseDefault @Cmd.Prefix("-") int minutes, @Cmd.UseDefault @Cmd.VarArg String message) {
 		if (message == null || message.isEmpty()) {
 			message = "You have been kicked.";
 		}
@@ -42,7 +43,7 @@ public final class KickSystem implements Listener {
 	 *
 	 * @param name player's name
 	 * @return how many minutes will it take to not kick this player again */
-	public int kickedMinutes (UUID name) {
+	public int kickedMinutes(@NotNull UUID name) {
 		if (kickTimer.containsKey(name)) {
 			long value = kickTimer.get(name);
 			if (value < System.currentTimeMillis()) {
@@ -61,7 +62,7 @@ public final class KickSystem implements Listener {
 	}
 
 	@EventHandler(ignoreCancelled = true)
-	public void kickAndBanCheck (PlayerLoginEvent ev) {
+	public void kickAndBanCheck(@NotNull PlayerLoginEvent ev) {
 		// Kick check
 		int kickedMinutes = kickedMinutes(ev.getPlayer().getUniqueId());
 		if (kickedMinutes > 0) {

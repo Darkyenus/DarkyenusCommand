@@ -5,18 +5,22 @@ import darkyenuscommand.match.EnumMatcher;
 import darkyenuscommand.match.Match;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.*;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.potion.PotionEffectType;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -31,13 +35,13 @@ public final class Commands {
 	private final Plugin plugin;
 	private final PluginData data;
 
-	public Commands(Plugin plugin) {
+	public Commands(@NotNull Plugin plugin) {
 		this.plugin = plugin;
 		this.data = plugin.data;
 	}
 
 	@Cmd
-	public void rules(CommandSender sender) {
+	public void rules(@NotNull CommandSender sender) {
 		final List<String> rules = data.rules;
 		if (!rules.isEmpty()) {
 			for (String message : rules) {
@@ -52,7 +56,7 @@ public final class Commands {
 	}
 
 	@Cmd ///say -[Name] <Message>
-	public void say(CommandSender sender, @Cmd.UseDefault @Cmd.Prefix("-") String as, @Cmd.VarArg String message) {
+	public void say(@NotNull CommandSender sender, @Cmd.UseDefault @Cmd.Prefix("-") String as, @Cmd.VarArg String message) {
 		if (as == null) {
 			as = "Server";
 		}
@@ -61,13 +65,14 @@ public final class Commands {
 
 
 	@Cmd
-	public void strike(CommandSender sender, Player target, @Cmd.UseDefault int damage) {
+	public void strike(@NotNull CommandSender sender, Player target, @Cmd.UseDefault int damage) {
 		if (damage == 0) {
 			damage = 2;
 		}
 
 		target.getWorld().strikeLightningEffect(target.getLocation());
-		final double maxHealth = target.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+		final AttributeInstance maxHealthAttribute = target.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+		final double maxHealth = maxHealthAttribute == null ? 1 : maxHealthAttribute.getValue();
 		double healthToSet = target.getHealth() - damage;
 		if (healthToSet < 0) {
 			healthToSet = 0;
@@ -76,11 +81,11 @@ public final class Commands {
 		}
 		target.setHealth(healthToSet);
 		target.playEffect(EntityEffect.HURT);
-		sender.sendMessage(ChatColor.GREEN.toString() + target.getName() + " has been striked");
+		sender.sendMessage(ChatColor.GREEN.toString() + target.getName() + " has been struck");
 	}
 
 	@Cmd
-	public void kill(CommandSender sender, @Cmd.UseImplicit Player target) {
+	public void kill(@NotNull CommandSender sender, @Cmd.UseImplicit Player target) {
 		if (sender != target && !sender.hasPermission("darkyenuscommand.command.kill.anyone")) {
 			sender.sendMessage(ChatColor.RED+"I can't let you do that.");
 			return;
@@ -89,8 +94,9 @@ public final class Commands {
 	}
 
 	@Cmd
-	public void heal(CommandSender sender, @Cmd.UseDefault int amount, @Cmd.UseImplicit Player player) {
-		final double maxHealth = player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+	public void heal(@NotNull CommandSender sender, @Cmd.UseDefault int amount, @Cmd.UseImplicit Player player) {
+		final AttributeInstance maxHealthAttr = player.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+		final double maxHealth = maxHealthAttr == null ? 20 : maxHealthAttr.getValue();
 		final double to = amount == 0 ? maxHealth : Math.min(maxHealth, Math.max(0, player.getHealth() + amount));
 
 		player.setHealth(to);
@@ -110,9 +116,9 @@ public final class Commands {
 	}
 
 	@Cmd
-	public void playerInfo(CommandSender sender, OfflinePlayer aboutPlayer) {
-		sender.sendMessage(ChatColor.RED.toString() + ChatColor.BOLD.toString() + aboutPlayer
-				.getName() + ChatColor.BLUE
+	public void playerInfo(@NotNull CommandSender sender, OfflinePlayer aboutPlayer) {
+		final String playerName = aboutPlayer.getName();
+		sender.sendMessage(ChatColor.RED.toString() + ChatColor.BOLD.toString() + playerName + ChatColor.BLUE
 				+ "'s info");
 		sender.sendMessage(ChatColor.RED + "Online: " + ChatColor.BLUE.toString() + aboutPlayer.isOnline());
 		sender.sendMessage(ChatColor.RED + "Op: " + ChatColor.BLUE.toString() + aboutPlayer
@@ -122,21 +128,24 @@ public final class Commands {
 				+ ChatColor.BLUE.toString() + aboutPlayer.isBanned());
 		if (aboutPlayer instanceof Player) {
 			Player player = (Player) aboutPlayer;
+			final World world = player.getLocation().getWorld();
 			sender.sendMessage(ChatColor.RED + "Position: " + ChatColor.BLUE.toString()
-					+ player.getLocation().getWorld().getName() + " " + player.getLocation()
+					+ (world == null ? "null" : world.getName()) + " " + player.getLocation()
 					.getBlockX() + " "
 					+ player.getLocation().getBlockY() + " " + player.getLocation().getBlockZ());
+			final AttributeInstance maxHealth = player.getAttribute(Attribute.GENERIC_MAX_HEALTH);
 			sender.sendMessage(ChatColor.RED + "Health: " + ChatColor.BLUE.toString() + (((float) player
 					.getHealth()) / 2)
-					+ "/" + player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
+					+ "/" + (maxHealth == null ? "?" : maxHealth.getValue()));
 			if (player.getFireTicks() >= 0)
 				sender.sendMessage(ChatColor.RED + "Fire Ticks: " + ChatColor.BLUE.toString() + player
 						.getFireTicks());
-			if (player.getLastDamageCause() != null && player.getLastDamageCause().getCause() != null)
+			if (player.getLastDamageCause() != null) {
 				sender.sendMessage(ChatColor.RED + "Last Damage: " + ChatColor.BLUE.toString() + player
 						.getLastDamage()
 						+ " from " + player.getLastDamageCause().getCause().toString().toLowerCase()
 						.replace("_", " "));
+			}
 			sender.sendMessage(ChatColor.RED + "Food: " + ChatColor.BLUE.toString() + (((float) player
 					.getFoodLevel()) / 2)
 					+ "/10");
@@ -152,15 +161,18 @@ public final class Commands {
 					.getWalkSpeed()
 					+ ChatColor.RED + " Fly Speed: " + ChatColor.BLUE.toString() + player.getFlySpeed());
 			if (player.isOnline()) {
-				sender.sendMessage(ChatColor.RED + "IP: " + ChatColor.BLUE.toString()
-						+ player.getAddress().getAddress().getHostAddress());
+				final InetSocketAddress address = player.getAddress();
+				if (address != null) {
+					sender.sendMessage(ChatColor.RED + "IP: " + ChatColor.BLUE.toString()
+							+ address.getAddress().getHostAddress());
+				}
 			}
 		}
 		sender.sendMessage(ChatColor.RED + "UUID: " + ChatColor.BLUE.toString() + aboutPlayer.getUniqueId()
 				.toString());
 
 		for (OfflinePlayer player : getServer().getOfflinePlayers()) {
-			if (player != aboutPlayer && player.getName().equals(aboutPlayer.getName())) {
+			if (player != aboutPlayer && Objects.equals(player.getName(), playerName)) {
 				sender.sendMessage(ChatColor.RED + "Duplicate Player: " + ChatColor.BLUE.toString() + player
 						.getUniqueId().toString() + (player.isOnline() ? " (online)" : ""));
 			}
@@ -168,7 +180,7 @@ public final class Commands {
 	}
 
 	@Cmd
-	public void compass(Player sender, @Cmd.UseImplicit Player targetPlayer) {
+	public void compass(@NotNull Player sender, @Cmd.UseImplicit Player targetPlayer) {
 		sender.setCompassTarget(targetPlayer.getLocation());
 		sender.sendMessage(ChatColor.BLUE + "Compass target set to current location of " + targetPlayer.getName());
 	}
@@ -178,7 +190,7 @@ public final class Commands {
 	}
 
 	@Cmd
-	public void darkyenusCommand(CommandSender sender, @Cmd.UseDefault DarkyenusCommandAction action) {
+	public void darkyenusCommand(@NotNull CommandSender sender, @Cmd.UseDefault DarkyenusCommandAction action) {
 		if (action == DarkyenusCommandAction.GC && sender.hasPermission("darkyenuscommand.command.darkyenuscommand")) {
 			for (int i = 0; i < 10; i++) {
 				System.gc();
@@ -191,7 +203,7 @@ public final class Commands {
 	}
 
 	@Cmd
-	public void gamemode(CommandSender sender, GameMode gameMode, @Cmd.UseImplicit Player player) {
+	public void gamemode(@NotNull CommandSender sender, @NotNull GameMode gameMode, @Cmd.UseImplicit Player player) {
 		player.setGameMode(gameMode);
 		sender.sendMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + "Gamemode of " + player
 				.getName() + " set to "
@@ -202,7 +214,7 @@ public final class Commands {
 	enum GameModeToggle { TOGGLE }
 
 	@Cmd
-	public void gamemode(CommandSender sender, GameModeToggle toggle, @Cmd.UseImplicit Player player) {
+	public void gamemode(@NotNull CommandSender sender, @NotNull GameModeToggle toggle, @Cmd.UseImplicit Player player) {
 		GameMode gameMode;
 		if (player.getGameMode() == GameMode.CREATIVE) {
 			gameMode = GameMode.SURVIVAL;
@@ -216,7 +228,7 @@ public final class Commands {
 	}
 
 	@Cmd
-	public void clear(CommandSender sender) {
+	public void clear(@NotNull CommandSender sender) {
 		sender.sendMessage(ChatColor.BLUE.toString() + ChatColor.BOLD + "/Clear Arguments");
 		sender.sendMessage(ChatColor.BLUE.toString() + "[EntityType] - exact entity type");
 		sender.sendMessage(ChatColor.BLUE.toString() + "item - same as DROPPED_ITEM");
@@ -230,7 +242,7 @@ public final class Commands {
 	}
 
 	@Cmd
-	public void clear(CommandSender sender, String what, @Cmd.UseImplicit World world) {
+	public void clear(@NotNull CommandSender sender, @NotNull String what, @Cmd.UseImplicit World world) {
 		what = what.toLowerCase();
 
 		final Predicate<Entity> filter;
@@ -278,16 +290,13 @@ public final class Commands {
 	}
 
 	@Cmd
-	public void viewInventory(Player sender, Player player) {
+	public void viewInventory(@NotNull Player sender, @NotNull Player player) {
 		sender.openInventory(player.getInventory());
 	}
 
 	@Cmd
-	public void spawnEntity(Player sender, EntityType entityType, @Cmd.UseDefault int amount) {
+	public void spawnEntity(@NotNull Player sender, EntityType entityType, @Cmd.UseDefault int amount) {
 		Location at = sender.getTargetBlock(null, 200).getLocation().add(0.5, 1, 0.5);
-		if (at == null) {
-			at = sender.getLocation();
-		}
 
 		if (amount <= 0) {
 			amount = 1;
@@ -295,17 +304,14 @@ public final class Commands {
 			amount = 50;
 		}
 
-		int spawned = 0;
 		for (int i = 0; i < amount; i++) {
-			if (sender.getWorld().spawnEntity(at, entityType) != null) {
-				spawned++;
-			}
+			sender.getWorld().spawnEntity(at, entityType);
 		}
-		sender.sendMessage(ChatColor.GREEN + "Spawned " + spawned + " of " + entityType);
+		sender.sendMessage(ChatColor.GREEN + "Spawned " + amount + " of " + entityType);
 	}
 
 	@Cmd
-	public void setFlySpeed(CommandSender sender, @Cmd.UseDefault float speed, @Cmd.UseImplicit Player player) {
+	public void setFlySpeed(@NotNull CommandSender sender, @Cmd.UseDefault float speed, @Cmd.UseImplicit Player player) {
 		if (speed == 0f) {
 			speed = 0.1f;// Probably default speed?
 		}
@@ -326,7 +332,7 @@ public final class Commands {
 	}
 
 	@Cmd
-	public void command(CommandSender sender) {
+	public void command(@NotNull CommandSender sender) {
 		boolean beHonest = sender.hasPermission("darkyenuscommand.command.command.all");
 		if (beHonest) {
 			// Show plugins
@@ -347,7 +353,8 @@ public final class Commands {
 			ArrayList<String> availableCommands = new ArrayList<>();
 			for (org.bukkit.plugin.Plugin plugin : getServer().getPluginManager().getPlugins()) {
 				for (String maybeAvailableCommand : plugin.getDescription().getCommands().keySet()) {
-					if (Bukkit.getPluginCommand(maybeAvailableCommand).testPermissionSilent(sender)) {
+					final PluginCommand command = Bukkit.getPluginCommand(maybeAvailableCommand);
+					if (command != null && command.testPermissionSilent(sender)) {
 						availableCommands.add(maybeAvailableCommand);
 					}
 				}
@@ -358,7 +365,7 @@ public final class Commands {
 	}
 
 	@Cmd
-	public void command(CommandSender sender, @Cmd.UseDefault String pluginOrCommandName) {
+	public void command(@NotNull CommandSender sender, @Cmd.UseDefault String pluginOrCommandName) {
 		boolean beHonest = sender.hasPermission("darkyenuscommand.command.command.all");
 		boolean outputDone = false;
 		org.bukkit.plugin.Plugin pluginOfThatName = getServer().getPluginManager().getPlugin(pluginOrCommandName);
@@ -369,8 +376,10 @@ public final class Commands {
 					+ " " + ChatColor.ITALIC + pluginOfThatName.getDescription().getVersion());
 			Set<String> strings = pluginOfThatName.getDescription().getCommands().keySet();
 			if (!beHonest) {
-				strings.removeIf(commandThatMayNeedToBeHidden -> !Bukkit.getPluginCommand(commandThatMayNeedToBeHidden)
-						.testPermissionSilent(sender));
+				strings.removeIf(commandThatMayNeedToBeHidden -> {
+					final PluginCommand command = Bukkit.getPluginCommand(commandThatMayNeedToBeHidden);
+					return command == null || !command.testPermissionSilent(sender);
+				});
 			}
 			sender.sendMessage(ChatColor.BLUE + " Commands: " + ChatColor.YELLOW + ChatColor.ITALIC
 					+ String.join(", ", strings));
@@ -410,7 +419,7 @@ public final class Commands {
 	}
 
 	@Cmd
-	public void playerFace(Player sender, PlayerFaceMode mode) {
+	public void playerFace(@NotNull Player sender, @NotNull PlayerFaceMode mode) {
 		final Location location = sender.getLocation();
 
 		switch (mode) {
@@ -453,7 +462,7 @@ public final class Commands {
 	}
 
 	@Cmd("server-stats")
-	public void serverStats(CommandSender sender) {
+	public void serverStats(@NotNull CommandSender sender) {
 		final Runtime runtime = Runtime.getRuntime();
 		sender.sendMessage(ChatColor.BLUE + "OS: " + ChatColor.WHITE + System
 				.getProperty("os.name") + " (" + System.getProperty("os.arch") + ") on " + runtime
@@ -484,7 +493,7 @@ public final class Commands {
 		sender.sendMessage(ChatColor.BLUE + "Total Space: " + ChatColor.WHITE + formatBytes(totalSpace));
 	}
 
-
+	@NotNull
 	private static String formatBytes(long bytes) {
 		if (bytes < 1024) {
 			return bytes+" B";

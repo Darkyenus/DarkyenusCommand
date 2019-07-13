@@ -9,7 +9,6 @@ import org.bukkit.Tag;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.Entity;
@@ -32,11 +31,13 @@ final class PluginListener implements Listener {
 	@EventHandler(ignoreCancelled = true)
 	public void commandSigns (PlayerInteractEvent ev) {
 		if (ev.getHand() != EquipmentSlot.HAND) return;
-		if ((ev.getAction() == Action.LEFT_CLICK_BLOCK || ev.getAction() == Action.RIGHT_CLICK_BLOCK)// Is clicking block
-			&& (Tag.SIGNS.isTagged(ev.getClickedBlock().getType()))// Is the block a sign
+		final Block clickedBlock = ev.getClickedBlock();
+
+		if (clickedBlock != null && (ev.getAction() == Action.LEFT_CLICK_BLOCK || ev.getAction() == Action.RIGHT_CLICK_BLOCK)// Is clicking block
+			&& (Tag.SIGNS.isTagged(clickedBlock.getType()))// Is the block a sign
 			&& ev.getPlayer().hasPermission("darkyenuscommand.sign")// Has permission?
-			&& !ev.isCancelled() && !ev.getPlayer().isSneaking()) {// Is not already cancelled && classic sneak check
-			Sign sign = (Sign)ev.getClickedBlock().getState();
+			&& ev.useInteractedBlock() != Event.Result.DENY && !ev.getPlayer().isSneaking()) {// Is not already cancelled && classic sneak check
+			Sign sign = (Sign) clickedBlock.getState();
 			StringBuilder signTextBuilder = new StringBuilder();
 			for (String line : sign.getLines()) {
 				signTextBuilder.append(line);
@@ -47,39 +48,36 @@ final class PluginListener implements Listener {
 				ev.setCancelled(true);
 				ev.setUseInteractedBlock(Event.Result.DENY);
 				ev.setUseInteractedBlock(Event.Result.DENY);
-				try {
-					BlockState state = ev.getClickedBlock().getState();
-					if (state != null) {
-						state.update();
-					}
-				} catch (NullPointerException ignored) {
-				}
+				clickedBlock.getState().update();
 				// Perform command and, if success, make fire dance
 				if (ev.getPlayer().performCommand(signText.trim().substring(2))) {
-					ev.getPlayer().getWorld().playEffect(ev.getClickedBlock().getLocation().add(0.5, 0.5, 0.5), Effect.SMOKE, 4);
+					ev.getPlayer().getWorld().playEffect(clickedBlock.getLocation().add(0.5, 0.5, 0.5), Effect.SMOKE, 4);
 				}
 			}
 		}
 
-		if (ev.getAction() == Action.RIGHT_CLICK_BLOCK && ev.getPlayer().hasPermission("darkyenuscommand.infostick")
-			&& ev.getPlayer().getInventory().getItemInMainHand().getType() == Material.STICK) {
+		if (clickedBlock != null
+				&& ev.getAction() == Action.RIGHT_CLICK_BLOCK
+				&& ev.getPlayer().hasPermission("darkyenuscommand.infostick")
+				&& ev.getPlayer().getInventory().getItemInMainHand().getType() == Material.STICK) {
 			// Infostick time!
-			Block clicked = ev.getClickedBlock();
 			Player player = ev.getPlayer();
 			player.sendMessage(ChatColor.BLUE.toString() + ChatColor.BOLD + "Infostick report on block at X: "
-				+ clicked.getLocation().getBlockX() + " Y: " + clicked.getLocation().getBlockY() + " Z: "
-				+ clicked.getLocation().getBlockZ());
+				+ clickedBlock.getLocation().getBlockX() + " Y: " + clickedBlock.getLocation().getBlockY() + " Z: "
+				+ clickedBlock.getLocation().getBlockZ());
 			player.sendMessage(ChatColor.BLUE.toString() + " Material: " + ChatColor.WHITE + ChatColor.ITALIC
-				+ clicked.getBlockData().getAsString());
-			player.sendMessage(ChatColor.BLUE.toString() + " Biome: " + ChatColor.WHITE + ChatColor.ITALIC + clicked.getBiome()
-				+ " (Temperature: " + clicked.getTemperature() + " Humidity:" + clicked.getHumidity() + ")");
+				+ clickedBlock.getBlockData().getAsString());
+			player.sendMessage(ChatColor.BLUE.toString() + " Biome: " + ChatColor.WHITE + ChatColor.ITALIC + clickedBlock
+					.getBiome()
+				+ " (Temperature: " + clickedBlock.getTemperature() + " Humidity:" + clickedBlock.getHumidity() + ")");
 			player.sendMessage(ChatColor.BLUE.toString() + " Redstone power: " + ChatColor.WHITE + ChatColor.ITALIC
-				+ clicked.getBlockPower() + " (D" + clicked.getBlockPower(BlockFace.DOWN) + " U"
-				+ clicked.getBlockPower(BlockFace.UP) + " N" + clicked.getBlockPower(BlockFace.NORTH) + " S"
-				+ clicked.getBlockPower(BlockFace.SOUTH) + " W" + clicked.getBlockPower(BlockFace.WEST) + " E"
-				+ clicked.getBlockPower(BlockFace.EAST) + ")");
+				+ clickedBlock.getBlockPower() + " (D" + clickedBlock.getBlockPower(BlockFace.DOWN) + " U"
+				+ clickedBlock.getBlockPower(BlockFace.UP) + " N" + clickedBlock.getBlockPower(BlockFace.NORTH) + " S"
+				+ clickedBlock.getBlockPower(BlockFace.SOUTH) + " W" + clickedBlock.getBlockPower(BlockFace.WEST) + " E"
+				+ clickedBlock.getBlockPower(BlockFace.EAST) + ")");
 			player.sendMessage(ChatColor.BLUE.toString() + " Light: " + ChatColor.WHITE + ChatColor.ITALIC
-				+ clicked.getLightLevel() + " (Sky: " + clicked.getLightFromSky() + " Blocks: " + clicked.getLightFromBlocks()
+				+ clickedBlock.getLightLevel() + " (Sky: " + clickedBlock.getLightFromSky() + " Blocks: " + clickedBlock
+					.getLightFromBlocks()
 				+ ")");
 		}
 	}
@@ -140,7 +138,7 @@ final class PluginListener implements Listener {
 				|| damager.getGameMode() != GameMode.CREATIVE
 				|| !damager.hasPermission("darkyenuscommand.godfist")) return;
 		final ItemStack held = damager.getInventory().getItemInMainHand();
-		if (held == null || held.getType() == Material.AIR) {
+		if (held.getType() == Material.AIR) {
 			event.setDamage(Integer.MAX_VALUE);
 			damager.playEffect(event.getEntity().getLocation(), Effect.EXTINGUISH, null);
 		}

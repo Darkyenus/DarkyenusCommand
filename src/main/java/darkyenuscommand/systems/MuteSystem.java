@@ -8,6 +8,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -22,14 +23,14 @@ public final class MuteSystem implements Listener {
 	private final Map<UUID, Long> muteTimer = Collections.synchronizedMap(new HashMap<>());
 
 	@Cmd
-	public void mute(CommandSender sender, Player player, @Cmd.UseDefault int minutes) {
+	public void mute(@NotNull CommandSender sender, @NotNull Player player, @Cmd.UseDefault int minutes) {
 		final long timeMs = minutes <= 0 ? Long.MAX_VALUE : System.currentTimeMillis() + 60000 * minutes;
 		muteTimer.put(player.getUniqueId(), timeMs);
 		sender.sendMessage(ChatColor.GREEN + "Player " + player.getName() + " muted.");
 	}
 
 	@Cmd
-	public void unMute(CommandSender sender, Player player) {
+	public void unMute(@NotNull CommandSender sender, @NotNull Player player) {
 		if (muteTimer.remove(player.getUniqueId()) != null) {
 			sender.sendMessage(ChatColor.GREEN + "Player " + player.getName() + " unmuted.");
 		} else {
@@ -37,7 +38,7 @@ public final class MuteSystem implements Listener {
 		}
 	}
 
-	public boolean isMuted (UUID name) {
+	public boolean isMuted (@NotNull UUID name) {
 		final Long mutedUntil = muteTimer.get(name);
 		if (mutedUntil == null) {
 			return false;
@@ -46,7 +47,7 @@ public final class MuteSystem implements Listener {
 	}
 
 	@EventHandler(priority = EventPriority.LOW)
-	public void stopTheMutedOnes (AsyncPlayerChatEvent event) {// Not called for commands
+	public void stopTheMutedOnes (@NotNull AsyncPlayerChatEvent event) {// Not called for commands
 		if (isMuted(event.getPlayer().getUniqueId())) {
 			event.setCancelled(true);
 			event.getPlayer().sendMessage(ChatColor.RED + "You are muted!");

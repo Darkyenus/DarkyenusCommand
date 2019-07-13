@@ -14,6 +14,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -39,7 +40,7 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 
 	private final CommandMethod[] methods;
 
-	private CommandProcessor(Object instance, ArrayList<Method> methods) {
+	private CommandProcessor(@NotNull Object instance, @NotNull ArrayList<Method> methods) {
 		final CommandMethod[] commandMethods = new CommandMethod[methods.size()];
 		for (int i = 0; i < methods.size(); i++) {
 			final Method method = methods.get(i);
@@ -114,7 +115,8 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 		return sortedCompletions;
 	}
 
-	private String createUsageString(String name) {
+	@NotNull
+	private String createUsageString(@NotNull String name) {
 		final StringBuilder sb = new StringBuilder();
 		for (CommandMethod method : methods) {
 			if (sb.length() != 0) {
@@ -135,14 +137,14 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 		return sb.toString();
 	}
 
-	public static void registerCommandsAndEvents(JavaPlugin plugin, Object commandHolder) {
+	public static void registerCommandsAndEvents(@NotNull JavaPlugin plugin, @NotNull Object commandHolder) {
 		if (commandHolder instanceof Listener) {
 			plugin.getServer().getPluginManager().registerEvents((Listener) commandHolder, plugin);
 		}
 		registerCommands(plugin, commandHolder.getClass(), commandHolder);
 	}
 
-	public static void registerCommands(JavaPlugin plugin, Class<?> commandHolderClass, Object commandHolder) {
+	public static void registerCommands(@NotNull JavaPlugin plugin, @NotNull Class<?> commandHolderClass, @NotNull Object commandHolder) {
 		final HashMap<PluginCommand, ArrayList<Method>> foundCommands = new HashMap<>();
 
 		for (Method method : commandHolderClass.getDeclaredMethods()) {
@@ -185,7 +187,8 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 		});
 	}
 
-	private static Argument createMatcher(String symbol, Class<?> type) {
+	@NotNull
+	private static Argument createMatcher(@NotNull String symbol, @NotNull Class<?> type) {
 		if (String.class.equals(type)) {
 			return new StringArgument(symbol);
 		} else if (Integer.TYPE.equals(type)) {
@@ -207,7 +210,8 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 		throw new IllegalArgumentException("Argument matcher for "+type+" is not implemented");
 	}
 
-	private static <T> Argument<T> wrapMatcherWithPrefix(Argument<T> matcher, String prefix) {
+	@NotNull
+	private static <T> Argument<T> wrapMatcherWithPrefix(@NotNull Argument<T> matcher, @NotNull String prefix) {
 		return new Argument<T>(matcher.symbol, matcher.type) {
 			@NotNull
 			@Override
@@ -232,7 +236,8 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 		};
 	}
 
-	private static <T> Argument<T> wrapMatcherWithVarArg(Argument<T> matcher, String separator) {
+	@NotNull
+	private static <T> Argument<T> wrapMatcherWithVarArg(@NotNull Argument<T> matcher, @NotNull String separator) {
 		return new Argument<T>(matcher.symbol, matcher.type) {
 			@NotNull
 			@Override
@@ -255,7 +260,8 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 		};
 	}
 
-	private static <T> Argument<T> wrapMatcherWithDefault(Argument<T> matcher) {
+	@NotNull
+	private static <T> Argument<T> wrapMatcherWithDefault(@NotNull Argument<T> matcher) {
 		return new Argument<T>(matcher.symbol, matcher.type) {
 			@SuppressWarnings("unchecked")
 			@NotNull
@@ -313,7 +319,8 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 		});
 	}
 
-	private static <T> Argument<T> wrapMatcherWithImplicit(Argument<T> matcher) {
+	@NotNull
+	private static <T> Argument<T> wrapMatcherWithImplicit(@NotNull Argument<T> matcher) {
 		final Function<CommandSender, ?> implicitGenerator = IMPLICIT_GENERATORS.get(matcher.type);
 		if (implicitGenerator == null) {
 			throw new IllegalArgumentException("No implicit generator available for "+matcher.type);
@@ -425,6 +432,7 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 
 		public abstract void suggest(@NotNull CommandSender sender, @NotNull Consumer<String> suggestionConsumer);
 
+		@NotNull
 		protected Match<T> missing() {
 			return Match.failure("Missing parameter " + symbol);
 		}
@@ -433,13 +441,16 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 	private static final class CommandMethod {
 
 		private final boolean needsPlayerSender;
+		@NotNull
 		private final Method method;
+		@Nullable
 		private final Object instance;
+		@NotNull
 		private final Argument[] arguments;
-
+		@NotNull
 		public final String usageArguments;
 
-		private CommandMethod(boolean needsPlayerSender, Object instance, @NotNull Method method, @NotNull Argument[] arguments) {
+		private CommandMethod(boolean needsPlayerSender, @NotNull Object instance, @NotNull Method method, @NotNull Argument[] arguments) {
 			this.needsPlayerSender = needsPlayerSender;
 			this.instance = Modifier.isStatic(method.getModifiers()) ? null : instance;
 			this.method = method;
@@ -457,18 +468,21 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 		}
 
 		public static final class ArgumentBinding {
+			@NotNull
 			final Object[] arguments;
 			final int matched;
+			@Nullable
 			final String error;
 
-			public ArgumentBinding(Object[] arguments, int matched, String error) {
+			public ArgumentBinding(@NotNull Object[] arguments, int matched, @Nullable String error) {
 				this.arguments = arguments;
 				this.matched = matched;
 				this.error = error;
 			}
 		}
 
-		private ArgumentBinding createArgumentBinding(CommandSender sender, String[] args) {
+		@NotNull
+		private ArgumentBinding createArgumentBinding(@NotNull CommandSender sender, @NotNull String[] args) {
 			int methodArgIndex = 1;
 			final Object[] methodArgs = new Object[methodArgIndex + arguments.length];
 			methodArgs[0] = sender;
@@ -493,7 +507,7 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 			return new ArgumentBinding(methodArgs, methodArgIndex, null);
 		}
 
-		private void tabCompleteArgument(CommandSender sender, String[] args, Consumer<StringWithScore> suggestionConsumer) {
+		private void tabCompleteArgument(@NotNull CommandSender sender, @NotNull String[] args, @NotNull Consumer<StringWithScore> suggestionConsumer) {
 			final Parameters params = new Parameters(args, 0, args.length);
 			for (Argument<?> argument : arguments) {
 				if (params.remaining() <= 1) {
@@ -522,11 +536,12 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 	}
 
 	private static final class StringWithScore implements Comparable<StringWithScore> {
+		@NotNull
 		public final String value;
 		/** Less is better. */
 		public final int score;
 
-		private StringWithScore(String value, int score) {
+		private StringWithScore(@NotNull String value, int score) {
 			this.value = value;
 			this.score = score;
 		}

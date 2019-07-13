@@ -4,6 +4,7 @@ import darkyenuscommand.command.CommandProcessor;
 import darkyenuscommand.match.Match;
 import darkyenuscommand.match.MatchUtils;
 import darkyenuscommand.util.Parameters;
+import darkyenuscommand.util.UUIDUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -12,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 /**
@@ -42,17 +44,34 @@ public final class OfflinePlayerArgument extends CommandProcessor.Argument<Offli
 		suggestOfflinePlayers(Bukkit.getOfflinePlayers(), suggestionConsumer);
 	}
 
-	private static boolean allHaveSameName(OfflinePlayer[] players) {
+	private static boolean allHaveSameName(@NotNull OfflinePlayer[] players) {
 		if (players.length <= 1) return true;
-		final String name = players[0].getName();
+		final OfflinePlayer firstPlayer = players[0];
+		final String name = firstPlayer.getName();
 		for (int i = 1; i < players.length; i++) {
-			if (!players[i].getName().equalsIgnoreCase(name)) return false;
+			final OfflinePlayer otherPlayer = players[i];
+			if (firstPlayer.equals(otherPlayer)) {
+				continue;
+			}
+			final String otherName = otherPlayer.getName();
+			if (otherName == null || !otherName.equalsIgnoreCase(name)) return false;
 		}
 		return true;
 	}
 
+	@NotNull
+	public static Match<OfflinePlayer> matchOfflinePlayer(@NotNull OfflinePlayer[] players, @NotNull String from) {
+		{
+			final UUID playerUUID = UUIDUtil.parseUUID(from);
+			if (playerUUID != null) {
+				for (OfflinePlayer player : players) {
+					if (playerUUID.equals(player.getUniqueId())) {
+						return Match.success(player);
+					}
+				}
+			}
+		}
 
-	public static Match<OfflinePlayer> matchOfflinePlayer(OfflinePlayer[] players, String from) {
 		//There can be two players with same name. We prefer that one which is online/played last.
 		//However, others can be specified with ~[num] syntax, to select a different one
 		int index = -1;
@@ -72,7 +91,10 @@ public final class OfflinePlayerArgument extends CommandProcessor.Argument<Offli
 			}
 		}
 
-		final Match<OfflinePlayer> match = MatchUtils.match("Player", players, offPlayer -> offPlayer.getName().toLowerCase(), from.toLowerCase());
+		final Match<OfflinePlayer> match = MatchUtils.match("Player", players, offPlayer -> {
+			final String name = offPlayer.getName();
+			return name == null ? offPlayer.getUniqueId().toString() : name.toLowerCase();
+		}, from.toLowerCase());
 		if (match.success()) {
 			return match;
 		}
@@ -105,6 +127,7 @@ public final class OfflinePlayerArgument extends CommandProcessor.Argument<Offli
 		}
 	}
 
+	@NotNull
 	public static String matchPlayerFail(@NotNull final OfflinePlayer[] suggestions){
 		if(suggestions.length == 0){
 			return ChatColor.RED+"Player not found";

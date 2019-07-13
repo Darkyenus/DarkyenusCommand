@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -21,12 +22,12 @@ public final class ReportSystem {
 
 	private final List<String> reports;
 
-	public ReportSystem(List<String> reports) {
+	public ReportSystem(@NotNull List<String> reports) {
 		this.reports = reports;
 	}
 
 	@Cmd
-	public void report(CommandSender sender, @Cmd.VarArg String problemDescription) {
+	public void report(@NotNull CommandSender sender, @NotNull @Cmd.VarArg String problemDescription) {
 		sender.sendMessage(ChatColor.GREEN + "Thank you for your report, administrator will review it as soon as possible");
 		reports.add(sender.getName() + ": " + problemDescription);
 		getServer().broadcast(ChatColor.BLUE + "New report from " + sender.getName(), "darkyenuscommand.command.viewreport");
@@ -39,7 +40,7 @@ public final class ReportSystem {
 	}
 
 	@Cmd(value = "view-report", order = 0)
-	public void viewReport(CommandSender sender, @Cmd.OneOf("ADD") ViewReportMode mode, @Cmd.VarArg @Cmd.UseDefault String message) {
+	public void viewReport(@NotNull CommandSender sender, @Cmd.OneOf("ADD") ViewReportMode mode, @Cmd.VarArg @Cmd.UseDefault String message) {
 		if (message == null || message.isEmpty()) {
 			sender.sendMessage(ChatColor.RED + "Specify message to report");
 		} else {
@@ -49,7 +50,7 @@ public final class ReportSystem {
 	}
 
 	@Cmd(value = "view-report", order = 1)
-	public void viewReport(CommandSender sender, @Cmd.OneOf("REMOVE") ViewReportMode mode, @Cmd.UseDefault int index, @Cmd.UseDefault int expectedHash, @Cmd.UseDefault int thenShowIndex) {
+	public void viewReport(@NotNull CommandSender sender, @Cmd.OneOf("REMOVE") ViewReportMode mode, @Cmd.UseDefault int index, @Cmd.UseDefault int expectedHash, @Cmd.UseDefault int thenShowIndex) {
 		if (index < 0 || index >= reports.size()) {
 			sender.sendMessage(ChatColor.RED + "Specify valid index of message to remove");
 			return;
@@ -68,7 +69,7 @@ public final class ReportSystem {
 	}
 
 	@Cmd(value = "view-report", order = 2)
-	public void viewReport(CommandSender sender, @Cmd.UseDefault int showReport) {
+	public void viewReport(@NotNull CommandSender sender, @Cmd.UseDefault int showReport) {
 		if (reports.isEmpty()) {
 			sender.sendMessage(ChatColor.AQUA + "There are no reports");
 			return;
@@ -116,7 +117,7 @@ public final class ReportSystem {
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR)
-	public void informAboutReportsOnJoin (PlayerJoinEvent ev) {
+	public void informAboutReportsOnJoin (@NotNull PlayerJoinEvent ev) {
 		if (ev.getPlayer().hasPermission("darkyenuscommand.staff")) {
 			if (!reports.isEmpty()) {
 				if (reports.size() == 1) {

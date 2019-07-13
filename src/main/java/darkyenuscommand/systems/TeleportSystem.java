@@ -11,6 +11,7 @@ import org.bukkit.entity.Animals;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -27,24 +28,24 @@ public final class TeleportSystem {
 	private final StackMap<UUID, Location> recalls = new StackMap<>(32);//32 recalls stored
 
 	@Cmd
-	public void teleportHere(Player sender, Player playerToTeleport) {
+	public void teleportHere(@NotNull Player sender, @NotNull Player playerToTeleport) {
 		teleportPlayer(playerToTeleport, sender.getLocation(), true);
 	}
 
 	@Cmd
-	public void teleportTo(Player sender, Player playerToTeleportTo) {
+	public void teleportTo(@NotNull Player sender, @NotNull Player playerToTeleportTo) {
 		teleportPlayer(sender, playerToTeleportTo.getLocation(), true);
 	}
 
 	@Cmd
-	public void teleportHereAll(Player sender) {
+	public void teleportHereAll(@NotNull Player sender) {
 		for (Player player : getServer().getOnlinePlayers()) {
 			if (player != sender) teleportPlayer(player, sender.getLocation(), true);
 		}
 	}
 
 	@Cmd(value = "teleport", order = 0, description = "relative teleport")
-	public void teleportRelative(CommandSender sender, @Cmd.Prefix("+") double x, @Cmd.Prefix("+") double y, @Cmd.Prefix("+") double z, @Cmd.UseImplicit Player player) {
+	public void teleportRelative(@NotNull CommandSender sender, @Cmd.Prefix("+") double x, @Cmd.Prefix("+") double y, @Cmd.Prefix("+") double z, @Cmd.UseImplicit Player player) {
 		final Location to = player.getLocation().clone();
 		to.setX(to.getX() + x);
 		to.setY(to.getY() + y);
@@ -53,7 +54,7 @@ public final class TeleportSystem {
 	}
 
 	@Cmd(value = "teleport", order = 1, description = "absolute teleport")
-	public void teleportAbsolute(CommandSender sender, double x, double y, double z, @Cmd.UseImplicit Player player) {
+	public void teleportAbsolute(@NotNull CommandSender sender, double x, double y, double z, @Cmd.UseImplicit Player player) {
 		final Location to = player.getLocation().clone();
 		to.setX(x);
 		to.setY(y);
@@ -69,7 +70,7 @@ public final class TeleportSystem {
 	}
 
 	@Cmd(value = "teleport", order = 2, description = "directional teleport")
-	public void teleportDirection(CommandSender sender, TeleportDirection direction, @Cmd.UseImplicit Player player) {
+	public void teleportDirection(@NotNull CommandSender sender, TeleportDirection direction, @Cmd.UseImplicit Player player) {
 		int x = player.getLocation().getBlockX();
 		int z = player.getLocation().getBlockZ();
 		int nowY = player.getLocation().getBlockY();
@@ -120,7 +121,7 @@ public final class TeleportSystem {
 	}
 
 	@Cmd
-	public void recall(CommandSender sender, @Cmd.UseImplicit Player playerToRecall) {
+	public void recall(@NotNull CommandSender sender, @Cmd.UseImplicit Player playerToRecall) {
 		final Location recallTo = recalls.popOrNull(playerToRecall.getUniqueId());
 		if (recallTo == null) {
 			sender.sendMessage(ChatColor.RED + "Nowhere to recall");
@@ -130,7 +131,7 @@ public final class TeleportSystem {
 	}
 
 	@Cmd
-	public void setSpawn(Player sender) {
+	public void setSpawn(@NotNull Player sender) {
 		final Location location = sender.getLocation();
 		if (sender.getWorld()
 				.setSpawnLocation(location.getBlockX(), location.getBlockY(), location.getBlockZ())) {
@@ -141,7 +142,7 @@ public final class TeleportSystem {
 	}
 
 	@Cmd
-	public void spawn(Player sender) {
+	public void spawn(@NotNull Player sender) {
 		teleportPlayer(sender, sender.getWorld().getSpawnLocation(), true);
 
 		sender.sendMessage(ChatColor.GREEN + "Teleported to spawn");
@@ -168,7 +169,8 @@ public final class TeleportSystem {
 	}
 
 	private static String formatLocation (Location location) {
-		return location.getWorld().getName() + " " + location.getBlockX() + " " + location.getBlockY() + " " + location.getBlockZ();
+		final World world = location.getWorld();
+		return (world == null ? "<unknown-world>" : world.getName()) + " " + location.getBlockX() + " " + location.getBlockY() + " " + location.getBlockZ();
 	}
 
 

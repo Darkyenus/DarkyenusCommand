@@ -83,7 +83,7 @@ public final class ItemSystem {
 	@Cmd
 	public void repair(CommandSender sender, @Cmd.UseImplicit Player player) {
 		final ItemStack itemStackToFix = player.getInventory().getItemInMainHand();
-		if (itemStackToFix == null || itemStackToFix.getType() == Material.AIR) {
+		if (itemStackToFix.getType() == Material.AIR) {
 			sender.sendMessage(ChatColor.RED.toString() + "Not holding anything");
 			return;
 		}

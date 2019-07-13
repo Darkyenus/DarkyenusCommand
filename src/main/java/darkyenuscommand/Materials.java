@@ -1,7 +1,6 @@
 package darkyenuscommand;
 
 import org.bukkit.Material;
-import org.bukkit.Tag;
 
 import java.util.EnumSet;
 

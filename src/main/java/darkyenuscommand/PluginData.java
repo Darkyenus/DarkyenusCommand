@@ -7,6 +7,7 @@ import darkyenuscommand.util.ComplexKeyMap;
 import darkyenuscommand.util.StringMap;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -63,7 +64,8 @@ public final class PluginData {
 			@Override
 			public void write(Json json, Location object, Class knownType) {
 				json.writeObjectStart();
-				json.writeValue("world", object.getWorld().getName());
+				final World world = object.getWorld();
+				json.writeValue("world", world == null ? null : world.getName());
 				json.writeValue("x", object.getBlockX());
 				json.writeValue("y", object.getBlockY());
 				json.writeValue("z", object.getBlockZ());
@@ -74,13 +76,14 @@ public final class PluginData {
 
 			@Override
 			public Location read(Json json, JsonValue jsonData, Class type) {
-				final String world = jsonData.getString("world");
+				final String worldString = jsonData.getString("world");
 				final int x = jsonData.getInt("x");
 				final int y = jsonData.getInt("y");
 				final int z = jsonData.getInt("z");
 				final int yaw = jsonData.getInt("yaw");
 				final int pitch = jsonData.getInt("pitch");
-				return new Location(Bukkit.getWorld(world), x, y, z, yaw, pitch);
+				final World world = worldString == null ? Bukkit.getWorlds().get(0) : Bukkit.getWorld(worldString);
+				return new Location(world, x, y, z, yaw, pitch);
 			}
 		});
 		JSON.setSerializer(UUID.class, new JsonSerializer<UUID>() {

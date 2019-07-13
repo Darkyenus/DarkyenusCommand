@@ -1,5 +1,8 @@
 package darkyenuscommand.match;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,12 +13,15 @@ import java.util.Map;
  */
 public final class EnumMatcher<E extends Enum<E>> {
 
+	@NotNull
 	private final String noun;
+	@Nullable
 	private final Class<E> enumClass;
+	@NotNull
 	private final EnumPair<E>[] values;
 
 	@SuppressWarnings("unchecked")
-	public EnumMatcher(String noun, E[] values) {
+	public EnumMatcher(@NotNull String noun, @NotNull E @Nullable[] values) {
 		this.noun = noun;
 
 		if (values == null || values.length == 0) {
@@ -47,16 +53,17 @@ public final class EnumMatcher<E extends Enum<E>> {
 	}
 
 	private static final class EnumPair<E extends Enum<E>> {
-		public final String name;
-		public final E value;
+		public final @NotNull String name;
+		public final @NotNull E value;
 
-		EnumPair(String name, E value) {
+		EnumPair(@NotNull String name, @NotNull E value) {
 			this.name = name;
 			this.value = value;
 		}
 	}
 
-	private String simplify(String string) {
+	@NotNull
+	private String simplify(@NotNull String string) {
 		StringBuilder fromBuilder = new StringBuilder(string.length());
 		for (char character : string.toCharArray()) {
 			if (Character.isLetterOrDigit(character)) {
@@ -66,7 +73,8 @@ public final class EnumMatcher<E extends Enum<E>> {
 		return fromBuilder.toString();
 	}
 
-	public Match<E> match(String searched) {
+	@NotNull
+	public Match<E> match(@NotNull String searched) {
 		final Match<EnumPair<E>> resultMatch = MatchUtils.match(noun, values, e -> e.name, simplify(searched));
 		return resultMatch.map(enumClass, pair -> pair.value, Enum::toString);
 	}
@@ -74,7 +82,8 @@ public final class EnumMatcher<E extends Enum<E>> {
 	private static final Map<Class<?>, EnumMatcher<?>> MATCHER_CACHE = new HashMap<>();
 
 	@SuppressWarnings("unchecked")
-	private static <E extends Enum<E>> EnumMatcher<E> matcher (Class<E> type) {
+	@NotNull
+	private static <E extends Enum<E>> EnumMatcher<E> matcher (@NotNull Class<E> type) {
 		final EnumMatcher<?> existing = MATCHER_CACHE.get(type);
 		if (existing != null) return (EnumMatcher<E>)existing;
 
@@ -84,7 +93,8 @@ public final class EnumMatcher<E extends Enum<E>> {
 		return newMatcher;
 	}
 
-	public static <E extends Enum<E>> Match<E> match(Class<E> type, String searched) {
+	@NotNull
+	public static <E extends Enum<E>> Match<E> match(@NotNull Class<E> type, @NotNull String searched) {
 		final EnumMatcher<E> matcher = matcher(type);
 		return matcher.match(searched);
 	}

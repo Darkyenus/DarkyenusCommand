@@ -31,11 +31,8 @@ val darkyenusCommand by project(Archetypes.JavaProject) {
 		//<"morning"|"day"|"afternoon"|"evening" | "dusk" | "night" | "dawn">
 	}
 
-	extend(compiling) {
-		libraryDependencies add { dependency("org.jetbrains", "annotations", "16.0.2") }
-		libraryDependencies add { dependency("org.spigotmc", "spigot-api", "1.14.2-R0.1-SNAPSHOT") }
-	}
-
+	libraryDependencies add { dependency("org.jetbrains", "annotations", "16.0.2", scope="provided") }
+	libraryDependencies add { dependency("org.spigotmc", "spigot-api", "1.14.2-R0.1-SNAPSHOT", scope="provided") }
 	libraryDependencies add { dependency("com.github.EsotericSoftware", "jsonbeans", "7306654ed3") }
 
 	assembly modify { assembled ->

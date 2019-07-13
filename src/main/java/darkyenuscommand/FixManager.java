@@ -3,7 +3,13 @@ package darkyenuscommand;
 
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
-import org.bukkit.*;
+import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Server;
+import org.bukkit.Tag;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Creeper;
 import org.bukkit.entity.EntityType;
@@ -16,14 +22,21 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
-import org.bukkit.event.player.*;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerBedEnterEvent;
+import org.bukkit.event.player.PlayerGameModeChangeEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapedRecipe;
-import org.bukkit.material.Dye;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -58,18 +71,18 @@ final class FixManager {
 		}
 		if (config.recordRecipe) {
 			try {
-				addRecordRecipe(server, Material.MUSIC_DISC_13, DyeColor.YELLOW);// 13
-				addRecordRecipe(server, Material.MUSIC_DISC_CAT, DyeColor.GREEN);// cat
-				addRecordRecipe(server, Material.MUSIC_DISC_BLOCKS, DyeColor.ORANGE);// blocks
-				addRecordRecipe(server, Material.MUSIC_DISC_CHIRP, DyeColor.RED);// chirp
-				addRecordRecipe(server, Material.MUSIC_DISC_FAR, DyeColor.LIME);// far
-				addRecordRecipe(server, Material.MUSIC_DISC_MALL, DyeColor.LIGHT_BLUE);// mall
-				addRecordRecipe(server, Material.MUSIC_DISC_MELLOHI, DyeColor.MAGENTA);// mellohi
-				addRecordRecipe(server, Material.MUSIC_DISC_STAL, DyeColor.BLACK);// stal
-				addRecordRecipe(server, Material.MUSIC_DISC_STRAD, DyeColor.WHITE);// strad
-				addRecordRecipe(server, Material.MUSIC_DISC_WARD, DyeColor.CYAN);// ward
-				addRecordRecipe(server, Material.MUSIC_DISC_11, DyeColor.GRAY);// 11
-				addRecordRecipe(server, Material.MUSIC_DISC_WAIT, DyeColor.BLUE);// wait
+				addRecordRecipe(server, Material.MUSIC_DISC_13, Material.YELLOW_DYE);// 13
+				addRecordRecipe(server, Material.MUSIC_DISC_CAT, Material.GREEN_DYE);// cat
+				addRecordRecipe(server, Material.MUSIC_DISC_BLOCKS, Material.ORANGE_DYE);// blocks
+				addRecordRecipe(server, Material.MUSIC_DISC_CHIRP, Material.RED_DYE);// chirp
+				addRecordRecipe(server, Material.MUSIC_DISC_FAR, Material.LIME_DYE);// far
+				addRecordRecipe(server, Material.MUSIC_DISC_MALL, Material.LIGHT_BLUE_DYE);// mall
+				addRecordRecipe(server, Material.MUSIC_DISC_MELLOHI, Material.MAGENTA_DYE);// mellohi
+				addRecordRecipe(server, Material.MUSIC_DISC_STAL, Material.BLACK_DYE);// stal
+				addRecordRecipe(server, Material.MUSIC_DISC_STRAD, Material.WHITE_DYE);// strad
+				addRecordRecipe(server, Material.MUSIC_DISC_WARD, Material.CYAN_DYE);// ward
+				addRecordRecipe(server, Material.MUSIC_DISC_11, Material.GRAY_DYE);// 11
+				addRecordRecipe(server, Material.MUSIC_DISC_WAIT, Material.BLUE_DYE);// wait
 			} catch (Exception e) {
 				LOG.log(Level.WARNING, "Could not activate record crafting", e);
 			}
@@ -116,12 +129,11 @@ final class FixManager {
 		}
 	}
 
-	private static void addRecordRecipe (Server server, Material record, DyeColor dye) {
+	private static void addRecordRecipe (Server server, Material record, Material dye) {
 		ShapedRecipe recipe = new ShapedRecipe(new NamespacedKey(plugin, "record_"+record), new ItemStack(record));
 		recipe.shape(" c ", "cdc", " c ");
 		recipe.setIngredient('c', Material.COAL_BLOCK);
-		Dye dyeToUse = new Dye(dye);
-		recipe.setIngredient('d', dyeToUse);
+		recipe.setIngredient('d', dye);
 
 		if (!server.addRecipe(recipe)) {
 			LOG.log(Level.WARNING, "Could not add recipe for " + record);
@@ -194,17 +206,20 @@ final class FixManager {
 		@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
 		public void onBonemealUse (PlayerInteractEvent event) {
 			if (event.getHand() != EquipmentSlot.HAND) return;
-			if (event.getMaterial() == Material.BONE_MEAL) {
-				if (event.getClickedBlock().getType() == Material.DIRT) {
-					event.getClickedBlock().setType(Material.GRASS);
+
+			final ItemStack bonemealItemStack = event.getItem();
+			if (bonemealItemStack != null && bonemealItemStack.getType() == Material.BONE_MEAL) {
+				final Block clickedBlock = event.getClickedBlock();
+				if (clickedBlock != null && clickedBlock.getType() == Material.DIRT) {
+					clickedBlock.setType(Material.GRASS);
 					event.setUseInteractedBlock(Event.Result.DENY);
 					event.setUseItemInHand(Event.Result.DENY);
 					event.setCancelled(true);
 					if (event.getPlayer().getGameMode() != GameMode.CREATIVE) {
-						ItemStack bonemealItemStack = event.getItem();
+
 						int finalAmount = bonemealItemStack.getAmount() - 1;
 						if (finalAmount == 0) {
-							event.getPlayer().getInventory().setItemInMainHand(new ItemStack(Material.AIR));
+							event.getPlayer().getInventory().setItemInMainHand(null);
 						} else
 							bonemealItemStack.setAmount(finalAmount);
 					}
@@ -311,10 +326,12 @@ final class FixManager {
 		public void minersDoNotSleep(PlayerMoveEvent event){
 			final Player player = event.getPlayer();
 			if (neverSleeps(player.getGameMode())) return;
+			final Location to = event.getTo();
+			if (to == null) return;
 
 			final int sleepEdge = minerInsomniaDepth;
 			final boolean sleepBefore = event.getFrom().getBlockY() < sleepEdge;
-			final boolean sleepNow = event.getTo().getBlockY() < sleepEdge;
+			final boolean sleepNow = to.getBlockY() < sleepEdge;
 			if (sleepBefore != sleepNow) {
 				player.setSleepingIgnored(!sleepNow);
 			}

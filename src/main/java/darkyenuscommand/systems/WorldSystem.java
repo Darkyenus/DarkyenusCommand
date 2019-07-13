@@ -5,6 +5,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
+import org.bukkit.WorldType;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -38,9 +39,10 @@ public final class WorldSystem implements Listener {
 		List<World> worlds = getServer().getWorlds();
 		sender.sendMessage(ChatColor.BLUE + "Available worlds:");
 		for (World world : worlds) {
+			final WorldType worldType = world.getWorldType();
 			sender.sendMessage(ChatColor.BLUE + world.getName() + ": " + ChatColor.WHITE + " "
-					+ world.getEnvironment().toString() + " | " + world.getWorldType()
-					.getName() + " | Players: "
+					+ world.getEnvironment().toString() + " | " + (worldType == null ? "<unknown-world-type>" : worldType
+					.getName()) + " | Players: "
 					+ world.getPlayers().size());
 		}
 	}

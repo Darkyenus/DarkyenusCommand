@@ -1,5 +1,7 @@
 package darkyenuscommand.util;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  *
  */
@@ -23,7 +25,7 @@ public final class TextProcessingInput {
         return Character.isValidCodePoint(cp) && Character.isDefined(cp);
     }
 
-    public TextProcessingInput(String from) {
+    public TextProcessingInput(@NotNull String from) {
         from.codePoints().forEach(cp -> {
             if(validCodePoint(cp)) {
                 addCodePoint(cp);
@@ -45,11 +47,11 @@ public final class TextProcessingInput {
         return codePoints[position++];
     }
 
-    public boolean peekEqualsIgnoreCaseAndPop(CharSequence cs){
+    public boolean peekEqualsIgnoreCaseAndPop(@NotNull CharSequence cs){
         return peekEquals(cs, true, true);
     }
 
-    public boolean peekEquals(CharSequence cs, boolean ignoreCase, boolean andPop){
+    public boolean peekEquals(@NotNull CharSequence cs, boolean ignoreCase, boolean andPop){
         if(position + cs.length() <= length) {
             for (int i = 0; i < cs.length(); i++) {
                 if (ignoreCase) {

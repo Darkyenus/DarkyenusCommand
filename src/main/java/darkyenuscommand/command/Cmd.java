@@ -1,6 +1,8 @@
 package darkyenuscommand.command;
 
 import org.bukkit.World;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -67,7 +69,8 @@ public @interface Cmd {
 		/** Retrieve which enum constants does given parameter expect.
 		 * Considers {@link OneOf}. When parameter does not take an enum, returns null. */
 		@SuppressWarnings("unchecked")
-		static <T extends Enum<T>> Enum<T>[] viableEnumConstants(Parameter parameter) {
+		@Nullable
+		static <T extends Enum<T>> Enum<T>[] viableEnumConstants(@NotNull Parameter parameter) {
 			final Class<T> paramType = (Class<T>) parameter.getType();
 			if (!paramType.isEnum()) {
 				return null;

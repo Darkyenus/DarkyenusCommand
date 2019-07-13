@@ -8,6 +8,7 @@ import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Random;
@@ -26,14 +27,14 @@ public final class JailSystem {
 
 	private final HashMap<UUID, Location> preJailLocations = new HashMap<>();
 
-	public JailSystem(Plugin plugin, WarpSystem warpSystem, TeleportSystem teleportSystem) {
+	public JailSystem(@NotNull Plugin plugin, @NotNull WarpSystem warpSystem, @NotNull TeleportSystem teleportSystem) {
 		this.plugin = plugin;
 		this.warpSystem = warpSystem;
 		this.teleportSystem = teleportSystem;
 	}
 
 	@Cmd
-	public void jail(CommandSender sender, Player playerToArrest, @Cmd.UseDefault String warp) {
+	public void jail(@NotNull CommandSender sender, @NotNull Player playerToArrest, @Cmd.UseDefault String warp) {
 		final Match<String> matchingWarps = warp != null ? warpSystem.matchWarps(warp) : null;
 
 		if (matchingWarps != null && matchingWarps.success()) {
@@ -68,7 +69,7 @@ public final class JailSystem {
 	}
 
 	@Cmd
-	public void unjail(CommandSender sender, Player player) {
+	public void unjail(@NotNull CommandSender sender, @NotNull Player player) {
 		if (player.hasMetadata(METADATA_KEY_LOCKED)) {
 			player.removeMetadata(METADATA_KEY_LOCKED, plugin);
 			final Location preJailLocation = preJailLocations.remove(player.getUniqueId());

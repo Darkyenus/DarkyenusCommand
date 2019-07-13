@@ -8,7 +8,6 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
@@ -24,6 +23,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +38,7 @@ public final class InfoSystem implements Listener {
 	private final boolean bookNoticeBoardsEnabled;
 	private final ObjectMap<Location, NoticeBoard> bookNoticeBoards;
 
-	public InfoSystem(boolean bookNoticeBoardsEnabled, ObjectMap<Location, NoticeBoard> bookNoticeBoards) {
+	public InfoSystem(boolean bookNoticeBoardsEnabled, @NotNull ObjectMap<Location, NoticeBoard> bookNoticeBoards) {
 		this.bookNoticeBoardsEnabled = bookNoticeBoardsEnabled;
 		this.bookNoticeBoards = bookNoticeBoards;
 	}
@@ -47,7 +48,7 @@ public final class InfoSystem implements Listener {
 	}
 
 	@Cmd
-	public void bookFormat(Player sender, @Cmd.UseDefault BookFormatMode mode) {
+	public void bookFormat(@NotNull Player sender, @Nullable @Cmd.UseDefault BookFormatMode mode) {
 		if (mode == BookFormatMode.HELP) {
 			sender.sendMessage(ChatColor.BLUE + "Book Formatting Rules");
 			sender.sendMessage(ChatColor.AQUA + "Existing color tags are stripped and then control codes are interpreted.");
@@ -84,7 +85,7 @@ public final class InfoSystem implements Listener {
 	}
 
 	@EventHandler(ignoreCancelled = true)
-	public void interactWithNoticeBoard(PlayerInteractEvent ev) {
+	public void interactWithNoticeBoard(@NotNull PlayerInteractEvent ev) {
 		if (ev.getHand() != EquipmentSlot.HAND) return;
 		if (!bookNoticeBoardsEnabled) return;
 		final Player player = ev.getPlayer();
@@ -101,12 +102,17 @@ public final class InfoSystem implements Listener {
 			final String[] lines = state.getLines();
 			if (lines.length == 0) return;
 			if (!"[notice]".equalsIgnoreCase(lines[0])) return;
-			final ItemStack item = ev.getItem();
-			if(item == null || (item.getType() != Material.WRITTEN_BOOK && item.getType() != Material.WRITABLE_BOOK)) return;
-			final BookMeta itemMeta = (BookMeta) item.getItemMeta();
+			final BookMeta bookMeta;
+			{
+				final ItemStack item = ev.getItem();
+				if (item == null) return;
+				final ItemMeta meta = item.getItemMeta();
+				if (!(meta instanceof BookMeta)) return;
+				bookMeta = (BookMeta) meta;
+			}
 
 			final NoticeBoard board = new NoticeBoard();
-			final String signFragment = board.init(player, itemMeta.getPages());
+			final String signFragment = board.init(player, bookMeta.getPages());
 
 			if(lines.length >= 2) {
 				if("readonly".equalsIgnoreCase(lines[1])) {
@@ -141,7 +147,7 @@ public final class InfoSystem implements Listener {
 		ev.setCancelled(true);
 	}
 
-	private int formatForSign_lengthWithoutChatColor(CharSequence cs){
+	private int formatForSign_lengthWithoutChatColor(@NotNull CharSequence cs){
 		int result = 0;
 		for (int i = 0; i < cs.length(); i++) {
 			if(cs.charAt(i) == ChatColor.COLOR_CHAR) {
@@ -153,7 +159,8 @@ public final class InfoSystem implements Listener {
 		return result;
 	}
 
-	private ChatColor formatForSign_getEndChatColor(CharSequence cs) {
+	@Nullable
+	private ChatColor formatForSign_getEndChatColor(@NotNull CharSequence cs) {
 		ChatColor result = null;
 		for (int i = 0; i < cs.length()-1; i++) {
 			if(cs.charAt(i) == ChatColor.COLOR_CHAR) {
@@ -172,7 +179,8 @@ public final class InfoSystem implements Listener {
 		return result;
 	}
 
-	private CharSequence formatForSign_makeItalic(CharSequence cs, ChatColor leadingColor) {
+	@NotNull
+	private CharSequence formatForSign_makeItalic(@NotNull CharSequence cs, @Nullable ChatColor leadingColor) {
 		final StringBuilder sb = new StringBuilder();
 		if(leadingColor != null){
 			sb.append(leadingColor.toString());
@@ -199,7 +207,7 @@ public final class InfoSystem implements Listener {
 		return sb;
 	}
 
-	private void formatForSign_addResult(List<String> result, CharSequence append) {
+	private void formatForSign_addResult(@NotNull List<String> result, @NotNull CharSequence append) {
 		if(result.size() >= 4) return;
 		ChatColor leading = null;
 		if(!result.isEmpty()) {
@@ -208,7 +216,8 @@ public final class InfoSystem implements Listener {
 		result.add(formatForSign_makeItalic(append, leading).toString());
 	}
 
-	private List<String> formatForSign(String page) {
+	@NotNull
+	private List<String> formatForSign(@NotNull String page) {
 		//Let's assume, that line will fit only 16 characters.
 		final int LINE_LIMIT = 16;
 		final List<String> result = new ArrayList<>(4);
@@ -265,12 +274,12 @@ public final class InfoSystem implements Listener {
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-	public void noticeBoardDestroyed(BlockBreakEvent event) {
+	public void noticeBoardDestroyed(@NotNull BlockBreakEvent event) {
 		bookNoticeBoards.remove(event.getBlock().getLocation());
 	}
 
-
-	public static String formatPage(String page) {
+	@NotNull
+	public static String formatPage(@NotNull String page) {
 		return formatPage(page, null);
 	}
 
@@ -279,7 +288,8 @@ public final class InfoSystem implements Listener {
 	 *                    Will contain the translated first location of "#~#" in resulting page or -1 if this substring
 	 *                    does not appear anywhere in the page.
 	 */
-	public static String formatPage(String page, int[] signStop) {
+	@NotNull
+	public static String formatPage(@NotNull String page, int[] signStop) {
 		if (signStop != null) {
 			assert signStop.length == 1 : "Length of sign stop must be exactly 1";
 			signStop[0] = -1;
@@ -385,7 +395,8 @@ public final class InfoSystem implements Listener {
 		private transient ItemStack displayItemCache = null;
 
 		/** @return Fragment to display on the sign */
-		public String init(Player owner, List<String> pages) {
+		@NotNull
+		public String init(@NotNull Player owner, @NotNull List<String> pages) {
 			String signFragment = "";
 			this.owner = owner.getUniqueId();
 			this.pages = new String[pages.size()];

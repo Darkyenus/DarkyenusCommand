@@ -21,6 +21,7 @@ public final class PlayerArgument extends CommandProcessor.Argument<Player> {
 	public PlayerArgument(@NotNull String symbol) {
 		super(symbol, Player.class);
 	}
+
 	@Override
 	public @NotNull Match<Player> match(@NotNull CommandSender sender, @NotNull Parameters params) {
 		final String name = params.take(null);

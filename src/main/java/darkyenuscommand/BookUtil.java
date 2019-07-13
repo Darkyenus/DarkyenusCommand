@@ -1,15 +1,11 @@
 package darkyenuscommand;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.logging.Level;
+import org.jetbrains.annotations.NotNull;
 
 /**
  *
@@ -18,7 +14,8 @@ public final class BookUtil {
 
     private static final String BOOK_OPEN_CHANNEL = "minecraft:book_open";
 
-    public static ItemStack createBookForDisplay(String...pages) {
+    @NotNull
+    public static ItemStack createBookForDisplay(@NotNull String...pages) {
         final ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
         final BookMeta itemMeta = (BookMeta) book.getItemMeta();
         itemMeta.setDisplayName("_");
@@ -31,7 +28,7 @@ public final class BookUtil {
         return book;
     }
 
-    public static boolean displayBook(Player player, ItemStack book) {
+    public static boolean displayBook(@NotNull Player player, @NotNull ItemStack book) {
         //Important workaround, server would think that the player is still in own inventory, while actually being in the book!
         player.closeInventory();
 

@@ -1,6 +1,7 @@
 package darkyenuscommand.util;
 
 import com.esotericsoftware.jsonbeans.ObjectMap;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 
@@ -15,6 +16,7 @@ public final class StackMap <K, V> extends ObjectMap<K, ArrayList<V>> {
         this.limit = limit;
     }
 
+    @NotNull
     @Override
     public ArrayList<V> get(K key) {
         final ArrayList<V> result = super.get(key);

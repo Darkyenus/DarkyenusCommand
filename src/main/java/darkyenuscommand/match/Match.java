@@ -19,6 +19,7 @@ public final class Match<T> {
 	private final T[] suggestions;
 	private final Function<T, CharSequence> toString;
 
+	@Nullable
 	private String defaultNoun;
 
 	private Match(boolean success, @Nullable T result, @Nullable String message, @Nullable T[] suggestions, @Nullable Function<T, CharSequence> toString) {
@@ -45,7 +46,8 @@ public final class Match<T> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public T[] asArray(Class<T> type) {
+	@NotNull
+	public T[] asArray(@NotNull Class<T> type) {
 		if (result != null) {
 			final T[] resultA = (T[]) Array.newInstance(type, 1);
 			resultA[0] = result;
@@ -57,11 +59,13 @@ public final class Match<T> {
 		}
 	}
 
-	public Match<T> withDefaultNoun(String noun) {
+	@NotNull
+	public Match<T> withDefaultNoun(@Nullable String noun) {
 		this.defaultNoun = noun;
 		return this;
 	}
 
+	@NotNull
 	public String suggestionMessage() {
 		assert !success();
 		if (message == null) {
@@ -98,7 +102,8 @@ public final class Match<T> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public <E> Match<E> map(Class<E> resultClass, Function<T, E> mapping, Function<E, CharSequence> toString) {
+	@NotNull
+	public <E> Match<E> map(@NotNull Class<E> resultClass, @NotNull Function<T, E> mapping, @NotNull Function<E, CharSequence> toString) {
 		if (success) {
 			return success(mapping.apply(successResult()));
 		} else if (suggestions == null) {

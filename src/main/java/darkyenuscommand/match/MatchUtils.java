@@ -1,5 +1,8 @@
 package darkyenuscommand.match;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,7 +16,7 @@ public final class MatchUtils {
 
     /** @param s0 text user entered
      *  @param s1 text of result */
-    public static int levenshteinDistance(CharSequence s0, CharSequence s1, int insertCost, int replaceCost, int deleteCost) {
+    public static int levenshteinDistance(@NotNull CharSequence s0, @NotNull CharSequence s1, int insertCost, int replaceCost, int deleteCost) {
         int len0 = s0.length() + 1;
         int len1 = s1.length() + 1;
 
@@ -62,7 +65,7 @@ public final class MatchUtils {
         return c;
     }
 
-    private static boolean contentEquals(CharSequence a, CharSequence b) {
+    private static boolean contentEquals(@Nullable CharSequence a, @Nullable CharSequence b) {
         if (a == b) return true;
         if (a == null || b == null) return false;
         final int length = a.length();
@@ -73,7 +76,8 @@ public final class MatchUtils {
         return true;
     }
 
-    public static <T> Match<T> match(String noun, T[] from, Function<T, CharSequence> toString, CharSequence target) {
+    @NotNull
+    public static <T> Match<T> match(@NotNull String noun, @NotNull T[] from, @NotNull Function<T, CharSequence> toString, @NotNull CharSequence target) {
         final int BAD_SCORE = 1000;
         final CharSequence[] fromString = new CharSequence[from.length];
         for (int i = 0; i < from.length; i++) {
@@ -175,7 +179,7 @@ public final class MatchUtils {
         }
 
         @Override
-        public int compareTo (MatchResultItem o) {
+        public int compareTo (@NotNull MatchResultItem o) {
             return score - o.score;
         }
     }

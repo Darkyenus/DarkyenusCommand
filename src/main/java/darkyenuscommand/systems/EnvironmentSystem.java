@@ -7,6 +7,7 @@ import org.bukkit.Difficulty;
 import org.bukkit.GameRule;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
+import org.jetbrains.annotations.NotNull;
 
 import static org.bukkit.Bukkit.getServer;
 
@@ -15,6 +16,7 @@ import static org.bukkit.Bukkit.getServer;
  */
 public final class EnvironmentSystem {
 
+	@NotNull
 	private static String formatTime(long worldTime) {
 		final int time = (int)Math.floorMod(worldTime + 6000, 24000);
 		final int hours = time / 1000;
@@ -23,12 +25,12 @@ public final class EnvironmentSystem {
 	}
 
 	@Cmd(order = 0)
-	public void time(CommandSender sender, @Cmd.UseImplicit World world) {
+	public void time(@NotNull CommandSender sender, @NotNull @Cmd.UseImplicit World world) {
 		sender.sendMessage(ChatColor.BLUE + "Time in world " + ChatColor.WHITE + world.getName() + ChatColor.BLUE + " is " + formatTime(world.getTime()));
 	}
 
 	@Cmd(order = 1)
-	public void time(CommandSender sender, int time, @Cmd.UseImplicit World world) {
+	public void time(@NotNull CommandSender sender, int time, @NotNull @Cmd.UseImplicit World world) {
 		world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, true);
 
 		world.setTime(time);
@@ -60,13 +62,13 @@ public final class EnvironmentSystem {
 	}
 
 	@Cmd(order = 1)
-	public void time(CommandSender sender, TimeAlias time, @Cmd.UseImplicit World world) {
+	public void time(@NotNull CommandSender sender, @NotNull TimeAlias time, @NotNull @Cmd.UseImplicit World world) {
 		time(sender, time.time, world);
 	}
 
 	@Cmd(order = 0)
-	public void timeMaintain(CommandSender sender, @Cmd.UseImplicit World world) {
-		if (world.getGameRuleValue(GameRule.DO_DAYLIGHT_CYCLE)) {
+	public void timeMaintain(@NotNull CommandSender sender, @NotNull @Cmd.UseImplicit World world) {
+		if (Boolean.TRUE.equals(world.getGameRuleValue(GameRule.DO_DAYLIGHT_CYCLE))) {
 			world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
 			getServer().broadcast(
 					ChatColor.GRAY.toString() + ChatColor.ITALIC + "[" + sender
@@ -82,8 +84,8 @@ public final class EnvironmentSystem {
 	}
 
 	@Cmd(order = 1)
-	public void timeMaintain(CommandSender sender, int time, @Cmd.UseImplicit World world) {
-		if (world.getGameRuleValue(GameRule.DO_DAYLIGHT_CYCLE)) {
+	public void timeMaintain(@NotNull CommandSender sender, int time, @NotNull @Cmd.UseImplicit World world) {
+		if (Boolean.TRUE.equals(world.getGameRuleValue(GameRule.DO_DAYLIGHT_CYCLE))) {
 			world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
 			getServer().broadcast(
 					ChatColor.GRAY.toString() + ChatColor.ITALIC + "[" + sender
@@ -108,12 +110,12 @@ public final class EnvironmentSystem {
 	}
 
 	@Cmd(order = 2)
-	public void timeMaintain(CommandSender sender, TimeAlias time, @Cmd.UseImplicit World world) {
+	public void timeMaintain(@NotNull CommandSender sender, @NotNull TimeAlias time, @NotNull @Cmd.UseImplicit World world) {
 		timeMaintain(sender, time.time, world);
 	}
 
 	@Cmd(order = 0)
-	public void weather(CommandSender sender, @Cmd.UseImplicit World world) {
+	public void weather(@NotNull CommandSender sender, @NotNull @Cmd.UseImplicit World world) {
 		if (!world.hasStorm()) {
 			sender.sendMessage(ChatColor.BLUE + "Weather in world " + world.getName() + " is clear.");
 		} else if (!world.isThundering()) {
@@ -134,7 +136,7 @@ public final class EnvironmentSystem {
 	}
 
 	@Cmd(order = 1)
-	public void weather(CommandSender sender, Weather weather, @Cmd.UseImplicit World world) {
+	public void weather(@NotNull CommandSender sender, @NotNull Weather weather, @NotNull @Cmd.UseImplicit World world) {
 		switch (weather) {
 			case SUNNY:
 				world.setStorm(false);
@@ -179,13 +181,13 @@ public final class EnvironmentSystem {
 
 
 	@Cmd(order = 0)
-	public void difficulty(CommandSender sender, @Cmd.UseImplicit World world) {
+	public void difficulty(@NotNull CommandSender sender, @NotNull @Cmd.UseImplicit World world) {
 		sender.sendMessage(ChatColor.BLUE + "Difficulty of world " + world.getName() + " is "
 				+ world.getDifficulty().toString().toLowerCase());
 	}
 
 	@Cmd(order = 1)
-	public void difficulty(CommandSender sender, Difficulty difficulty, @Cmd.UseImplicit World world) {
+	public void difficulty(@NotNull CommandSender sender, @NotNull Difficulty difficulty, @NotNull @Cmd.UseImplicit World world) {
 		world.setDifficulty(difficulty);
 		getServer().broadcast(
 				ChatColor.GRAY.toString() + ChatColor.ITALIC + "[" + sender
