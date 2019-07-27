@@ -39,8 +39,6 @@ public final class Plugin extends JavaPlugin {
 		}
 		if (data == null) data = new PluginData();
 
-		FixManager.initialize(this);
-
 		final TeleportSystem teleportSystem = new TeleportSystem();
 		final WarpSystem warpSystem = new WarpSystem(data, teleportSystem);
 		CommandProcessor.registerCommandsAndEvents(this, new EnvironmentSystem());

@@ -14,7 +14,7 @@ val darkyenusCommand by project(Archetypes.JavaProject) {
 
 	projectGroup set { "com.darkyen.minecraft" }
 	projectName set { "DarkyenusCommand" }
-	projectVersion set { "8.0-SNAPSHOT" }
+	projectVersion set { "8.1" }
 
 	repositories add { Repository("spigot-repo", "https://hub.spigotmc.org/nexus/content/repositories/snapshots/") }
 	repositories add { Jitpack }
@@ -32,7 +32,7 @@ val darkyenusCommand by project(Archetypes.JavaProject) {
 	}
 
 	libraryDependencies add { dependency("org.jetbrains", "annotations", "16.0.2", scope="provided") }
-	libraryDependencies add { dependency("org.spigotmc", "spigot-api", "1.14.2-R0.1-SNAPSHOT", scope="provided") }
+	libraryDependencies add { dependency("org.spigotmc", "spigot-api", "1.14.4-R0.1-SNAPSHOT", scope="provided") }
 	libraryDependencies add { dependency("com.github.EsotericSoftware", "jsonbeans", "7306654ed3") }
 
 	assembly modify { assembled ->
