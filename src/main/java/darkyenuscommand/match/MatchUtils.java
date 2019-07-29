@@ -92,6 +92,7 @@ public final class MatchUtils {
         for (int i = 0; i < from.length; i++) {
             final CharSequence itemName = fromString[i];
             if (itemName == null) {
+                scores[i] = Integer.MAX_VALUE;// Worst score, never even think about this
                 continue;
             }
             if (considerOnlyPerfectMatches) {
@@ -115,7 +116,7 @@ public final class MatchUtils {
         }
 
         if(goodScores == 1){
-            //Clear winner however bad it may be
+            // Clear winner however bad it may be
             for (int i = 0; i < from.length; i++) {
                 if(scores[i] < BAD_SCORE) {
                     return Match.success(from[i]);
@@ -132,9 +133,10 @@ public final class MatchUtils {
             for (int i = 0; i < from.length; i++) {
                 final CharSequence itemName = fromString[i];
                 if (itemName == null) {
+                    // scores[i] is still Integer.MAX_VALUE
                     continue;
                 }
-                scores[i] =  levenshteinDistance(target, itemName, 1, 6, 3);
+                scores[i] = levenshteinDistance(target, itemName, 1, 6, 3);
             }
         }
 
