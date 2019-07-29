@@ -146,7 +146,7 @@ public final class Commands {
 						+ " from " + player.getLastDamageCause().getCause().toString().toLowerCase()
 						.replace("_", " "));
 			}
-			sender.sendMessage(ChatColor.AQUA + "Slept: "+ ChatColor.RESET + String.format("%.1f", player.getStatistic(Statistic.TIME_SINCE_REST) / 24000f)+" days");
+			sender.sendMessage(ChatColor.AQUA + "Last Slept: "+ ChatColor.RESET + String.format("%.1f", player.getStatistic(Statistic.TIME_SINCE_REST) / 24000f)+" days ago");
 			sender.sendMessage(ChatColor.AQUA + "Food: " + ChatColor.RESET + player.getFoodLevel() + "/20");
 			sender.sendMessage(ChatColor.AQUA + "Game Mode: " + ChatColor.RESET + player.getGameMode());
 			sender.sendMessage(ChatColor.AQUA + "Level: " + ChatColor.RESET + player.getLevel());
