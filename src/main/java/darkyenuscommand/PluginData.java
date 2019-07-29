@@ -1,8 +1,11 @@
 
 package darkyenuscommand;
 
-import com.esotericsoftware.jsonbeans.*;
-import darkyenuscommand.systems.InfoSystem;
+import com.esotericsoftware.jsonbeans.Json;
+import com.esotericsoftware.jsonbeans.JsonException;
+import com.esotericsoftware.jsonbeans.JsonSerializer;
+import com.esotericsoftware.jsonbeans.JsonValue;
+import com.esotericsoftware.jsonbeans.OutputType;
 import darkyenuscommand.util.ComplexKeyMap;
 import darkyenuscommand.util.StringMap;
 import org.bukkit.Bukkit;
@@ -29,9 +32,6 @@ public final class PluginData {
 	public ArrayList<String> rules = new ArrayList<>();
 	public ArrayList<String> reports = new ArrayList<>();
 	public StringMap<Location> warps = new StringMap<>();
-	public ComplexKeyMap<Location, InfoSystem.NoticeBoard> bookNoticeBoards = new ComplexKeyMap<>(Location.class, InfoSystem.NoticeBoard.class);
-
-	public boolean bookNoticeBoardsEnabled = false;
 
 	private static final String PLUGIN_FILE_NAME = "DarkyenusCommandData.json";
 	private transient File loadedFrom = null;

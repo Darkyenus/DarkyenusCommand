@@ -43,7 +43,7 @@ public final class MuteSystem implements Listener {
 		if (mutedUntil == null) {
 			return false;
 		}
-		return mutedUntil < System.currentTimeMillis();
+		return mutedUntil >= System.currentTimeMillis();
 	}
 
 	@EventHandler(priority = EventPriority.LOW)

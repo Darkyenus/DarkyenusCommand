@@ -25,17 +25,13 @@ public final class WorldSystem implements Listener {
 		this.teleportSystem = teleportSystem;
 	}
 
-	enum WorldCommandMode {
-		CREATE, DELETE, GOTO, GOTOEXACT, LIST
-	}
-
 	@Cmd
 	public void world(Player sender) {
 		sender.sendMessage(ChatColor.BLUE + "You are in world \"" + sender.getWorld().getName() + "\"");
 	}
 
 	@Cmd
-	public void world(CommandSender sender, @Cmd.OneOf("LIST") WorldCommandMode command) {
+	public void world(CommandSender sender, @Cmd.OneOf("list") String command) {
 		List<World> worlds = getServer().getWorlds();
 		sender.sendMessage(ChatColor.BLUE + "Available worlds:");
 		for (World world : worlds) {
@@ -48,7 +44,7 @@ public final class WorldSystem implements Listener {
 	}
 
 	@Cmd
-	public void world(CommandSender sender, @Cmd.OneOf("CREATE") WorldCommandMode command, String world, @Cmd.UseDefault String generator) {
+	public void world(CommandSender sender, @Cmd.OneOf("create") String command, String world, @Cmd.UseDefault String generator) {
 		if (!sender.hasPermission("darkyenuscommand.command.world.manage")) {
 			sender.sendMessage(ChatColor.RED + "You do not have permission to do that.");
 			return;
@@ -64,7 +60,7 @@ public final class WorldSystem implements Listener {
 	}
 
 	@Cmd
-	public void world(CommandSender sender, @Cmd.OneOf("DELETE") WorldCommandMode command, World world) {
+	public void world(CommandSender sender, @Cmd.OneOf("delete") String command, World world) {
 		if (!sender.hasPermission("darkyenuscommand.command.world.manage")) {
 			sender.sendMessage(ChatColor.RED + "You do not have permission to do that.");
 			return;
@@ -83,8 +79,12 @@ public final class WorldSystem implements Listener {
 		}
 	}
 
+	enum WorldCommandMode {
+		GOTO, GOTOEXACT
+	}
+
 	@Cmd
-	public void world(CommandSender sender, @Cmd.OneOf({"GOTO", "GOTOEXACT"}) WorldCommandMode command, World world, @Cmd.UseImplicit Player player) {
+	public void world(CommandSender sender, WorldCommandMode command, World world, @Cmd.UseImplicit Player player) {
 		if (player.getWorld().equals(world)) {
 			if (player.equals(sender)) {
 				sender.sendMessage(ChatColor.BLUE + "You already are in world \"" + world.getName() + "\"");

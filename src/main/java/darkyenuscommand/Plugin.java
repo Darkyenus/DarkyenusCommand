@@ -13,10 +13,7 @@ import darkyenuscommand.systems.ReportSystem;
 import darkyenuscommand.systems.TeleportSystem;
 import darkyenuscommand.systems.WarpSystem;
 import darkyenuscommand.systems.WorldSystem;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -42,7 +39,7 @@ public final class Plugin extends JavaPlugin {
 		final TeleportSystem teleportSystem = new TeleportSystem();
 		final WarpSystem warpSystem = new WarpSystem(data, teleportSystem);
 		CommandProcessor.registerCommandsAndEvents(this, new EnvironmentSystem());
-		CommandProcessor.registerCommandsAndEvents(this, new InfoSystem(data.bookNoticeBoardsEnabled, data.bookNoticeBoards));
+		CommandProcessor.registerCommandsAndEvents(this, new InfoSystem());
 		CommandProcessor.registerCommandsAndEvents(this, new ItemSystem());
 		CommandProcessor.registerCommandsAndEvents(this, new JailSystem(this, warpSystem, teleportSystem));
 		CommandProcessor.registerCommandsAndEvents(this, new KickSystem());
@@ -55,8 +52,6 @@ public final class Plugin extends JavaPlugin {
 
 		CommandProcessor.registerCommandsAndEvents(this, new PluginListener());
 		CommandProcessor.registerCommandsAndEvents(this, new Commands(this));
-
-		LOG.info("Enabled!");
 	}
 
 	@Override
@@ -67,13 +62,6 @@ public final class Plugin extends JavaPlugin {
 			LOG.log(Level.SEVERE, "Could not save files", e);
 		}
 		data = null;
-
-		LOG.info("Disabled!");
-	}
-
-	@Override
-	public boolean onCommand (@NotNull CommandSender sender, Command command, @NotNull String label, @NotNull String[] args) {
-		return "donothing".equals(command.getName());
 	}
 
 	public static Logger logger(Class<?> of) {

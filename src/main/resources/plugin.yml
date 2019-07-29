@@ -20,7 +20,6 @@ commands:
     description: Temporary lock nearby players
     usage: /panic [Minutes]
     permission: darkyenuscommand.command.panic
-    aliases: [p]
   depanic:
     description: Unlock panicking players
     usage: /depanic
@@ -30,7 +29,7 @@ commands:
     description: Temporary lock all players
     usage: /globalpanic [Minutes]
     permission: darkyenuscommand.command.globalpanic
-    aliases: [gp, gpanic]
+    aliases: [gpanic]
   strike:
     description: Strike player as warning
     usage: /strike <Player> [Damage]
@@ -47,7 +46,7 @@ commands:
     description: View problems reported via /report
     usage: /view-report
     permission: darkyenuscommand.command.viewreport
-    aliases: [viewreport, viewreports, showreport, showreports, reports]
+    aliases: [viewreport, showreport, reports]
   mute:
     description: Mute player in chat
     usage: /mute <Player> [Minutes]
@@ -63,22 +62,21 @@ commands:
   playerinfo:
     description: Get player info
     usage: /playerinfo <Player>
-    aliases: [pinfo]
     permission: darkyenuscommand.command.playerinfo
   teleporthere:
     description: Teleportes player to you
     usage: /tphere <Player>
-    aliases: [tphere,tph]
+    aliases: [tphere]
     permission: darkyenuscommand.command.teleporthere
   teleportto:
     description: Teleports you to another player
     usage: /tpto <Player>
-    aliases: [tpto,tpt]
+    aliases: [tpto]
     permission: darkyenuscommand.command.teleportto
   teleporthereall:
     description: Teleportes all players on server to you
     usage: /tphereall
-    aliases: [tphereall,tpha]
+    aliases: [tphereall]
     permission: darkyenuscommand.command.teleporthereall
   teleport:
     description: Teleports you (or specified player) to specified place
@@ -96,26 +94,24 @@ commands:
   darkyenuscommand:
     description: Plugin gateway
     usage: /darkyenuscommand [Gc, Reload]
-    aliases: [dcommand]
   time:
     description: Set time
     usage: /time [Time | Alias] [World]
-    aliases: [t]
     permission: darkyenuscommand.command.time
   timemaintain:
     description: Maintain time
     usage: /timemaintain [Time | Alias] [World]
-    aliases: [timestay, timekeep, keeptime]
+    aliases: [timekeep, keeptime]
     permission: darkyenuscommand.command.timemaintain
   weather:
     description: Set weather
     usage: /weather [Weather] [World]
-    aliases: [w, weat]
+    aliases: [w]
     permission: darkyenuscommand.command.weather
   gamemode:
     description: Set gamemode
     usage: /gamemode [Gamemode] [Player]
-    aliases: [gmode, gamem, gm]
+    aliases: [gm]
     permission: darkyenuscommand.command.gamemode
   item:
     description: Give an item or see item info
@@ -124,12 +120,11 @@ commands:
   repair:
     description: Repair held item
     usage: /repair [Player]
-    aliases: [fix]
     permission: darkyenuscommand.command.repair
   trash:
     description: Trash items
     usage: /trash [Item | Hotbar | Inventory | All] [Player]
-    aliases: [trash, delete, disposal]
+    aliases: [delete, dispose]
     permission: darkyenuscommand.command.trash
   difficulty:
     description: Set difficulty
@@ -139,7 +134,7 @@ commands:
   clear:
     description: Clear something from world
     usage: /clear [What] [World]
-    aliases: [clear, clean, sweep]
+    aliases: [clean]
     permission: darkyenuscommand.command.clear
   jail:
     description: Warp somebody to jail (jailwarps start with jail_)
@@ -153,7 +148,7 @@ commands:
   viewinventory:
     description: Show someones inventory
     usage: /viewinventory <Player>
-    aliases: [showinventory, viewinv, showinv]
+    aliases: [viewinv]
     permission: darkyenuscommand.command.viewinventory
   setspawn:
     description: Sets spawn at location
@@ -171,7 +166,7 @@ commands:
     description: Sets flying speed of you or specified player (In creative mode)
     usage: /setflyspeed [Speed] [Player]
     permission: darkyenuscommand.command.setflyspeed
-    aliases: [flyspeed, fspeed, speed]
+    aliases: [flyspeed]
   world:
     description: Manage and teleport between worlds.
     usage: /world [Create, Delete, Goto, GotoExact] [World] [Generator, Player]
@@ -187,7 +182,6 @@ commands:
     permission: darkyenuscommand.command.heal
   bookformat:
     description: Format held book using DarkyenusCommand formatting rules
-    aliases: [formatbook, fbook, bookf]
     usage: /bookformat [help]
     permission: darkyenuscommand.command.bookformat
   playerface:
@@ -354,9 +348,6 @@ permissions:
     description: /command will list all commands, not only those that you can execute. Also gives ability to see active plugins.
     default: op
 # Here lies the non-command permissions
-  darkyenuscommand.sign:
-    description: Be able to use command signs
-    default: op
   darkyenuscommand.godfist:
     description: Kill everything in one hit. In creative mode.
     default: op
@@ -365,9 +356,6 @@ permissions:
     default: op
   darkyenuscommand.staff:
     description: You'll see staff only messages.
-    default: op
-  darkyenuscommand.infostick:
-    description: If you right-click anything with stick, you'll get detailed info about it.
     default: op
 # Here lies the hierarchy universal permissions
   darkyenuscommand.player:
@@ -382,7 +370,6 @@ permissions:
     default: false
     children:
       darkyenuscommand.player: true
-      darkyenuscommand.sign: true
       darkyenuscommand.command.mute: true
       darkyenuscommand.command.unmute: true
       darkyenuscommand.command.kick: true
@@ -392,7 +379,6 @@ permissions:
       darkyenuscommand.command.viewreport: true
       darkyenuscommand.staff: true
       darkyenuscommand.command.command: true
-      darkyenuscommand.infostick: true
       darkyenuscommand.command.serverstats: true
   darkyenuscommand.gamemaster:
     description: You are gamemaster and have acces to almost every command.

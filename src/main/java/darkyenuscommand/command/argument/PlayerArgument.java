@@ -28,7 +28,7 @@ public final class PlayerArgument extends CommandProcessor.Argument<Player> {
 		if (name == null) {
 			return missing();
 		}
-		final OfflinePlayer[] onlinePlayers = Bukkit.getOnlinePlayers().toArray(new OfflinePlayer[0]);
+		final OfflinePlayer[] onlinePlayers = Bukkit.getOnlinePlayers().toArray(NO_OFFLINE_PLAYERS);
 		final Match<OfflinePlayer> result = matchOfflinePlayer(onlinePlayers, name);
 		if (result.success()) {
 			//noinspection ConstantConditions
@@ -51,6 +51,6 @@ public final class PlayerArgument extends CommandProcessor.Argument<Player> {
 
 	@Override
 	public void suggest(@NotNull CommandSender sender, @NotNull Consumer<String> suggestionConsumer) {
-		suggestOfflinePlayers(Bukkit.getOnlinePlayers().toArray(new OfflinePlayer[0]), suggestionConsumer);
+		suggestOfflinePlayers(Bukkit.getOnlinePlayers().toArray(NO_OFFLINE_PLAYERS), suggestionConsumer);
 	}
 }

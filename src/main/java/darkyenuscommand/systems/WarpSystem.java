@@ -87,14 +87,15 @@ public final class WarpSystem {
 				break;
 			case HELP:
 				sender.sendMessage(ChatColor.BLUE.toString() + ChatColor.BOLD + "Available Arguments:");
-				sender.sendMessage(ChatColor.BLUE.toString() + "create <Warp name>");
-				sender.sendMessage(ChatColor.BLUE.toString() + "remove <Warp name>");
-				sender.sendMessage(ChatColor.BLUE.toString() + "goto <Warp name>");
-				sender.sendMessage(ChatColor.BLUE.toString() + "list");
-				sender.sendMessage(ChatColor.BLUE.toString() + "Or write the warp name without any sub-command parameter");
+				sender.sendMessage(ChatColor.AQUA.toString() + "create <Warp name>");
+				sender.sendMessage(ChatColor.AQUA.toString() + "remove <Warp name>");
+				sender.sendMessage(ChatColor.AQUA.toString() + "goto <Warp name>");
+				sender.sendMessage(ChatColor.AQUA.toString() + "list");
 				break;
 		}
 	}
+
+	private int nextWarp = (int)System.currentTimeMillis();
 
 	public Match<String> matchWarps(String like) {
 		if (like.contains("*") || like.contains("?")) {
@@ -123,11 +124,12 @@ public final class WarpSystem {
 				}
 			}
 
-			if (result.size() == 1) {
-				return Match.success(result.get(0));
-			} else {
-				return Match.failure("Warp", result.toArray(new String[0]), (s) -> s);
+			if (result.isEmpty()) {
+				return Match.failure("Warp");
 			}
+
+			// Pick one pseudo-randomly
+			return Match.success(result.get(((nextWarp++) & 0x7FFF_FFFF) % result.size()));
 		} else {
 			final ArrayList<String> warpNames = data.warps.keys().toArray();
 			return MatchUtils.match("Warp", warpNames.toArray(new String[0]), String::toLowerCase, like.toLowerCase());

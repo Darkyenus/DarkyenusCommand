@@ -33,14 +33,8 @@ public final class ReportSystem {
 		getServer().broadcast(ChatColor.BLUE + "New report from " + sender.getName(), "darkyenuscommand.command.viewreport");
 	}
 
-	@SuppressWarnings("unused")
-	public enum ViewReportMode {
-		ADD,
-		REMOVE
-	}
-
 	@Cmd(value = "view-report", order = 0)
-	public void viewReport(@NotNull CommandSender sender, @Cmd.OneOf("ADD") ViewReportMode mode, @Cmd.VarArg @Cmd.UseDefault String message) {
+	public void viewReport(@NotNull CommandSender sender, @Cmd.OneOf("add") String mode, @Cmd.VarArg @Cmd.UseDefault String message) {
 		if (message == null || message.isEmpty()) {
 			sender.sendMessage(ChatColor.RED + "Specify message to report");
 		} else {
@@ -50,7 +44,7 @@ public final class ReportSystem {
 	}
 
 	@Cmd(value = "view-report", order = 1)
-	public void viewReport(@NotNull CommandSender sender, @Cmd.OneOf("REMOVE") ViewReportMode mode, @Cmd.UseDefault int index, @Cmd.UseDefault int expectedHash, @Cmd.UseDefault int thenShowIndex) {
+	public void viewReport(@NotNull CommandSender sender, @Cmd.OneOf("remove") String mode, @Cmd.UseDefault int index, @Cmd.UseDefault int expectedHash, @Cmd.UseDefault int thenShowIndex) {
 		if (index < 0 || index >= reports.size()) {
 			sender.sendMessage(ChatColor.RED + "Specify valid index of message to remove");
 			return;

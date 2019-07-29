@@ -48,9 +48,13 @@ public @interface Cmd {
 	@Retention(RetentionPolicy.RUNTIME)
 	@interface UseDefault {}
 
-	/** Valid only for parameters, whose type is an enum.
+	/** Valid only for parameters, whose type is an enum, String.
+	 * When on Enum:
 	 * This argument may match only if it is assigned any of the enum value names specified by {@link #value}.
-	 * It is an error when specified enum constant names don't match exactly defined enum constants. */
+	 * It is an error when specified enum constant names don't match exactly defined enum constants.
+	 * When on String:
+	 * Matches ony literal string with this value, case insensitive. Matched value is stored in the string.
+	 * */
 	@Target(ElementType.PARAMETER)
 	@Retention(RetentionPolicy.RUNTIME)
 	@interface OneOf{

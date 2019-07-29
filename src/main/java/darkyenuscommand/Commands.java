@@ -48,10 +48,9 @@ public final class Commands {
 				sender.sendMessage(ChatColor.translateAlternateColorCodes('$', message));
 			}
 		} else {
-			sender.sendMessage(ChatColor.RED + "Here are some commandments that you should follow:");
-			sender.sendMessage(ChatColor.BLUE + "1. Thou shalt not be a hindrance");
-			sender.sendMessage(ChatColor.BLUE + "2. Thou shalt not be malicious nor vile");
-			sender.sendMessage(ChatColor.BLUE + "3. Thou shalt not open the wrong end of a banana");
+			sender.sendMessage(ChatColor.BLUE + "1. "+ChatColor.RESET+ChatColor.ITALIC+"Thou shalt not be a hindrance");
+			sender.sendMessage(ChatColor.BLUE + "2. "+ChatColor.RESET+ChatColor.ITALIC+"Thou shalt not be malicious nor vile");
+			sender.sendMessage(ChatColor.BLUE + "3. "+ChatColor.RESET+ChatColor.ITALIC+"Thou shalt not open the wrong end of a banana");
 		}
 	}
 
@@ -103,78 +102,71 @@ public final class Commands {
 		player.setFireTicks(0);
 		player.setNoDamageTicks(player.getMaximumNoDamageTicks());
 		player.setRemainingAir(player.getMaximumAir());
-		player.removePotionEffect(PotionEffectType.BLINDNESS);
-		player.removePotionEffect(PotionEffectType.CONFUSION);
-		player.removePotionEffect(PotionEffectType.HARM);
-		player.removePotionEffect(PotionEffectType.HUNGER);
-		player.removePotionEffect(PotionEffectType.POISON);
 		player.removePotionEffect(PotionEffectType.SLOW);
 		player.removePotionEffect(PotionEffectType.SLOW_DIGGING);
+		player.removePotionEffect(PotionEffectType.HARM);
+		player.removePotionEffect(PotionEffectType.CONFUSION);
+		player.removePotionEffect(PotionEffectType.BLINDNESS);
+		player.removePotionEffect(PotionEffectType.HUNGER);
 		player.removePotionEffect(PotionEffectType.WEAKNESS);
+		player.removePotionEffect(PotionEffectType.POISON);
 		player.removePotionEffect(PotionEffectType.WITHER);
+		player.removePotionEffect(PotionEffectType.UNLUCK);
+		player.removePotionEffect(PotionEffectType.BAD_OMEN);
 		sender.sendMessage(ChatColor.BLUE + player.getName() + " has been healed and cured!");
 	}
 
 	@Cmd
 	public void playerInfo(@NotNull CommandSender sender, OfflinePlayer aboutPlayer) {
 		final String playerName = aboutPlayer.getName();
-		sender.sendMessage(ChatColor.RED.toString() + ChatColor.BOLD.toString() + playerName + ChatColor.BLUE
+		sender.sendMessage(""+ChatColor.WHITE + ChatColor.BOLD + playerName + ChatColor.AQUA
 				+ "'s info");
-		sender.sendMessage(ChatColor.RED + "Online: " + ChatColor.BLUE.toString() + aboutPlayer.isOnline());
-		sender.sendMessage(ChatColor.RED + "Op: " + ChatColor.BLUE.toString() + aboutPlayer
-				.isOp() + ChatColor.RED
-				+ " Whitelisted: " + ChatColor.BLUE.toString() + aboutPlayer
-				.isWhitelisted() + ChatColor.RED + " Banned: "
-				+ ChatColor.BLUE.toString() + aboutPlayer.isBanned());
+
+		sender.sendMessage((aboutPlayer.isOnline() ? "Online" : "Offline") +
+				ChatColor.AQUA + ", " + ChatColor.RESET +
+				(aboutPlayer.isOp() ? "Operator" : "Not operator") +
+				ChatColor.AQUA + ", " + ChatColor.RESET +
+				(aboutPlayer.isWhitelisted() ? "Whitelisted" : "Not whitelisted") +
+				ChatColor.AQUA + ", " + ChatColor.RESET +
+				(aboutPlayer.isBanned() ? "Banned" : "Not banned"));
+
 		if (aboutPlayer instanceof Player) {
 			Player player = (Player) aboutPlayer;
-			final World world = player.getLocation().getWorld();
-			sender.sendMessage(ChatColor.RED + "Position: " + ChatColor.BLUE.toString()
-					+ (world == null ? "null" : world.getName()) + " " + player.getLocation()
-					.getBlockX() + " "
-					+ player.getLocation().getBlockY() + " " + player.getLocation().getBlockZ());
+			final Location location = player.getLocation();
+			sender.sendMessage(ChatColor.AQUA + "Position: " + ChatColor.RESET
+					+ player.getWorld().getName() + " " + location.getBlockX() + " "
+					+ location.getBlockY() + " " + location.getBlockZ());
 			final AttributeInstance maxHealth = player.getAttribute(Attribute.GENERIC_MAX_HEALTH);
-			sender.sendMessage(ChatColor.RED + "Health: " + ChatColor.BLUE.toString() + (((float) player
-					.getHealth()) / 2)
-					+ "/" + (maxHealth == null ? "?" : maxHealth.getValue()));
+			sender.sendMessage(ChatColor.AQUA + "Health: " + ChatColor.RESET + player.getHealth()
+					+ (maxHealth == null ? "" : "/"+ maxHealth.getValue()));
 			if (player.getFireTicks() >= 0)
-				sender.sendMessage(ChatColor.RED + "Fire Ticks: " + ChatColor.BLUE.toString() + player
-						.getFireTicks());
+				sender.sendMessage(ChatColor.AQUA + "Fire Ticks: " + ChatColor.RESET + player.getFireTicks());
 			if (player.getLastDamageCause() != null) {
-				sender.sendMessage(ChatColor.RED + "Last Damage: " + ChatColor.BLUE.toString() + player
-						.getLastDamage()
+				sender.sendMessage(ChatColor.AQUA + "Last Damage: " + ChatColor.RESET + player.getLastDamage()
 						+ " from " + player.getLastDamageCause().getCause().toString().toLowerCase()
 						.replace("_", " "));
 			}
-			sender.sendMessage(ChatColor.RED + "Food: " + ChatColor.BLUE.toString() + (((float) player
-					.getFoodLevel()) / 2)
-					+ "/10");
-			sender.sendMessage(ChatColor.RED + "Gamemode: " + ChatColor.BLUE.toString() + player
-					.getGameMode().toString());
-			sender.sendMessage(ChatColor.RED + "Level: " + ChatColor.BLUE.toString() + player.getLevel());
-			sender.sendMessage(ChatColor.RED + "Experience: " + ChatColor.BLUE.toString() + player
-					.getTotalExperience()
-					+ " - " + (int) (player.getExp() * 100.0) + "%");
-			sender.sendMessage(ChatColor.RED + "Locked: " + ChatColor.BLUE.toString() + player
-					.hasMetadata(METADATA_KEY_LOCKED));
-			sender.sendMessage(ChatColor.RED + "Walk Speed: " + ChatColor.BLUE.toString() + player
-					.getWalkSpeed()
-					+ ChatColor.RED + " Fly Speed: " + ChatColor.BLUE.toString() + player.getFlySpeed());
+			sender.sendMessage(ChatColor.AQUA + "Slept: "+ ChatColor.RESET + String.format("%.1f", player.getStatistic(Statistic.TIME_SINCE_REST) / 24000f)+" days");
+			sender.sendMessage(ChatColor.AQUA + "Food: " + ChatColor.RESET + player.getFoodLevel() + "/20");
+			sender.sendMessage(ChatColor.AQUA + "Game Mode: " + ChatColor.RESET + player.getGameMode());
+			sender.sendMessage(ChatColor.AQUA + "Level: " + ChatColor.RESET + player.getLevel());
+			sender.sendMessage(ChatColor.AQUA + "Experience: " + ChatColor.RESET + player.getTotalExperience() + " - " + (int) (player.getExp() * 100.0) + "%");
+			sender.sendMessage(ChatColor.AQUA + "Locked: " + ChatColor.RESET + player.hasMetadata(METADATA_KEY_LOCKED));
+			sender.sendMessage(ChatColor.AQUA + "Walk Speed: " + ChatColor.RESET + player.getWalkSpeed() + ChatColor.AQUA + " Fly Speed: " + ChatColor.RESET + player.getFlySpeed());
 			if (player.isOnline()) {
 				final InetSocketAddress address = player.getAddress();
 				if (address != null) {
-					sender.sendMessage(ChatColor.RED + "IP: " + ChatColor.BLUE.toString()
-							+ address.getAddress().getHostAddress());
+					sender.sendMessage(ChatColor.AQUA + "IP: " + ChatColor.RESET + address.getAddress().getHostAddress());
 				}
 			}
 		}
-		sender.sendMessage(ChatColor.RED + "UUID: " + ChatColor.BLUE.toString() + aboutPlayer.getUniqueId()
+		sender.sendMessage(ChatColor.AQUA + "UUID: " + ChatColor.RESET + aboutPlayer.getUniqueId()
 				.toString());
 
 		for (OfflinePlayer player : getServer().getOfflinePlayers()) {
 			if (player != aboutPlayer && Objects.equals(player.getName(), playerName)) {
-				sender.sendMessage(ChatColor.RED + "Duplicate Player: " + ChatColor.BLUE.toString() + player
-						.getUniqueId().toString() + (player.isOnline() ? " (online)" : ""));
+				sender.sendMessage(ChatColor.RED + "Duplicate Player: " + ChatColor.RESET + player
+						.getUniqueId() + (player.isOnline() ? " (online)" : ""));
 			}
 		}
 	}

@@ -77,8 +77,9 @@ public final class MatchUtils {
     }
 
     @NotNull
-    public static <T> Match<T> match(@NotNull String noun, @NotNull T[] from, @NotNull Function<T, CharSequence> toString, @NotNull CharSequence target) {
+    public static <T> Match<T> match(@NotNull String noun, @NotNull T[] from, @NotNull Function<T, @Nullable CharSequence> toString, @NotNull CharSequence target) {
         final int BAD_SCORE = 1000;
+        @Nullable
         final CharSequence[] fromString = new CharSequence[from.length];
         for (int i = 0; i < from.length; i++) {
             fromString[i] = toString.apply(from[i]);
@@ -90,6 +91,9 @@ public final class MatchUtils {
         int goodScores = 0;
         for (int i = 0; i < from.length; i++) {
             final CharSequence itemName = fromString[i];
+            if (itemName == null) {
+                continue;
+            }
             if (considerOnlyPerfectMatches) {
                 if(contentEquals(target, itemName)) {
                     scores[i] = 0;
@@ -126,7 +130,11 @@ public final class MatchUtils {
             //No good scores, search again with weights allowing other edits than adding
             findCanBeUnambiguous = false;
             for (int i = 0; i < from.length; i++) {
-                scores[i] =  levenshteinDistance(target, fromString[i], 1, 6, 3);
+                final CharSequence itemName = fromString[i];
+                if (itemName == null) {
+                    continue;
+                }
+                scores[i] =  levenshteinDistance(target, itemName, 1, 6, 3);
             }
         }
 

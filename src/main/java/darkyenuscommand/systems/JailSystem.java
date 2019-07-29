@@ -11,7 +11,6 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
-import java.util.Random;
 import java.util.UUID;
 
 import static darkyenuscommand.systems.PanicSystem.METADATA_KEY_LOCKED;
@@ -48,23 +47,22 @@ public final class JailSystem {
 			}
 			sender.sendMessage(ChatColor.GREEN.toString() + playerToArrest.getName() + " jailed in " + warp);
 		} else {
-			String[] availableWarps = warpSystem.matchWarps("jail_*").asArray(String.class);
-			if (availableWarps.length == 0) {
-				sender.sendMessage(ChatColor.RED
-						.toString() + "Could not jail, no jails found or specified.");
-			} else {
-				int jailID = new Random().nextInt(availableWarps.length);
-				preJailLocations.put(playerToArrest.getUniqueId(), playerToArrest.getLocation());
-				teleportSystem.teleportPlayer(playerToArrest, warpSystem.getWarp(availableWarps[jailID]), true);
-				playerToArrest.setMetadata(METADATA_KEY_LOCKED, new FixedMetadataValue(plugin, true));
-				if (playerToArrest.isOnline()) {
-					playerToArrest.sendMessage(ChatColor.BLUE + "You have been jailed.");
-				} else {
-					playerToArrest.saveData();
-				}
-				sender.sendMessage(ChatColor.GREEN.toString() + playerToArrest
-						.getName() + " jailed in " + availableWarps[jailID]);
+			Match<String> availableWarps = warpSystem.matchWarps("jail_*");
+			if (!availableWarps.success()) {
+				sender.sendMessage(ChatColor.RED.toString() + "Could not jail, no jails found or specified.");
+				return;
 			}
+
+			final String jailWarpName = availableWarps.successResult();
+			preJailLocations.put(playerToArrest.getUniqueId(), playerToArrest.getLocation());
+			teleportSystem.teleportPlayer(playerToArrest, warpSystem.getWarp(jailWarpName), true);
+			playerToArrest.setMetadata(METADATA_KEY_LOCKED, new FixedMetadataValue(plugin, true));
+			if (playerToArrest.isOnline()) {
+				playerToArrest.sendMessage(ChatColor.BLUE + "You have been jailed.");
+			} else {
+				playerToArrest.saveData();
+			}
+			sender.sendMessage(ChatColor.GREEN.toString() + playerToArrest.getName() + " jailed in " + jailWarpName);
 		}
 	}
 
@@ -74,7 +72,8 @@ public final class JailSystem {
 			player.removeMetadata(METADATA_KEY_LOCKED, plugin);
 			final Location preJailLocation = preJailLocations.remove(player.getUniqueId());
 			if (preJailLocation == null) {
-				teleportSystem.teleportPlayer(player, player.getWorld().getSpawnLocation(), false);
+				final Location bedSpawnLocation = player.getBedSpawnLocation();
+				teleportSystem.teleportPlayer(player, bedSpawnLocation != null ? bedSpawnLocation : player.getWorld().getSpawnLocation(), false);
 			} else {
 				teleportSystem.teleportPlayer(player, preJailLocation, false);
 			}

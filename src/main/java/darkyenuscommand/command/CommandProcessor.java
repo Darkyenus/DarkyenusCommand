@@ -188,9 +188,16 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 	}
 
 	@NotNull
-	private static Argument createMatcher(@NotNull String symbol, @NotNull Class<?> type) {
+	private static Argument createMatcher(@NotNull String symbol, @NotNull Class<?> type, @NotNull Parameter param) {
 		if (String.class.equals(type)) {
-			return new StringArgument(symbol);
+			final Cmd.OneOf oneOf = param.getDeclaredAnnotation(Cmd.OneOf.class);
+			if (oneOf == null) {
+				return new StringArgument(symbol);
+			} else if (oneOf.value().length > 0){
+				return new LiteralArgument(symbol, oneOf.value());
+			} else {
+				throw new IllegalArgumentException("Empty OneOf matcher on String: "+symbol);
+			}
 		} else if (Integer.TYPE.equals(type)) {
 			return new IntArgument(symbol);
 		} else if (Float.TYPE.equals(type)) {
@@ -388,7 +395,7 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 			}
 
 			final Class<?> type = param.getType();
-			Argument matcher = enumConstants == null ? createMatcher(symbol, type) : new EnumArgument<>(symbol, (Class<Enum>) type, enumConstants);
+			Argument matcher = enumConstants == null ? createMatcher(symbol, type, param) : new EnumArgument<>(symbol, (Class<Enum>) type, enumConstants);
 
 			if (varArg != null) {
 				matcher = wrapMatcherWithVarArg(matcher, varArg.separator());
