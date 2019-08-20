@@ -14,7 +14,7 @@ val darkyenusCommand by project(Archetypes.JavaProject) {
 
 	projectGroup set { "com.darkyen.minecraft" }
 	projectName set { "DarkyenusCommand" }
-	projectVersion set { "8.1" }
+	projectVersion set { "8.2" }
 
 	repositories add { Repository("spigot-repo", "https://hub.spigotmc.org/nexus/content/repositories/snapshots/") }
 	repositories add { Jitpack }

@@ -15,9 +15,8 @@ public class LiteralArgument extends CommandProcessor.Argument<String> {
 
     private final @NotNull String[] variants;
 
-    public LiteralArgument(@NotNull String symbol, @NotNull String[] variants) {
-        super(symbol, String.class);
-        assert variants.length > 0;
+    public LiteralArgument(@NotNull String[] variants) {
+        super(variants[0], String.class, true);
         this.variants = variants;
     }
 

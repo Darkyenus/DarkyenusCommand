@@ -71,6 +71,7 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 	@Override
 	public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
 		StringBuilder failures = new StringBuilder();
+		int failuresLatches = -1;
 
 		for (CommandMethod method : methods) {
 			final CommandMethod.ArgumentBinding binding = method.createArgumentBinding(sender, args);
@@ -87,9 +88,15 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 				return true;
 			}
 
-			if (failures.length() > 0) {
+			if (binding.latches > failuresLatches) {
+				failuresLatches = binding.latches;
+				failures.setLength(0);
+			} else if (binding.latches < failuresLatches) {
+				continue;
+			} else if (failures.length() > 0) {
 				failures.append('\n');
 			}
+
 			failures.append(ChatColor.WHITE).append(method.usageArguments).append(' ');
 			failures.append(ChatColor.RED).append(binding.error);
 		}
@@ -194,7 +201,7 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 			if (oneOf == null) {
 				return new StringArgument(symbol);
 			} else if (oneOf.value().length > 0){
-				return new LiteralArgument(symbol, oneOf.value());
+				return new LiteralArgument(oneOf.value());
 			} else {
 				throw new IllegalArgumentException("Empty OneOf matcher on String: "+symbol);
 			}
@@ -421,10 +428,17 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 
 		public final String symbol;
 		public final Class<T> type;
+		/** If matched and latching, all other bindings that are not latching are ignored in error outputs. */
+		public final boolean latching;
 
 		protected Argument(@NotNull String symbol, @NotNull Class<T> type) {
+			this(symbol, type, false);
+		}
+
+		protected Argument(@NotNull String symbol, @NotNull Class<T> type, boolean latching) {
 			this.symbol = symbol;
 			this.type = type;
+			this.latching = latching;
 		}
 
 		/**
@@ -478,12 +492,15 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 			@NotNull
 			final Object[] arguments;
 			final int matched;
+			/** Amount of matched arguments that were latching. */
+			final int latches;
 			@Nullable
 			final String error;
 
-			public ArgumentBinding(@NotNull Object[] arguments, int matched, @Nullable String error) {
+			public ArgumentBinding(@NotNull Object[] arguments, int matched, int latches, @Nullable String error) {
 				this.arguments = arguments;
 				this.matched = matched;
+				this.latches = latches;
 				this.error = error;
 			}
 		}
@@ -494,24 +511,28 @@ public final class CommandProcessor implements CommandExecutor, TabCompleter {
 			final Object[] methodArgs = new Object[methodArgIndex + arguments.length];
 			methodArgs[0] = sender;
 			if (needsPlayerSender && !(sender instanceof Player)) {
-				return new ArgumentBinding(methodArgs, 0, "In-game only");
+				return new ArgumentBinding(methodArgs, 0, 0, "In-game only");
 			}
 
+			int latches = 0;
 			final Parameters params = new Parameters(args, 0, args.length);
 			for (Argument argument : arguments) {
 				final Match match = argument.match(sender, params);
 				if (match.success()) {
 					methodArgs[methodArgIndex++] = match.successResult();
+					if (argument.latching) {
+						latches++;
+					}
 				} else {
-					return new ArgumentBinding(methodArgs, methodArgIndex, match.suggestionMessage());
+					return new ArgumentBinding(methodArgs, methodArgIndex, latches, match.suggestionMessage());
 				}
 			}
 
 			if (!params.eof()) {
-				return new ArgumentBinding(methodArgs, methodArgIndex, "Unexpected extra parameters: "+params.rest(" "));
+				return new ArgumentBinding(methodArgs, methodArgIndex, latches, "Unexpected extra parameters: "+params.rest(" "));
 			}
 
-			return new ArgumentBinding(methodArgs, methodArgIndex, null);
+			return new ArgumentBinding(methodArgs, methodArgIndex, latches, null);
 		}
 
 		private void tabCompleteArgument(@NotNull CommandSender sender, @NotNull String[] args, @NotNull Consumer<StringWithScore> suggestionConsumer) {
