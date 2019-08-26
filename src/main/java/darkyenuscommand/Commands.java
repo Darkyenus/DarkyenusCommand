@@ -84,15 +84,6 @@ public final class Commands {
 	}
 
 	@Cmd
-	public void kill(@NotNull CommandSender sender, @Cmd.UseImplicit Player target) {
-		if (sender != target && !sender.hasPermission("darkyenuscommand.command.kill.anyone")) {
-			sender.sendMessage(ChatColor.RED+"I can't let you do that.");
-			return;
-		}
-		target.setHealth(0);
-	}
-
-	@Cmd
 	public void heal(@NotNull CommandSender sender, @Cmd.UseDefault int amount, @Cmd.UseImplicit Player player) {
 		final AttributeInstance maxHealthAttr = player.getAttribute(Attribute.GENERIC_MAX_HEALTH);
 		final double maxHealth = maxHealthAttr == null ? 20 : maxHealthAttr.getValue();

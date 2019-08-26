@@ -34,10 +34,6 @@ commands:
     description: Strike player as warning
     usage: /strike <Player> [Damage]
     permission: darkyenuscommand.command.strike
-  kill:
-    description: Instantly kill player or yourself
-    usage: /kill [Player]
-    permission: darkyenuscommand.command.kill
   report:
     description: Report a bug or player breaking rules
     usage: /report <Message>
@@ -226,9 +222,6 @@ permissions:
   darkyenuscommand.command.strike:
     description: Access to /strike command.
     default: op
-  darkyenuscommand.command.kill:
-    description: Access to /kill command. You can only kill yourself.
-    default: true
   darkyenuscommand.command.report:
     description: Access to /report command.
     default: true
@@ -335,9 +328,6 @@ permissions:
     description: Access to /server-stats command.
     default: true
 # Here lies the additional command permissions
-  darkyenuscommand.command.kill.anyone:
-    description: You can kill anyone with /kill command, not only yourself.
-    default: op
   darkyenuscommand.command.world.manage:
     description: You can create and delete worlds with /world command.
     default: op
@@ -364,7 +354,6 @@ permissions:
     children:
       darkyenuscommand.command.rules: true
       darkyenuscommand.command.report: true
-      darkyenuscommand.command.kill: true
   darkyenuscommand.moderator:
     description: You are moderator and have access to basic commands.
     default: false
@@ -386,7 +375,6 @@ permissions:
     children:
       darkyneuscommand.moderator: true
       darkyenuscommand.godfist: true
-      darkyenuscommand.command.kill.anyone: true
       darkyenuscommand.command.ban: true
       darkyenuscommand.command.ipban: true
       darkyenuscommand.command.pardon: true
