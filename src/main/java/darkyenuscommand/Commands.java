@@ -3,13 +3,29 @@ package darkyenuscommand;
 import darkyenuscommand.command.Cmd;
 import darkyenuscommand.match.EnumMatcher;
 import darkyenuscommand.match.Match;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.EntityEffect;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.Statistic;
+import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.command.PluginCommand;
-import org.bukkit.entity.*;
+import org.bukkit.entity.Animals;
+import org.bukkit.entity.Creature;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Item;
+import org.bukkit.entity.Monster;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
+import org.bukkit.entity.Vehicle;
+import org.bukkit.entity.WaterMob;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
@@ -348,7 +364,7 @@ public final class Commands {
 	}
 
 	@Cmd
-	public void command(@NotNull CommandSender sender, @Cmd.UseDefault String pluginOrCommandName) {
+	public void command(@NotNull CommandSender sender, @NotNull String pluginOrCommandName) {
 		boolean beHonest = sender.hasPermission("darkyenuscommand.command.command.all");
 		boolean outputDone = false;
 		org.bukkit.plugin.Plugin pluginOfThatName = getServer().getPluginManager().getPlugin(pluginOrCommandName);
